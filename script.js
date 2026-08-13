@@ -72,3 +72,48 @@ console.log (personas[1].edad) // Devuelve 25
 {} + {} // Devuelve NaN ya que al sumar dos objetos vacíos, el resultado es NaN.
 
     
+//estructura condicional
+let edad = 18
+if (edad >= 18) {
+    console.log("Es mayor de edad")
+} else if (edad < 18) {
+    console.log("Es menor de edad")
+} else {
+    console.log("No se puede determinar la edad")
+}
+
+// if ternario
+let mensaje = edad >= 18 ? "Es mayor de edad" : "Es menor de edad" // Si edad es mayor o igual a 18, entonces mensaje será "Es mayor de edad", de lo contrario será "Es menor de edad".
+
+// en javascript no se usa el while para iterar sobre un array, sino que se usa el for. El for tiene tres partes: la inicialización, la condición y el incremento. La inicialización se ejecuta una sola vez al principio del bucle, la condición se evalúa antes de cada iteración y el incremento se ejecuta al final de cada iteración.
+let frutas = ["manzana", "banana", "cereza"]
+for (let i = 0; i < frutas.length; i++) {
+    console.log(frutas[i]) // Devuelve "manzana", "banana" y "cereza"
+}
+
+//esto tambien se puede aplicar a objetos
+for (let i = 0; i < personas.length; i++) {
+    console.log(personas[i].nombre) // Devuelve "Esteban" y "Juan"
+}
+
+//tambien se puede usar for ... if
+for (let persona of personas) {
+    if (persona.edad >= 18) {
+        console.log(persona.nombre + " es mayor de edad") // Devuelve "Esteban es mayor de edad" y "Juan es mayor de edad"
+    } else {
+        console.log(persona.nombre + " es menor de edad")
+    }
+}
+
+// el of sirve para iterar sobre los elementos de un array, mientras que el in sirve para iterar sobre las propiedades de un objeto. Por ejemplo:
+for (let fruta in frutas) {
+    console.log(fruta) // Devuelve 0, 1 y 2 ya que son los índices del array
+}
+for (let propiedad in persona) {    
+    console.log(propiedad + ": " + persona[propiedad]) // Devuelve "nombre: Esteban", "edad: 33" y "profesor: true"
+}
+
+// funciones
+function saludar(nombre) {
+    console.log("Hola " + nombre)
+}   
