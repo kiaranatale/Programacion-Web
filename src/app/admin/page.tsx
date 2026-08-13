@@ -1,6 +1,9 @@
 import { EtapaPendiente } from "@/components/etapa-pendiente";
+import { requireRole } from "@/lib/auth";
 
-export default function AdminPage() {
+export default async function AdminPage() {
+  await requireRole("admin");
+
   return (
     <EtapaPendiente
       titulo="Panel de administración"

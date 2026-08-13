@@ -117,3 +117,14 @@ for (let propiedad in persona) {
 function saludar(nombre) {
     console.log("Hola " + nombre)
 }   
+
+//arrow functions --> si o si se debe usar luego de definirla, no se puede llamar antes de definirla, en cambio las funciones normales si se pueden llamar antes de definirlas.
+const saludar2 = (nombre) => {
+    console.log("Hola " + nombre)
+}   
+
+let edad = 33;
+edad = 34; // Correcto
+
+const nombre = "Esteban";
+nombre = "Ana"; // Error

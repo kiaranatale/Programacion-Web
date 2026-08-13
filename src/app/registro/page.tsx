@@ -1,10 +1,5 @@
-import { EtapaPendiente } from "@/components/etapa-pendiente";
+import { AuthForm } from "@/components/auth-form";
 
 export default function RegistroPage() {
-  return (
-    <EtapaPendiente
-      titulo="Crear cuenta"
-      descripcion="El registro de usuarios se implementa en la etapa de Autenticación."
-    />
-  );
+  return <AuthForm mode="register" />;
 }

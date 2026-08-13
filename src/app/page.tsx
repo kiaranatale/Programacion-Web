@@ -57,7 +57,7 @@ export default function Home() {
             </CardHeader>
             <CardContent>
               <Button asChild variant="link" className="px-0">
-                <Link href={role.href}>Ir a {role.title.toLowerCase()} →</Link>
+                <Link href="/login">Ingresar con mi cuenta →</Link>
               </Button>
             </CardContent>
           </Card>

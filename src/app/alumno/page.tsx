@@ -1,6 +1,9 @@
 import { EtapaPendiente } from "@/components/etapa-pendiente";
+import { requireRole } from "@/lib/auth";
 
-export default function AlumnoPage() {
+export default async function AlumnoPage() {
+  await requireRole("alumno");
+
   return (
     <EtapaPendiente
       titulo="Panel del alumno"
