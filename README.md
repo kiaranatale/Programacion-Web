@@ -20,7 +20,7 @@ npm run dev
 
 Abrí [http://localhost:3000](http://localhost:3000).
 
-Copiá `.env.local.example` a `.env.local` y completá las variables cuando se configure Supabase / Mercado Pago (etapas 2, 3 y 7 del roadmap).
+Copiá `.env.local.example` a `.env.local` y completá las variables de Supabase (ver [`docs/supabase-setup.md`](docs/supabase-setup.md)) y, más adelante, las de Mercado Pago (etapa 7).
 
 ## Estructura del proyecto
 
@@ -37,8 +37,12 @@ src/
     ui/                # componentes base estilo shadcn/ui
   lib/
     utils.ts           # helpers (cn, etc.)
+supabase/
+  migrations/          # esquema SQL + RLS (ver docs/supabase-setup.md)
+  seed.sql             # datos de ejemplo opcionales
 docs/
   apuntes/             # apuntes de práctica de JS de la cursada
+  supabase-setup.md    # cómo crear el proyecto de Supabase y correr las migraciones
 ```
 
 ## Roles
@@ -50,7 +54,7 @@ docs/
 ## Roadmap del proyecto
 
 1. ✅ Setup: Next.js + Tailwind + shadcn/ui + estructura del repo
-2. Modelo de datos + RLS en Supabase
+2. ✅ Modelo de datos + RLS en Supabase
 3. Auth + roles + middleware de rutas protegidas
 4. CRUD admin (materias, carreras, correlatividades, usuarios)
 5. Flujo alumno: inscripción con validación de correlatividades
