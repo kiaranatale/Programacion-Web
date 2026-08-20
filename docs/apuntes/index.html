@@ -10,16 +10,48 @@
         <h1>Clase 2</h1>    <!--logo, nombre de la empresa y menu de navegacion-->
     </header>
     <main> <!-- todo lo que quiera poner, en columnas -->
-        <section>
-            <h2>Contenido de la clase 2</h2> <!--subtitulo de la pagina-->
-            <p>En esta clase se abordaron los siguientes temas:</p> <!-- <p> sirve para párrafos -->
-            <ul> <!-- <ul> sirve para listas desordenadas -->
-                <li>Introducción a HTML</li> <!-- <li> sirve para elementos de la lista -->
-                <li>Estructura básica de un documento HTML</li>
-                <li>Etiquetas y atributos</li>
-                <li>Formateo de texto y listas</li>
-            </ul>
-        </section>
+        <menu> <!-- <menu> sirve para crear un menú de navegación --> </menu>
+
+        <input type="text" id="datoImportante">
+        <input type="button" value="Calcular" id="calcular">
+
+        <h1 id="titulo">Conexión con JavaScript</h1>
+        
+        <h2>Contenido de la clase 2</h2> <!--subtitulo de la pagina-->
+        <p>En esta clase se abordaron los siguientes temas:</p> <!-- <p> sirve para párrafos -->
+        <ul> <!-- <ul> sirve para listas desordenadas -->
+            <li>Introducción a HTML</li> <!-- <li> sirve para elementos de la lista -->
+            <li>Estructura básica de un documento HTML</li>
+            <li>Etiquetas y atributos</li>
+            <li>Formateo de texto y listas</li>
+        </ul>
+        <ul>
+            <li><a href="index.html">Inicio</a></li> <!-- <a> sirve para enlaces -->
+            <li><a href="apuntes.html">Apuntes</a></li>
+            <li><a href="ejercicios.html">Ejercicios</a></li>
+            <li><a href="contacto.html">Contacto</a></li>
+        </ul>
+        
+        <marquee> 
+
+        </marquee>
+
+        <!-- div y forms -->
+        <div id="seccion1">
+            <form action="", method="post">
+                <input type="text" name="nombre" placeholder="Nombre">
+                <input type="email" name="email" placeholder="Correo electrónico">
+                <input type="color" name="" id="">
+                <input type="date" name="" id="">
+                <input type="submit" value="Enviar">
+
+            </form>
+
+
+        </div>
+
+
+
     </main>
     <footer> <!-- info de contacto y legales -->
         <p>&copy; 2024 Clase 2. Todos los derechos reservados.</p>
@@ -34,3 +66,4 @@ etiqueta de cierre: </etiqueta>
 propiedades de las etiquetas: <etiqueta propiedad="valor">contenido</etiqueta>
 -->
 
+<!-- <div> sirve para secciones genéricas. la diferencia con section es que section tiene un significado semántico específico, es decir debe usarse cuando el contenido tiene un propósito claro dentro del documento. -->
