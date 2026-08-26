@@ -23,9 +23,36 @@ Todavía no está implementado:
 - Vistas de solo-lectura (ocupación de aulas con alertas, agenda del día).
 - Integración real con Mercado Pago (el modelo de datos para QR/órdenes de
   pago está listo, falta la lógica de aplicación).
-- Script de inicialización (`db_setup.py`) y `docker-compose.yml` para este
-  proyecto — todavía se corrió todo contra una instancia de Postgres ad hoc.
-- Migraciones versionadas (Alembic).
+- Migración del schema a Supabase (Auth + RLS por rol) — reemplaza el plan
+  anterior de Postgres local con `docker-compose`/Alembic. Ver Roadmap.
+
+## Roadmap (temario de la materia)
+
+Este proyecto es el trabajo práctico integrador de Programación Web. La
+mitad "Primer Parcial (programar)" del temario mapea directo a entregables
+del SGA:
+
+| Tema del temario | Entregable en el SGA |
+|---|---|
+| Bases de datos y Supabase: SQL, tablas, relaciones, CRUD, Auth, RLS | Migrar `ddl_sga.sql`/`triggers_sga.sql` a Supabase + políticas RLS por rol (`persona_rol`) |
+| Autenticación y autorización: login, registro, roles, middleware, sesiones | Supabase Auth, roles alumno/docente/admin sobre `persona_rol` |
+| Next.js completo: App Router, layouts, routing, Server Components, data fetching | App en `sga/app/` (inscripciones, notas, aulas, facturación) |
+| React completo: JSX, componentes, props, estado, hooks, formularios, consumo de APIs | Componentes de UI para los flujos de alumno/docente/admin |
+| APIs y Backend: Route Handlers, endpoints REST, validaciones, manejo de errores | Route Handlers en `sga/app/api/` sobre las entidades del modelo |
+| Mercado Pago: checkout, preferencias, estados de pago | Flujo de pago de aranceles sobre `orden_pago`/`evento_webhook_mp` (ya modelados) |
+| Testing y calidad: testing manual, Playwright | Suite E2E con Playwright sobre los flujos principales |
+| DevOps: deploy en Vercel, variables de entorno, CI/CD con GitHub Actions | Pipeline en GitHub Actions + deploy automático en Vercel |
+| Presentación Proyecto Final | Demo end-to-end del SGA |
+
+Los temas previos al parcial (Internet/Web, JS/HTML/CSS, proyecto
+integrador e-commerce) son fundamentos de la cursada, no entregables de
+este proyecto — quedan documentados en `docs/apuntes/` en la raíz del
+repositorio.
+
+Orden sugerido de implementación: 1) migrar schema a Supabase con RLS,
+2) Auth y roles, 3) scaffold Next.js + primeros Route Handlers (CRUD sobre
+inscripciones/notas), 4) integración Mercado Pago, 5) Playwright, 6) CI/CD
+y deploy en Vercel.
 
 ## Estructura del repositorio
 
@@ -43,8 +70,9 @@ sga/
 
 ## Requisitos
 
-- PostgreSQL 15+ (probado contra Postgres 16).
-- `psql` disponible en el path.
+- Cuenta y proyecto en [Supabase](https://supabase.com) (Postgres + Auth + RLS).
+- Node.js 20+ y `npx supabase` (Supabase CLI) para aplicar el schema.
+- `psql` disponible en el path (opcional, para correr los scripts SQL directo).
 
 ## Dominios modelados
 
@@ -107,23 +135,25 @@ confirmados — revisar si en algún momento se puede validar:
 
 ## Configuración local
 
-### 1. Crear la base
+### 1. Crear el proyecto Supabase
 
-```bash
-createdb sga_dev
-```
+Crear un proyecto en [supabase.com](https://supabase.com) (o levantar Supabase
+local con `npx supabase start`) y tomar la cadena de conexión a Postgres.
 
 ### 2. Aplicar el esquema
 
 ```bash
-psql -d sga_dev -v ON_ERROR_STOP=1 -f src/sql/ddl_sga.sql
-psql -d sga_dev -v ON_ERROR_STOP=1 -f src/sql/triggers_sga.sql
+psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f src/sql/ddl_sga.sql
+psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f src/sql/triggers_sga.sql
 ```
+
+Las políticas RLS por rol (`persona_rol`) todavía no están escritas — ver
+Roadmap.
 
 ## Pruebas
 
 ```bash
-psql -d sga_dev -v ON_ERROR_STOP=1 -f tests/sql/smoke_test.sql
+psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f tests/sql/smoke_test.sql
 ```
 
 El smoke test corre dentro de una transacción con `ROLLBACK` final — no
