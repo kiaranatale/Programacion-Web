@@ -4,6 +4,12 @@
     <meta charset="UTF-8"> <!--tipo de codificacion de caracteres-->
     <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!--configuracion de la ventana y tambien esta el favicon que es el icono de la pagina--> 
     <title>Document</title>
+    <style> 
+        body {background-color: blue}
+        #titulo {border: 1px solid white}
+        .subtitulo {font-family: Arial, sans-serif; color: white}
+    </style>
+    <link rel="stylesheet" href="style.css"> <!-- <link> sirve para enlazar archivos externos --> 
 </head>
 <body>
     <header>
@@ -20,9 +26,9 @@
         <h2>Contenido de la clase 2</h2> <!--subtitulo de la pagina-->
         <p>En esta clase se abordaron los siguientes temas:</p> <!-- <p> sirve para párrafos -->
         <ul> <!-- <ul> sirve para listas desordenadas -->
-            <li>Introducción a HTML</li> <!-- <li> sirve para elementos de la lista -->
-            <li>Estructura básica de un documento HTML</li>
-            <li>Etiquetas y atributos</li>
+            <li class="subtitulo">Introducción a HTML</li> <!-- <li> sirve para elementos de la lista -->
+            <li  class="subtitulo">Estructura básica de un documento HTML</li>
+            <li class="subtitulo">Etiquetas y atributos</li>
             <li>Formateo de texto y listas</li>
         </ul>
         <ul>
@@ -66,4 +72,5 @@ etiqueta de cierre: </etiqueta>
 propiedades de las etiquetas: <etiqueta propiedad="valor">contenido</etiqueta>
 -->
 
-<!-- <div> sirve para secciones genéricas. la diferencia con section es que section tiene un significado semántico específico, es decir debe usarse cuando el contenido tiene un propósito claro dentro del documento. -->
+<!-- <div> sirve para secciones genéricas. la diferencia con section es que section tiene un significado semántico específico, 
+    es decir debe usarse cuando el contenido tiene un propósito claro dentro del documento. -->

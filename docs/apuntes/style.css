@@ -1,0 +1,8 @@
+/*  el sistema hexadecimal funciona de 0 a F porque los valores van de 0 a 9 y de A a F  */
+/* css funciona como en cajas, primero esta el margin que es la distancia externa al borde, despues esta el border (el borde), 
+luego esta el padding que es la distancia del border al contenido, y luego esta el contenido que vendria a ser lo que esta dentro de la caja.  */
+/* hay 2 unidades de medida:
+- absoluta: pixel, centimetro, milimetro, inches, etc. Solo vamos a usar pixeles porque es el universal.
+- relativas: vw y vh (de la pantalla, un porcentaje, ancho y alto respectivamente), % (porcentaje del elemento padre), fr (fraccion, un sitio se 
+puede fraccionar en hasta 12 columnas)
+*/
