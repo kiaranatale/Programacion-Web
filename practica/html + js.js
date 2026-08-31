@@ -1,1 +1,0 @@
-function agregarLibro(titulo, autor, año, genero, leido = false) {}
