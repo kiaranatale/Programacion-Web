@@ -147,7 +147,16 @@ function renderizarLibros() {
 
     libros.forEach(libro => {
         const li = document.createElement("li");
-        li.textContent = `${libro.titulo} - ${libro.autor} (${libro.año}) - ${libro.genero} - ${libro.leido ? "Leído" : "No leído"}`;
+        const informacion = document.createElement("span");
+        const botonAgregar = document.createElement("button");
+
+        informacion.textContent = `${libro.titulo} - ${libro.autor} (${libro.año}) - ${libro.genero} - ${libro.leido ? "Leído" : "No leído"}`;
+        botonAgregar.textContent = "Agregar al carrito";
+        botonAgregar.addEventListener("click", () => {
+            console.log(`${libro.titulo} agregado al carrito`);
+        });
+
+        li.append(informacion, botonAgregar);
         lista.appendChild(li);
     });
 }
