@@ -62,9 +62,13 @@ sga/
 │   └── sql/
 │       ├── ddl_sga.sql       # Schema, enums, 42 tablas
 │       └── triggers_sga.sql  # Reglas de negocio (11 triggers)
+├── supabase/
+│   ├── config.toml            # Configuración para Supabase CLI local
+│   └── migrations/            # Migraciones versionadas del schema y triggers
 ├── tests/
 │   └── sql/
 │       └── smoke_test.sql    # Validación funcional end-to-end
+└── .env.example               # Variables requeridas por la aplicación
 └── README.md
 ```
 
@@ -135,16 +139,48 @@ confirmados — revisar si en algún momento se puede validar:
 
 ## Configuración local
 
-### 1. Crear el proyecto Supabase
+### 1. Instalar los requisitos
+
+- Node.js 20+.
+- Docker Desktop, abierto y en ejecución (requerido por Supabase local).
+
+### 2. Levantar Supabase local
+
+Desde la carpeta `sga/`:
+
+```bash
+npx supabase start
+```
+
+El comando muestra la URL, la publishable key y la cadena de conexión local.
+Copiarlas en un archivo `.env.local`, creado a partir de `.env.example`.
+
+### 3. Aplicar migraciones
+
+Las migraciones son la fuente de verdad para entornos nuevos. Para reconstruir
+la base local desde cero:
+
+```bash
+npx supabase db reset
+```
+
+Actualmente se aplican, en orden:
+
+- `20260917000000_initial_schema.sql`: tablas, enums e índices.
+- `20260917000001_business_rules.sql`: triggers y funciones de negocio.
+
+Los archivos originales en `src/sql/` se conservan como referencia histórica.
+
+### 4. Crear el proyecto Supabase remoto
 
 Crear un proyecto en [supabase.com](https://supabase.com) (o levantar Supabase
 local con `npx supabase start`) y tomar la cadena de conexión a Postgres.
 
-### 2. Aplicar el esquema
+Para un proyecto remoto, vincularlo y subir las migraciones:
 
 ```bash
-psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f src/sql/ddl_sga.sql
-psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f src/sql/triggers_sga.sql
+npx supabase link --project-ref TU_PROJECT_REF
+npx supabase db push
 ```
 
 Las políticas RLS por rol (`persona_rol`) todavía no están escritas — ver
