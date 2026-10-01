@@ -40,7 +40,7 @@ Revisión del estado del proyecto al 01/10/2026 y pasos sugeridos para seguir.
    Los permisos de tabla no abren los datos: RLS sigue filtrando fila por
    fila (las políticas son `TO authenticated`, así que `anon` ve 0 filas).
    Además, en el proyecto de Supabase hay que agregar `sga` en
-   **Project Settings → Data API → Exposed schemas** (el `config.toml`
+   **Integrations → Data API → Settings → Exposed schemas** (el `config.toml`
    solo aplica a Supabase local; ver sección 4.1).
 2. **No hay datos de prueba (seed).** `[db.seed]` está deshabilitado en
    `supabase/config.toml` y no existe `supabase/seed.sql`. Aunque te
@@ -81,8 +81,12 @@ adelante) y Mercado Pago Developers (sandbox, más adelante).
 1. En <https://supabase.com/dashboard> → **New project**. Elegí región
    São Paulo (`sa-east-1`) y **guardá la contraseña de la base**: la vas a
    necesitar para subir migraciones.
-2. **Project Settings → Data API → Exposed schemas**: agregar `sga`
-   (además de `public`). Sin esto la app no puede consultar el schema.
+2. Exponer el schema `sga` en la Data API: **Integrations → Data API →
+   pestaña Settings → Exposed schemas** (en versiones anteriores del
+   dashboard estaba en Project Settings → Data API). Agregar `sga` además
+   de `public`. Sin esto la app no puede consultar el schema. **Ojo:** el
+   schema tiene que existir para poder elegirlo, así que este paso se hace
+   después de subir las migraciones (sección 4.2).
 3. **Authentication → Sign In / Providers → Email**: para desarrollo,
    desactivar **Confirm email**, así podés crear usuarios de prueba sin
    tener que confirmar mails.
