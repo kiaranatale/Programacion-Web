@@ -11,9 +11,10 @@ BEGIN;
 -- Catálogo mínimo para poder dar de alta un legajo
 INSERT INTO sga.escuela (nombre) VALUES ('Escuela de Prueba RLS');
 INSERT INTO sga.carrera (codigo, nombre_oficial, escuela_id)
-SELECT 'RLS', 'Carrera de Prueba RLS', id FROM sga.escuela;
+SELECT 'RLS', 'Carrera de Prueba RLS', id FROM sga.escuela
+WHERE nombre = 'Escuela de Prueba RLS';
 INSERT INTO sga.plan_estudio (carrera_id, codigo, creditos_totales, vigencia_desde)
-SELECT id, 'PLN-RLS', 10, DATE '2020-01-01' FROM sga.carrera;
+SELECT id, 'PLN-RLS', 10, DATE '2020-01-01' FROM sga.carrera WHERE codigo = 'RLS';
 
 -- Usuarios de Auth simulados
 INSERT INTO auth.users (id, email) VALUES

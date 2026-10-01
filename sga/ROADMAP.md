@@ -146,7 +146,12 @@ npm run dev                     # http://localhost:3000
 
 Cada paso termina en algo que podés probar en el navegador o con un test.
 
-### Paso 0 — Arreglar la base (1 tarde)
+### Paso 0 — Arreglar la base ✅ hecho
+
+Hecho en `supabase/migrations/20261001000001_grants_sga.sql` y
+`supabase/seed.sql`. Los tests SQL ahora filtran por sus propios datos, así
+que pasan también con el seed cargado. Lo que sigue es el detalle original:
+
 - Migración nueva `supabase/migrations/2026100100000X_grants_sga.sql` con
   los `GRANT` del problema 1.
 - `supabase/seed.sql` con un set chico de datos: 1 escuela, 1 carrera,
@@ -158,6 +163,12 @@ Cada paso termina en algo que podés probar en el navegador o con un test.
   en verde desde el SQL Editor; en Table Editor ver las aulas cargadas.
 
 ### Paso 1 — Autenticación (tema: Auth, middleware, sesiones)
+- **Revisar antes:** las funciones de los triggers no son `SECURITY
+  DEFINER`, así que corren con los permisos del usuario logueado. Ej.: un
+  docente carga una nota → el trigger intenta actualizar
+  `legajo.rendimiento_academico`, pero RLS no le deja modificar legajos y
+  el UPDATE afecta 0 filas sin dar error. Hay que probarlo con un docente
+  real y, si pasa, marcar esas funciones como `SECURITY DEFINER`.
 - Páginas `app/login/page.tsx` (y `app/registro` si querés auto-registro)
   con Server Actions que llamen `supabase.auth.signInWithPassword` /
   `signUp`, y un botón de logout.

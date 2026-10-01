@@ -71,14 +71,16 @@ y deploy en Vercel.
 sga/
 ├── src/
 │   └── sql/
-│       ├── ddl_sga.sql       # Schema, enums, 42 tablas
-│       └── triggers_sga.sql  # Reglas de negocio (11 triggers)
+│       ├── ddl_sga.sql       # Schema, enums, tablas (copia histórica)
+│       └── triggers_sga.sql  # Reglas de negocio (copia histórica)
 ├── supabase/
 │   ├── config.toml            # Configuración para Supabase CLI local
-│   └── migrations/            # Migraciones versionadas del schema y triggers
+│   ├── migrations/            # Migraciones versionadas: fuente de verdad del schema
+│   └── seed.sql               # Datos de prueba (catálogos, aulas, cursos)
 ├── tests/
 │   └── sql/
-│       └── smoke_test.sql    # Validación funcional end-to-end
+│       ├── smoke_test.sql    # Validación funcional de los triggers
+│       └── rls_test.sql      # Validación de las políticas RLS
 └── .env.example               # Variables requeridas por la aplicación
 └── README.md
 ```
@@ -183,6 +185,13 @@ Actualmente se aplican, en orden:
 - `20261001000000_rls_policies.sql`: `persona.auth_user_id`, funciones
   helper (`sga.es_admin()`, `sga.legajo_actual_id()`, etc.) y políticas RLS
   por rol sobre las 49 tablas del schema.
+- `20261001000001_grants_sga.sql`: permisos de los roles de la Data API
+  (`anon`, `authenticated`, `service_role`) sobre el schema `sga`. Sin
+  esto, Supabase rechaza cualquier consulta al schema.
+
+Datos de prueba: `supabase/seed.sql` (escuela, carrera, plan, materias,
+edificios, aulas, cursos, comisiones y horarios). En Supabase en la nube se
+corre pegándolo en el SQL Editor; se puede ejecutar más de una vez.
 
 Los archivos originales en `src/sql/` se conservan como referencia histórica.
 
@@ -219,7 +228,8 @@ crear localmente `sga/app/.env.local`:
 
 No configurar `SUPABASE_SERVICE_ROLE_KEY` como variable `NEXT_PUBLIC_*` ni
 usarla en componentes del navegador. No cargar datos reales hasta implementar
-autenticación y políticas RLS: actualmente esas políticas todavía no existen.
+autenticación: las políticas RLS ya existen, pero sin login nadie puede
+ver ni cargar datos desde la app.
 
 Para comprobar la app localmente, ejecutar desde `sga/app/`:
 
