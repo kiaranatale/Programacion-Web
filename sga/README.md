@@ -19,12 +19,23 @@ Disponible:
 Todavía no está implementado:
 
 - Backend/API.
-- Frontend.
+- Frontend conectado a Supabase (la app hoy es una demo sin datos reales).
+- Supabase Auth (login/registro) y el flujo que vincula un usuario de Auth
+  con su `persona` (`persona.auth_user_id`).
 - Vistas de solo-lectura (ocupación de aulas con alertas, agenda del día).
 - Integración real con Mercado Pago (el modelo de datos para QR/órdenes de
   pago está listo, falta la lógica de aplicación).
-- Migración del schema a Supabase (Auth + RLS por rol) — reemplaza el plan
-  anterior de Postgres local con `docker-compose`/Alembic. Ver Roadmap.
+
+Disponible desde la última actualización:
+
+- Políticas RLS por rol (`persona_rol`) sobre las 49 tablas del schema
+  `sga`, en `20261001000000_rls_policies.sql`. Alumnos solo ven su propio
+  legajo/facturación; docentes ven alumnos y notas de sus comisiones;
+  administrativos tienen acceso total. Catálogos (carreras, aulas, etc.)
+  son de lectura abierta para cualquier usuario autenticado.
+- Columna `persona.auth_user_id` para vincular una `persona` con su
+  usuario de Supabase Auth (todavía no se crea automáticamente — falta el
+  flujo de registro/login).
 
 ## Roadmap (temario de la materia)
 
@@ -153,7 +164,8 @@ npx supabase start
 ```
 
 El comando muestra la URL, la publishable key y la cadena de conexión local.
-Copiarlas en un archivo `.env.local`, creado a partir de `.env.example`.
+Para la aplicación Next.js, crear `app/.env.local` a partir de `.env.example`
+(el archivo debe quedar dentro de `sga/app/`, que es la raíz de Next.js).
 
 ### 3. Aplicar migraciones
 
@@ -168,6 +180,9 @@ Actualmente se aplican, en orden:
 
 - `20260917000000_initial_schema.sql`: tablas, enums e índices.
 - `20260917000001_business_rules.sql`: triggers y funciones de negocio.
+- `20261001000000_rls_policies.sql`: `persona.auth_user_id`, funciones
+  helper (`sga.es_admin()`, `sga.legajo_actual_id()`, etc.) y políticas RLS
+  por rol sobre las 49 tablas del schema.
 
 Los archivos originales en `src/sql/` se conservan como referencia histórica.
 
@@ -183,18 +198,56 @@ npx supabase link --project-ref TU_PROJECT_REF
 npx supabase db push
 ```
 
-Las políticas RLS por rol (`persona_rol`) todavía no están escritas — ver
-Roadmap.
+Las políticas RLS por rol (`persona_rol`) ya están escritas en
+`20261001000000_rls_policies.sql`. Falta integrar Supabase Auth en la app
+para que `persona.auth_user_id` se complete al registrarse/iniciar sesión.
+
+### 5. Desplegar la app en Vercel
+
+La app está en `sga/app/`. En Vercel, importar el repositorio y configurar
+`sga/app` como **Root Directory**. El framework se detecta como Next.js; los
+comandos por defecto (`npm run build` y `npm run start`) y el directorio de
+salida también deben quedar en sus valores automáticos.
+
+La pantalla actual es una demo sin conexión a Supabase, por lo que se puede
+desplegar sin variables de entorno. Al implementar la integración, cargar las
+variables correspondientes en **Project Settings → Environment Variables** y
+crear localmente `sga/app/.env.local`:
+
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
+
+No configurar `SUPABASE_SERVICE_ROLE_KEY` como variable `NEXT_PUBLIC_*` ni
+usarla en componentes del navegador. No cargar datos reales hasta implementar
+autenticación y políticas RLS: actualmente esas políticas todavía no existen.
+
+Para comprobar la app localmente, ejecutar desde `sga/app/`:
+
+```bash
+npm install
+npm run dev
+```
+
+La verificación de producción es `npm run build`. Requiere que la instalación
+de dependencias haya terminado correctamente.
 
 ## Pruebas
 
 ```bash
 psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f tests/sql/smoke_test.sql
+psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f tests/sql/rls_test.sql
 ```
 
-El smoke test corre dentro de una transacción con `ROLLBACK` final — no
-modifica la base sobre la que se ejecuta. Cubre: activación automática de
-facturables (en ambos sentidos: legajo nuevo → ítems existentes, e ítem
-nuevo → legajos existentes), validación docente↔comisión, numeración y
-tope de intentos de final, cálculo de nota definitiva, y propagación a
-`rendimiento_academico`/`condicional_especial`.
+Ambos corren dentro de una transacción con `ROLLBACK` final — no modifican
+la base sobre la que se ejecutan.
+
+- `smoke_test.sql` cubre: activación automática de facturables (en ambos
+  sentidos: legajo nuevo → ítems existentes, e ítem nuevo → legajos
+  existentes), validación docente↔comisión, numeración y tope de intentos
+  de final, cálculo de nota definitiva, y propagación a
+  `rendimiento_academico`/`condicional_especial`.
+- `rls_test.sql` cubre las políticas RLS: un alumno solo ve su propio
+  legajo, un administrativo ve todos, y el rol `anon` (sin sesión) no ve
+  ninguno. Requiere correr contra una instancia de Supabase (no un
+  Postgres pelado), ya que depende del schema `auth` y de los roles
+  `anon`/`authenticated`.
