@@ -238,6 +238,9 @@ psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f tests/sql/smoke_test.sql
 psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f tests/sql/rls_test.sql
 ```
 
+También se pueden pegar completos en el **SQL Editor** del dashboard de
+Supabase (no usan comandos propios de `psql`).
+
 Ambos corren dentro de una transacción con `ROLLBACK` final — no modifican
 la base sobre la que se ejecutan.
 

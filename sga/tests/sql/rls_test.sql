@@ -5,7 +5,6 @@
 --
 -- Corre dentro de una transacción con ROLLBACK final: no modifica la base.
 
-\set ON_ERROR_STOP on
 
 BEGIN;
 

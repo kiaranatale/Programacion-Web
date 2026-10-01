@@ -39,9 +39,9 @@ Revisión del estado del proyecto al 01/10/2026 y pasos sugeridos para seguir.
 
    Los permisos de tabla no abren los datos: RLS sigue filtrando fila por
    fila (las políticas son `TO authenticated`, así que `anon` ve 0 filas).
-   En el proyecto remoto, además, hay que agregar `sga` en
+   Además, en el proyecto de Supabase hay que agregar `sga` en
    **Project Settings → Data API → Exposed schemas** (el `config.toml`
-   solo aplica a Supabase local).
+   solo aplica a Supabase local; ver sección 4.1).
 2. **No hay datos de prueba (seed).** `[db.seed]` está deshabilitado en
    `supabase/config.toml` y no existe `supabase/seed.sql`. Aunque te
    loguees, `/aulas` va a estar vacía.
@@ -60,47 +60,83 @@ Revisión del estado del proyecto al 01/10/2026 y pasos sugeridos para seguir.
 
 ## 3. Qué instalar en tu compu
 
+Se trabaja contra un proyecto de Supabase en la nube (supabase.com), sin
+Docker ni Supabase local.
+
 | Herramienta | Para qué | Cómo comprobar |
 |---|---|---|
 | **Git** | Clonar y versionar | `git --version` |
-| **Node.js 20 LTS o superior** (recomendado 22) | Correr Next.js y la CLI de Supabase vía `npx` | `node -v` |
-| **Docker Desktop** (abierto mientras trabajás) | Supabase local corre en contenedores | `docker info` |
+| **Node.js 20 LTS o superior** (recomendado 22) | Correr Next.js y la CLI de Supabase vía `npx` (no hace falta instalarla aparte) | `node -v` |
 | **VS Code** (o tu editor) | Editar | — |
-| `psql` (opcional) | Correr los tests SQL a mano. Alternativa: pegar el SQL en Supabase Studio | `psql --version` |
 
-Extensiones de VS Code útiles: ESLint, Tailwind CSS IntelliSense,
-PostgreSQL (o "SQLTools").
+Extensiones de VS Code útiles: ESLint, Tailwind CSS IntelliSense.
 
-Cuentas (gratis): GitHub (ya la tenés), Supabase (para el proyecto
-remoto, más adelante), Vercel (deploy), Mercado Pago Developers (sandbox).
-
-En Windows: instalar Docker Desktop con WSL 2 habilitado.
+Cuentas (gratis): GitHub (ya la tenés), Supabase, Vercel (deploy, más
+adelante) y Mercado Pago Developers (sandbox, más adelante).
 
 ## 4. Cómo levantarlo para probar
+
+### 4.1 Crear el proyecto en Supabase (una sola vez)
+
+1. En <https://supabase.com/dashboard> → **New project**. Elegí región
+   São Paulo (`sa-east-1`) y **guardá la contraseña de la base**: la vas a
+   necesitar para subir migraciones.
+2. **Project Settings → Data API → Exposed schemas**: agregar `sga`
+   (además de `public`). Sin esto la app no puede consultar el schema.
+3. **Authentication → Sign In / Providers → Email**: para desarrollo,
+   desactivar **Confirm email**, así podés crear usuarios de prueba sin
+   tener que confirmar mails.
+4. Anotar el **Reference ID** del proyecto (Project Settings → General),
+   y la **URL** y la **publishable key** (Project Settings → API Keys /
+   Data API).
+
+### 4.2 Subir las migraciones (recomendado: con la CLI)
+
+La CLI de Supabase **no necesita Docker** para `link` y `db push`: se
+conecta directo a la base de la nube.
 
 ```bash
 git clone https://github.com/kiaranatale/Programacion-Web.git
 cd Programacion-Web/sga
 
-# 1. Base de datos local (primera vez tarda: baja las imágenes de Docker)
-npx supabase start          # muestra API URL, publishable key, DB URL y Studio
-npx supabase db reset       # reaplica todas las migraciones desde cero
+npx supabase login                               # abre el navegador
+npx supabase link --project-ref TU_REFERENCE_ID  # pide la contraseña de la base
+npx supabase db push                             # aplica las migraciones que falten
+```
 
-# 2. Tests SQL (usar la "DB URL" que mostró supabase start)
-psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -f tests/sql/smoke_test.sql
-psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -f tests/sql/rls_test.sql
+Cada vez que agregues una migración nueva en `supabase/migrations/`,
+volvés a correr `npx supabase db push` y solo se aplica lo nuevo.
 
-# 3. App
+> Alternativa sin CLI: pegar el contenido de cada archivo de
+> `supabase/migrations/`, en orden, en el **SQL Editor** del dashboard.
+> Sirve para salir del paso, pero Supabase no registra que se aplicaron,
+> y si después usás `db push` intenta aplicarlas de nuevo y falla.
+> **Elegí un solo método y quedate con ese** (recomendado: la CLI).
+
+### 4.3 Correr los tests SQL
+
+Abrir **SQL Editor → New query**, pegar el contenido completo de
+`tests/sql/smoke_test.sql` y ejecutar. Después lo mismo con
+`tests/sql/rls_test.sql`. Ambos terminan en `ROLLBACK`, así que no dejan
+datos en la base. Si algo falla, el editor muestra el error (ej. el
+`RAISE EXCEPTION` con la regla que no se cumplió).
+
+Recordá que `rls_test.sql` va a fallar hasta hacer el Paso 0 (los `GRANT`).
+
+### 4.4 Levantar la app
+
+```bash
 cd app
-cp ../.env.example .env.local   # completar URL y PUBLISHABLE_KEY con lo de supabase start
+cp ../.env.example .env.local   # completar NEXT_PUBLIC_SUPABASE_URL y NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
 npm install
 npm run dev                     # http://localhost:3000
 ```
 
-- Supabase Studio local: <http://127.0.0.1:54323> (ver tablas, correr SQL,
-  crear usuarios de Auth a mano).
-- Mails de Auth local (confirmaciones, magic links): <http://127.0.0.1:54324>.
-- Para apagar: `npx supabase stop`.
+- Ver y editar datos: **Table Editor** del dashboard (elegir schema `sga`
+  arriba a la izquierda).
+- Crear usuarios de prueba a mano: **Authentication → Users → Add user**.
+- Las claves `SUPABASE_SERVICE_ROLE_KEY` y la contraseña de la base nunca
+  se suben al repo (`.env.local` ya está en `.gitignore`).
 
 ## 5. Ruta sugerida, paso a paso
 
@@ -111,8 +147,11 @@ Cada paso termina en algo que podés probar en el navegador o con un test.
   los `GRANT` del problema 1.
 - `supabase/seed.sql` con un set chico de datos: 1 escuela, 1 carrera,
   1 plan, 3–4 materias, 1 edificio con 3 aulas, 1 curso con 2 comisiones.
-  Activar `[db.seed] enabled = true` y `sql_paths = ["./seed.sql"]`.
-- **Probar:** `npx supabase db reset` + los dos tests SQL en verde.
+  Como no usamos Supabase local, el seed se corre pegándolo una vez en el
+  SQL Editor (`db push` no carga seeds en la nube). Escribirlo de forma
+  que se pueda correr dos veces sin romper (`ON CONFLICT DO NOTHING`).
+- **Probar:** `npx supabase db push`, correr el seed y los dos tests SQL
+  en verde desde el SQL Editor; en Table Editor ver las aulas cargadas.
 
 ### Paso 1 — Autenticación (tema: Auth, middleware, sesiones)
 - Páginas `app/login/page.tsx` (y `app/registro` si querés auto-registro)
@@ -121,8 +160,9 @@ Cada paso termina en algo que podés probar en el navegador o con un test.
 - Vincular usuario ↔ persona: lo más simple es un trigger en
   `auth.users` (AFTER INSERT) que busque la `persona` por
   `mail_institucional` y le complete `auth_user_id`.
-- En el seed, crear 3 usuarios (alumno, docente, administrativo) con sus
-  `persona` y `persona_rol`.
+- Crear 3 usuarios de prueba (alumno, docente, administrativo) desde
+  **Authentication → Users → Add user**, y sus `persona` / `persona_rol`
+  con el mismo mail institucional (el trigger los vincula solo).
 - En `lib/supabase/middleware.ts`, redirigir a `/login` si no hay usuario
   (excepto en `/login`).
 - **Probar:** entrar como admin y ver las aulas en `/aulas`; entrar como
@@ -163,7 +203,8 @@ claras, o Server Actions si es un formulario de la propia app.
   `MERCADO_PAGO_WEBHOOK_SECRET`, guarda en `evento_webhook_mp` y pasa la
   orden a pagada (el trigger marca las facturas como `PAGADA`). Este
   handler usa `SUPABASE_SERVICE_ROLE_KEY` (solo en servidor).
-- Para recibir webhooks en local: un túnel tipo `ngrok` o `cloudflared`.
+- Para recibir webhooks mientras corrés la app en tu compu: un túnel tipo
+  `ngrok` o `cloudflared`, o probarlo directamente con el deploy en Vercel.
 - **Probar:** pagar con tarjeta de prueba de Mercado Pago y ver la factura
   pagada.
 
@@ -173,10 +214,11 @@ claras, o Server Actions si es un formulario de la propia app.
   alumno no ve datos de otro alumno.
 
 ### Paso 6 — CI/CD y deploy (tema: DevOps)
-- GitHub Actions: en cada PR, `npm ci`, `npm run lint`, `npm run build`,
-  y opcionalmente Supabase local + tests SQL + Playwright.
-- Proyecto Supabase remoto: `npx supabase link` + `npx supabase db push`,
-  y exponer el schema `sga` (problema 1).
+- GitHub Actions: en cada PR, `npm ci`, `npm run lint`, `npm run build`.
+  Opcional: un job que haga `supabase db push` al mergear a `main`
+  (usando `SUPABASE_ACCESS_TOKEN` y la contraseña de la base como secrets
+  del repo). Ideal: un segundo proyecto de Supabase para producción, así
+  no probás sobre los mismos datos que muestra la demo.
 - Vercel: Root Directory `sga/app`, cargar
   `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`,
   `SUPABASE_SERVICE_ROLE_KEY` y las de Mercado Pago.
