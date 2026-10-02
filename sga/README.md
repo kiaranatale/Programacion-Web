@@ -188,6 +188,13 @@ Actualmente se aplican, en orden:
 - `20261001000001_grants_sga.sql`: permisos de los roles de la Data API
   (`anon`, `authenticated`, `service_role`) sobre el schema `sga`. Sin
   esto, Supabase rechaza cualquier consulta al schema.
+- `20261002000000_auth_vinculo_persona.sql`: vínculo automático entre
+  usuarios de Supabase Auth y `persona` por mail institucional, y triggers
+  de notas como `SECURITY DEFINER` para que funcionen con RLS.
+
+Usuarios de prueba: `supabase/seed_usuarios.sql` (correr después de
+`seed.sql`) crea alumno, docente y administrativo; los usuarios de Auth
+se crean en el dashboard con los mismos mails.
 
 Datos de prueba: `supabase/seed.sql` (escuela, carrera, plan, materias,
 edificios, aulas, cursos, comisiones y horarios). En Supabase en la nube se
@@ -246,6 +253,7 @@ de dependencias haya terminado correctamente.
 ```bash
 psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f tests/sql/smoke_test.sql
 psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f tests/sql/rls_test.sql
+psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f tests/sql/auth_test.sql
 ```
 
 También se pueden pegar completos en el **SQL Editor** del dashboard de

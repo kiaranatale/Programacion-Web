@@ -8,9 +8,9 @@ type AulaRow = {
   edificio: { codigo: string; nombre: string } | null;
 };
 
-// Primer módulo conectado a Supabase: reemplaza los datos de muestra por
-// una lectura real de sga.aula, acotada por las políticas RLS del rol
-// autenticado (sin sesión, el rol `anon` no ve ningún registro).
+// Primer módulo conectado a Supabase: lectura real de sga.aula. Las aulas
+// son un catálogo: RLS deja leerlas a cualquier usuario con sesión, y el
+// middleware ya redirige al login a quien no la tiene.
 export default async function AulasPage() {
   const supabase = await createClient();
 
@@ -49,15 +49,13 @@ export default async function AulasPage() {
           <span className="status-mark">AU</span>
           <div>
             <span className="status-label">ESTADO DEL MÓDULO</span>
-            <h2>No hay aulas visibles</h2>
+            <h2>No hay aulas cargadas</h2>
             <p>
-              Esperable sin autenticación: las políticas RLS ocultan los datos
-              a quien no tiene sesión iniciada. Una vez implementado el login
-              (Fase 2 del roadmap), un usuario con rol asignado verá aquí las
-              aulas reales.
+              La tabla sga.aula está vacía. Cargá los datos de prueba
+              corriendo supabase/seed.sql en el SQL Editor de Supabase.
             </p>
           </div>
-          <span className="status-pill">SIN SESIÓN</span>
+          <span className="status-pill">SIN DATOS</span>
         </section>
       ) : (
         <section className="scope-section">

@@ -162,30 +162,28 @@ que pasan también con el seed cargado. Lo que sigue es el detalle original:
 - **Probar:** `npx supabase db push`, correr el seed y los dos tests SQL
   en verde desde el SQL Editor; en Table Editor ver las aulas cargadas.
 
-### Paso 1 — Autenticación (tema: Auth, middleware, sesiones)
-- **Revisar antes:** las funciones de los triggers no son `SECURITY
-  DEFINER`, así que corren con los permisos del usuario logueado. Ej.: un
-  docente carga una nota → el trigger intenta actualizar
-  `legajo.rendimiento_academico`, pero RLS no le deja modificar legajos y
-  el UPDATE afecta 0 filas sin dar error. Hay que probarlo con un docente
-  real y, si pasa, marcar esas funciones como `SECURITY DEFINER`.
-- Páginas `app/login/page.tsx` (y `app/registro` si querés auto-registro)
-  con Server Actions que llamen `supabase.auth.signInWithPassword` /
-  `signUp`, y un botón de logout.
-- Vincular usuario ↔ persona: lo más simple es un trigger en
-  `auth.users` (AFTER INSERT) que busque la `persona` por
-  `mail_institucional` y le complete `auth_user_id`.
-- Crear 3 usuarios de prueba (alumno, docente, administrativo) desde
-  **Authentication → Users → Add user**, y sus `persona` / `persona_rol`
-  con el mismo mail institucional (el trigger los vincula solo).
-- En `lib/supabase/middleware.ts`, redirigir a `/login` si no hay usuario
-  (excepto en `/login`).
-- **Probar:** entrar como admin y ver las aulas en `/aulas`; entrar como
-  alumno y ver lo mismo (catálogo abierto); sin sesión, ir a `/login`.
+### Paso 1 — Autenticación ✅ hecho (tema: Auth, middleware, sesiones)
+
+- `supabase/migrations/20261002000000_auth_vinculo_persona.sql`: triggers
+  que vinculan `auth.users` ↔ `sga.persona` por mail institucional (en
+  los dos órdenes, solo mails confirmados), y `SECURITY DEFINER` en
+  `procesar_nota_final` / `recalcular_rendimiento_academico` (antes, la
+  nota que cargaba un docente no actualizaba el rendimiento del legajo).
+- `app/login/` (página + Server Action), `app/auth/actions.ts` (logout) y
+  redirección a `/login` sin sesión en `lib/supabase/middleware.ts`.
+- La pantalla de inicio muestra nombre y rol reales del usuario.
+- `supabase/seed_usuarios.sql`: alumno, docente y administrativo de prueba
+  (`alumno.demo@`, `docente.demo@`, `admin.demo@itba.edu.ar`).
+- `tests/sql/auth_test.sql`: vínculo en ambos órdenes y carga de nota de
+  un docente con RLS activo.
+- **Configuración en el dashboard:** desactivar el registro público
+  (Authentication → Sign In / Providers → "Allow new users to sign up"),
+  porque la vinculación es automática por mail: los usuarios se crean
+  solo desde el dashboard.
 
 ### Paso 2 — Layout y navegación por rol (tema: App Router, layouts)
-- Sacar el sidebar de `page.tsx` a un `layout.tsx` compartido, con el
-  nombre y rol reales del usuario logueado (reemplazar "Lucía Fernández").
+- Sacar el sidebar de `dashboard.tsx` a un `layout.tsx` compartido (hoy
+  `/aulas` no lo tiene), con el nombre y rol del usuario logueado.
 - Una ruta por módulo (`/alumnos`, `/cursadas`, `/examenes`, `/facturacion`,
   `/docentes`) usando `<Link>`; mostrar solo los módulos que corresponden
   al rol.
