@@ -181,13 +181,20 @@ que pasan también con el seed cargado. Lo que sigue es el detalle original:
   porque la vinculación es automática por mail: los usuarios se crean
   solo desde el dashboard.
 
-### Paso 2 — Layout y navegación por rol (tema: App Router, layouts)
-- Sacar el sidebar de `dashboard.tsx` a un `layout.tsx` compartido (hoy
-  `/aulas` no lo tiene), con el nombre y rol del usuario logueado.
-- Una ruta por módulo (`/alumnos`, `/cursadas`, `/examenes`, `/facturacion`,
-  `/docentes`) usando `<Link>`; mostrar solo los módulos que corresponden
-  al rol.
-- **Probar:** cada rol ve un menú distinto.
+### Paso 2 — Layout y navegación por rol (tema: App Router, layouts) — en curso
+
+Hecho:
+- Estética basada en el SGA actual (banda azul, menú gris, cajas y tablas).
+- `app/(sga)/layout.tsx`: encabezado y menú compartidos por todas las
+  pantallas con sesión; el menú muestra solo lo que corresponde al rol.
+- Inicio con datos reales: notificaciones, cronogramas y "Cursos en
+  progreso" (alumno: lo que cursa; docente: lo que dicta; administrativo:
+  todas las comisiones), en `lib/cursos.ts`.
+
+Falta:
+- Una ruta por módulo (`/cursos`, `/examenes`, `/legajo`, etc.): hoy
+  aparecen en gris en el menú.
+- **Probar:** cada rol ve un menú y unos cursos distintos.
 
 ### Paso 3 — Primeros CRUD reales (temas: Server Components, formularios, Route Handlers)
 Orden sugerido, de lo más simple a lo más complejo:
