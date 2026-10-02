@@ -38,8 +38,8 @@ export default async function AulasPage() {
             <p>
               {error.message}. Verificá que `NEXT_PUBLIC_SUPABASE_URL` y
               `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` estén configuradas en
-              `sga/app/.env.local` y que Supabase esté levantado
-              (`npx supabase start`).
+              `sga/app/.env.local` y que el schema `sga` figure en Exposed
+              schemas (Integrations → Data API → Settings en el dashboard).
             </p>
           </div>
           <span className="status-pill">SIN CONEXIÓN</span>
