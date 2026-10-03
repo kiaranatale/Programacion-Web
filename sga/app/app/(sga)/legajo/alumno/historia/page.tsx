@@ -22,7 +22,12 @@ export default async function HistoriaAcademica() {
           <div className="sga-bloque" key={clave}>
             <h4 className="sga-subtitulo-chico">{periodo(anio, p)}</h4>
             <div className="sga-tabla-scroll">
-              <table className="sga-tabla">
+              <table className="sga-tabla sga-tabla-historia">
+                <colgroup>
+                  <col className="sga-col-materia" />
+                  <col className="sga-col-cursada" />
+                  <col className="sga-col-finales" />
+                </colgroup>
                 <thead>
                   <tr><th rowSpan={2}>Materia</th><th>Cursada</th><th>Finales</th></tr>
                   <tr><th>Nota (Fecha)</th><th>Nota (Fecha)</th></tr>

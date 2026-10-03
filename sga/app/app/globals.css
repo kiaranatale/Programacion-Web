@@ -242,3 +242,12 @@ a:hover { text-decoration: underline; }
 .sga-ocupacion-excedida { background: #f5b56b; }
 .sga-ocupacion-superpuesta { background: #ef5b5b; }
 .sga-alerta-aula { color: #c0281c; font-weight: 700; }
+
+/* Historia académica: mismas columnas en todas las tablas de cuatrimestre */
+.sga-tabla-historia { table-layout: fixed; }
+.sga-tabla-historia .sga-col-materia { width: 55%; }
+.sga-tabla-historia .sga-col-cursada { width: 25%; }
+.sga-tabla-historia .sga-col-finales { width: 20%; }
+@media (max-width: 640px) {
+  .sga-tabla-historia { min-width: 560px; }
+}
