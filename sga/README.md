@@ -228,6 +228,9 @@ Actualmente se aplican, en orden:
 - `20261007000001_hoy_moderacion_miembros.sql`: los miembros de una
   organización también borran comentarios en las publicaciones de su
   organización.
+- `20261008000000_mensajes.sql`: mensajes con varios destinatarios y
+  estado de lectura por persona; se envían con `enviar_mensaje` y
+  `responder_mensaje`, que deciden a quién puede escribirle cada rol.
 
 Datos en el SQL Editor, en este orden (todos se pueden volver a correr):
 
@@ -245,6 +248,8 @@ Datos en el SQL Editor, en este orden (todos se pueden volver a correr):
 7. `supabase/seed_hoy.sql`: organizaciones estudiantiles y publicaciones
    de ejemplo para Hoy en el ITBA (la alumna demo puede publicar en el
    Centro de Estudiantes).
+8. `supabase/seed_mensajes.sql`: un mensaje del docente demo a su
+   comisión y uno de Administración a todos.
 
 Usuarios de prueba: `supabase/seed_usuarios.sql` crea alumno, docente y administrativo; los usuarios de Auth
 se crean en el dashboard con los mismos mails.
@@ -295,6 +300,18 @@ cada push a otra rama como una *preview* con su propia URL.
 5. En Supabase, **Authentication → URL Configuration → Site URL**: poner la
    URL de producción de Vercel (la usan los mails de Auth, como el de
    recuperar contraseña).
+6. En la misma pantalla, **Redirect URLs**: agregar
+   `https://<tu-app>.vercel.app/**` y `http://localhost:3000/**` (los links
+   de recuperación de contraseña solo pueden volver a esas direcciones).
+7. Recomendado: **Authentication → Emails → Reset Password**, cambiar el
+   link de la plantilla por
+   `{{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=recovery`. Así el
+   link funciona aunque se abra en otro navegador o en el celular (con la
+   plantilla por defecto solo funciona en el navegador donde se pidió).
+
+El servidor de mails que trae Supabase manda pocos mails por hora y solo a
+los miembros del equipo del proyecto. Para usuarios reales hay que
+configurar un SMTP propio en **Authentication → Emails → SMTP Settings**.
 
 No configurar `SUPABASE_SERVICE_ROLE_KEY` como variable `NEXT_PUBLIC_*` ni
 usarla en componentes del navegador; cuando haga falta (webhook de Mercado
@@ -321,6 +338,7 @@ psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f tests/sql/auth_test.sql
 psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f tests/sql/documentacion_test.sql
 psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f tests/sql/curso_detalle_test.sql
 psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f tests/sql/hoy_test.sql
+psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f tests/sql/mensajes_test.sql
 ```
 
 También se pueden pegar completos en el **SQL Editor** del dashboard de

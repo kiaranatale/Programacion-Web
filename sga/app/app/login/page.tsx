@@ -1,9 +1,11 @@
+import Link from "next/link";
 import LogoSga from "@/components/logo-sga";
 import { login } from "./actions";
 
 const mensajes: Record<string, string> = {
   "faltan-datos": "Completá el mail y la contraseña.",
   credenciales: "Mail o contraseña incorrectos.",
+  link: "El link para recuperar la contraseña venció o ya se usó. Pedí uno nuevo.",
 };
 
 export default async function LoginPage({ searchParams }: PageProps<"/login">) {
@@ -25,6 +27,7 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
           <input autoComplete="current-password" name="password" required type="password" />
         </label>
         <button type="submit">Ingresar</button>
+        <Link className="login-link" href="/login/recuperar">¿Olvidaste tu contraseña?</Link>
       </form>
     </main>
   );

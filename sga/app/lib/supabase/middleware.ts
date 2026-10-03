@@ -31,8 +31,10 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Sin sesión, todo salvo /login redirige al login.
-  if (!user && !request.nextUrl.pathname.startsWith("/login")) {
+  // Sin sesión, todo salvo /login (y sus pantallas, como recuperar la
+  // contraseña) y el link del mail de recuperación redirige al login.
+  const publica = request.nextUrl.pathname.startsWith("/login") || request.nextUrl.pathname === "/auth/confirm";
+  if (!user && !publica) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     url.search = "";
