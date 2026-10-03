@@ -1,0 +1,31 @@
+import LogoSga from "@/components/logo-sga";
+import { login } from "./actions";
+
+const mensajes: Record<string, string> = {
+  "faltan-datos": "Completá el mail y la contraseña.",
+  credenciales: "Mail o contraseña incorrectos.",
+};
+
+export default async function LoginPage({ searchParams }: PageProps<"/login">) {
+  const { error } = await searchParams;
+  const mensaje = typeof error === "string" ? mensajes[error] : undefined;
+
+  return (
+    <main className="login-shell">
+      <LogoSga className="login-logo" size={190} />
+
+      <form action={login} className="login-form">
+        {mensaje && <p className="login-error" role="alert">{mensaje}</p>}
+        <label>
+          <span>Mail institucional:</span>
+          <input autoComplete="email" name="email" required type="email" />
+        </label>
+        <label>
+          <span>Contraseña:</span>
+          <input autoComplete="current-password" name="password" required type="password" />
+        </label>
+        <button type="submit">Ingresar</button>
+      </form>
+    </main>
+  );
+}

@@ -71,14 +71,16 @@ y deploy en Vercel.
 sga/
 ├── src/
 │   └── sql/
-│       ├── ddl_sga.sql       # Schema, enums, 42 tablas
-│       └── triggers_sga.sql  # Reglas de negocio (11 triggers)
+│       ├── ddl_sga.sql       # Schema, enums, tablas (copia histórica)
+│       └── triggers_sga.sql  # Reglas de negocio (copia histórica)
 ├── supabase/
 │   ├── config.toml            # Configuración para Supabase CLI local
-│   └── migrations/            # Migraciones versionadas del schema y triggers
+│   ├── migrations/            # Migraciones versionadas: fuente de verdad del schema
+│   └── seed.sql               # Datos de prueba (catálogos, aulas, cursos)
 ├── tests/
 │   └── sql/
-│       └── smoke_test.sql    # Validación funcional end-to-end
+│       ├── smoke_test.sql    # Validación funcional de los triggers
+│       └── rls_test.sql      # Validación de las políticas RLS
 └── .env.example               # Variables requeridas por la aplicación
 └── README.md
 ```
@@ -142,8 +144,9 @@ confirmados — revisar si en algún momento se puede validar:
 - `curso`/`comision` siguen la misma lógica estructural que
   `instancia`/`comision` de SecAdmision, pero sin el cupo fijo en 24
   (depende del aula asignada).
-- `carrera.nivel_informatico` es un campo suelto sin lógica relacional
-  propia (posible remanente de integración con un sistema legado).
+- `carrera.nivel_informatico` corresponde al "Nivel informativo" del
+  listado de carreras del SGA actual (hoy siempre "Grado" en grado).
+  Sigue sin lógica relacional propia.
 - Confirmación de pago vía Mercado Pago: webhook como mecanismo primario
   + reconciliación periódica de respaldo (no implementado aún, es lógica
   de backend, no de base de datos).
@@ -183,6 +186,56 @@ Actualmente se aplican, en orden:
 - `20261001000000_rls_policies.sql`: `persona.auth_user_id`, funciones
   helper (`sga.es_admin()`, `sga.legajo_actual_id()`, etc.) y políticas RLS
   por rol sobre las 49 tablas del schema.
+- `20261001000001_grants_sga.sql`: permisos de los roles de la Data API
+  (`anon`, `authenticated`, `service_role`) sobre el schema `sga`. Sin
+  esto, Supabase rechaza cualquier consulta al schema.
+- `20261002000000_auth_vinculo_persona.sql`: vínculo automático entre
+  usuarios de Supabase Auth y `persona` por mail institucional, y triggers
+  de notas como `SECURITY DEFINER` para que funcionen con RLS.
+- `20261003000000_documento_requerido_unico.sql`: evita documentos
+  requeridos duplicados cuando carrera y nivel quedan en NULL.
+- `20261003000001_carrera_nombre_plan_version.sql`: nombre de la carrera
+  (además del oficial) y versión del plan, como en el SGA actual.
+- `20261003000002_plan_bloques.sql`: bloques del plan con su requisito
+  (aprobar todos / juntar créditos), huecos de electivas en la grilla,
+  créditos requeridos, correlativas por plan, títulos que otorga el plan
+  y materias de 0 créditos.
+- `20261004000000_cursos_reales.sql`: varios cursos de una materia en el
+  mismo período (bimestrales), créditos de materia opcionales y la vista
+  `curso_listado` con la cantidad de alumnos por curso.
+- `20261004000001_curso_plantel.sql`: responsable del curso, cargo de cada
+  docente, contenidos mínimos de la materia y la vista `curso_plantel`
+  (nombre, cargo y mail institucional de los docentes de cada curso).
+- `20261004000002_documentacion_carga.sql`: bucket privado
+  `documentacion` en Supabase Storage con políticas por legajo, y
+  funciones para que el alumno suba/elimine documentos (quedan
+  "Pendiente de validación") y Administración los apruebe o rechace.
+- `20261004000003_ocupacion_aulas.sql`: función `ocupacion_aulas(fecha)`
+  con clases, eventos y exámenes por aula y la cantidad de inscriptos
+  (para Administración → Ocupación de Aulas).
+
+Datos en el SQL Editor, en este orden (todos se pueden volver a correr):
+
+1. `supabase/seed.sql`: carreras reales, aulas, cursos y comisiones.
+2. `supabase/seed_plan_a22.sql`: plan A22 completo de LAES (119 materias,
+   bloques de electivas, correlativas).
+3. `supabase/seed_cursos.sql`: 492 cursos reales del segundo cuatrimestre
+   2026 con su departamento (generado con `scripts/csv_a_seed_cursos.py`;
+   ver "Cómo bajar el listado de cursos" en ROADMAP.md).
+4. `supabase/seed_usuarios.sql`: personas de prueba.
+5. `supabase/seed_legajo_demo.sql`: legajo completo de la alumna.
+
+Usuarios de prueba: `supabase/seed_usuarios.sql` crea alumno, docente y administrativo; los usuarios de Auth
+se crean en el dashboard con los mismos mails.
+
+Legajo de demo: `supabase/seed_legajo_demo.sql` (correr después de
+`seed_usuarios.sql`) completa todas las solapas de "Mi legajo" de la
+alumna: títulos, cursadas anteriores con finales, documentación,
+exámenes habilitados, facturas y pagos.
+
+Datos de prueba: `supabase/seed.sql` (escuela, carrera, plan, materias,
+edificios, aulas, cursos, comisiones y horarios). En Supabase en la nube se
+corre pegándolo en el SQL Editor; se puede ejecutar más de una vez.
 
 Los archivos originales en `src/sql/` se conservan como referencia histórica.
 
@@ -204,22 +257,30 @@ para que `persona.auth_user_id` se complete al registrarse/iniciar sesión.
 
 ### 5. Desplegar la app en Vercel
 
-La app está en `sga/app/`. En Vercel, importar el repositorio y configurar
-`sga/app` como **Root Directory**. El framework se detecta como Next.js; los
-comandos por defecto (`npm run build` y `npm run start`) y el directorio de
-salida también deben quedar en sus valores automáticos.
+La app está en `sga/app/`. Vercel publica la rama `main` como producción y
+cada push a otra rama como una *preview* con su propia URL.
 
-La pantalla actual es una demo sin conexión a Supabase, por lo que se puede
-desplegar sin variables de entorno. Al implementar la integración, cargar las
-variables correspondientes en **Project Settings → Environment Variables** y
-crear localmente `sga/app/.env.local`:
-
-- `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
+1. En [vercel.com](https://vercel.com), **Add New → Project** e importar el
+   repositorio de GitHub.
+2. **Root Directory:** `sga/app`. El framework se detecta como Next.js; los
+   comandos de build y el directorio de salida quedan en sus valores
+   automáticos.
+3. **Environment Variables** (antes del primer deploy: las `NEXT_PUBLIC_*`
+   se incorporan al código en el build):
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
+4. **Deploy**. Si las variables se agregan o cambian después, hace falta un
+   **Redeploy** para que tomen efecto.
+5. En Supabase, **Authentication → URL Configuration → Site URL**: poner la
+   URL de producción de Vercel (la usan los mails de Auth, como el de
+   recuperar contraseña).
 
 No configurar `SUPABASE_SERVICE_ROLE_KEY` como variable `NEXT_PUBLIC_*` ni
-usarla en componentes del navegador. No cargar datos reales hasta implementar
-autenticación y políticas RLS: actualmente esas políticas todavía no existen.
+usarla en componentes del navegador; cuando haga falta (webhook de Mercado
+Pago) va solo como variable de servidor.
+
+Límite de Vercel: los pedidos al servidor no pueden superar 4,5 MB, por eso
+la carga de documentación acepta archivos de hasta 4 MB.
 
 Para comprobar la app localmente, ejecutar desde `sga/app/`:
 
@@ -228,15 +289,19 @@ npm install
 npm run dev
 ```
 
-La verificación de producción es `npm run build`. Requiere que la instalación
-de dependencias haya terminado correctamente.
+La verificación de producción es `npm run build`.
 
 ## Pruebas
 
 ```bash
 psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f tests/sql/smoke_test.sql
 psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f tests/sql/rls_test.sql
+psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f tests/sql/auth_test.sql
+psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f tests/sql/documentacion_test.sql
 ```
+
+También se pueden pegar completos en el **SQL Editor** del dashboard de
+Supabase (no usan comandos propios de `psql`).
 
 Ambos corren dentro de una transacción con `ROLLBACK` final — no modifican
 la base sobre la que se ejecutan.
