@@ -62,7 +62,11 @@ export default async function HoyEnElItba({ searchParams }: PageProps<"/hoy">) {
     <section className="sga-panel">
       <div className="sga-hoy-encabezado">
         <h2 className="sga-titulo sga-titulo-grande">Hoy en el ITBA</h2>
-        {misOrganizaciones.length > 0 && <Link className="sga-boton" href="/hoy/nueva">+ Nueva publicación</Link>}
+        {misOrganizaciones.length > 0 && (
+          <Link className="sga-boton" href={misOrganizaciones.some((o) => String(o.id) === org) ? `/hoy/nueva?org=${org}` : "/hoy/nueva"}>
+            + Nueva publicación
+          </Link>
+        )}
       </div>
       <p className="sga-texto">Eventos y novedades de las organizaciones estudiantiles.</p>
       {ok && <p className="sga-mensaje-ok" role="status">{ok}</p>}

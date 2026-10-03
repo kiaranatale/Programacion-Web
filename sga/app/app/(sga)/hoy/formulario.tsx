@@ -5,12 +5,13 @@ type Props = {
   action: (formData: FormData) => Promise<void>;
   cancelar: string;
   organizaciones?: { id: number; nombre: string }[];
+  organizacionInicial?: number;
   publicacion?: Publicacion;
 };
 
 // Formulario de alta y edición de publicaciones. Fecha, hora y lugar solo
 // se guardan para eventos.
-export default function FormularioPublicacion({ action, cancelar, organizaciones, publicacion }: Props) {
+export default function FormularioPublicacion({ action, cancelar, organizaciones, organizacionInicial, publicacion }: Props) {
   return (
     <form action={action} className="sga-form-publicacion">
       {publicacion && <input name="id" type="hidden" value={publicacion.id} />}
@@ -18,8 +19,16 @@ export default function FormularioPublicacion({ action, cancelar, organizaciones
         <span>Organización</span>
         {publicacion ? (
           <strong>{publicacion.organizacion}</strong>
+        ) : organizaciones?.length === 1 ? (
+          <>
+            <input name="organizacion_id" type="hidden" value={organizaciones[0].id} />
+            <strong>{organizaciones[0].nombre}</strong>
+          </>
         ) : (
-          <select name="organizacion_id" required>
+          // Con más de una organización no se preselecciona ninguna: hay
+          // que elegir en nombre de cuál se publica.
+          <select defaultValue={organizacionInicial ?? ""} name="organizacion_id" required>
+            <option disabled value="">Elegí en nombre de qué organización publicás</option>
             {(organizaciones ?? []).map((o) => <option key={o.id} value={o.id}>{o.nombre}</option>)}
           </select>
         )}

@@ -41,7 +41,7 @@ export async function crearPublicacion(formData: FormData) {
   const sesion = await getSesion();
   const campos = camposPublicacion(formData);
   const organizacionId = Number(formData.get("organizacion_id"));
-  const invalido = errorDeCampos(campos);
+  const invalido = organizacionId > 0 ? errorDeCampos(campos) : "Elegí en nombre de qué organización publicás.";
   if (invalido) redirect(conError("/hoy/nueva", invalido));
   if (!sesion?.persona) redirect(conError("/hoy/nueva", "Tu usuario no tiene una persona asociada."));
 
