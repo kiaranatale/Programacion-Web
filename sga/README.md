@@ -213,6 +213,9 @@ Actualmente se aplican, en orden:
 - `20261004000003_ocupacion_aulas.sql`: función `ocupacion_aulas(fecha)`
   con clases, eventos y exámenes por aula y la cantidad de inscriptos
   (para Administración → Ocupación de Aulas).
+- `20261005000000_aulas_reales_ocupacion_referencia.sql`: capacidad de
+  aula opcional, tabla `aula_ocupacion_referencia` (ocupación semanal
+  tomada del SGA actual) y `ocupacion_aulas` que la incluye.
 
 Datos en el SQL Editor, en este orden (todos se pueden volver a correr):
 
@@ -222,8 +225,11 @@ Datos en el SQL Editor, en este orden (todos se pueden volver a correr):
 3. `supabase/seed_cursos.sql`: 492 cursos reales del segundo cuatrimestre
    2026 con su departamento (generado con `scripts/csv_a_seed_cursos.py`;
    ver "Cómo bajar el listado de cursos" en ROADMAP.md).
-4. `supabase/seed_usuarios.sql`: personas de prueba.
-5. `supabase/seed_legajo_demo.sql`: legajo completo de la alumna.
+4. `supabase/seed_aulas.sql`: 227 aulas reales con su capacidad y la
+   ocupación de referencia de la semana del 21/09/2026 (generado con
+   `scripts/csv_a_seed_aulas.py`).
+5. `supabase/seed_usuarios.sql`: personas de prueba.
+6. `supabase/seed_legajo_demo.sql`: legajo completo de la alumna.
 
 Usuarios de prueba: `supabase/seed_usuarios.sql` crea alumno, docente y administrativo; los usuarios de Auth
 se crean en el dashboard con los mismos mails.

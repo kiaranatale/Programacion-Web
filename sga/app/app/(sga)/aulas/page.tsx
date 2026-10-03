@@ -2,10 +2,10 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { fecha as formatoFecha } from "@/lib/legajo";
 
-type Aula = { id: number; codigo: string; capacidad: number; edificio: { codigo: string; nombre: string } | null };
+type Aula = { id: number; codigo: string; capacidad: number | null; edificio: { codigo: string; nombre: string } | null };
 type Ocupacion = {
   aula_id: number;
-  tipo: "CURSO" | "EVENTO" | "EXAMEN";
+  tipo: "CURSO" | "EVENTO" | "EXAMEN" | "REF_CURSO" | "REF_EVENTO" | "REF_SUPERPOSICION";
   descripcion: string;
   hora_inicio: string;
   hora_fin: string;
@@ -42,18 +42,24 @@ function fechaPorDefecto(): string {
   return dia === 6 ? sumarDias(iso(hoy), 2) : dia === 0 ? sumarDias(iso(hoy), 1) : iso(hoy);
 }
 
-function estadoCelda(items: (Ocupacion & { capacidad: number })[]): Estado | null {
+const esReferencia = (o: Ocupacion) => o.tipo.startsWith("REF_");
+const excede = (o: Ocupacion & { capacidad: number | null }) =>
+  o.inscriptos !== null && o.capacidad !== null && o.inscriptos > o.capacidad;
+
+function estadoCelda(items: (Ocupacion & { capacidad: number | null })[]): Estado | null {
   if (items.length === 0) return null;
-  if (items.length > 1) return "superpuesta";
+  if (items.length > 1 || items[0].tipo === "REF_SUPERPOSICION") return "superpuesta";
   const [o] = items;
-  if (o.inscriptos !== null && o.inscriptos > o.capacidad) return "excedida";
-  return o.tipo === "EXAMEN" ? "examen" : o.tipo === "EVENTO" ? "evento" : "curso";
+  if (excede(o)) return "excedida";
+  if (o.tipo === "EXAMEN") return "examen";
+  return o.tipo === "EVENTO" || o.tipo === "REF_EVENTO" ? "evento" : "curso";
 }
 
 export default async function OcupacionAulas({ searchParams }: PageProps<"/aulas">) {
   const sp = await searchParams;
   const fecha = typeof sp.fecha === "string" && /^\d{4}-\d{2}-\d{2}$/.test(sp.fecha) ? sp.fecha : fechaPorDefecto();
   const edificio = typeof sp.edificio === "string" ? sp.edificio : "";
+  const aulaFiltro = typeof sp.aula === "string" ? sp.aula.trim().toLowerCase() : "";
 
   const supabase = await createClient();
   const sga = supabase.schema("sga");
@@ -65,18 +71,22 @@ export default async function OcupacionAulas({ searchParams }: PageProps<"/aulas
 
   const visibles = (aulas ?? [])
     .filter((a) => !edificio || a.edificio?.codigo === edificio)
+    .filter((a) => !aulaFiltro || a.codigo.toLowerCase().includes(aulaFiltro))
     .sort((a, b) => (a.edificio?.nombre ?? "").localeCompare(b.edificio?.nombre ?? "") || a.codigo.localeCompare(b.codigo));
   const capacidad = new Map(visibles.map((a) => [a.id, a.capacidad]));
   const delDia = ((ocupacion ?? []) as Ocupacion[])
     .filter((o) => capacidad.has(o.aula_id))
-    .map((o) => ({ ...o, capacidad: capacidad.get(o.aula_id)! }));
+    .map((o) => ({ ...o, capacidad: capacidad.get(o.aula_id) ?? null }));
+  const cargados = delDia.filter((o) => !esReferencia(o));
+  const referencia = delDia.filter(esReferencia);
 
   const franjas: number[] = [];
   for (let m = INICIO; m < FIN; m += PASO) franjas.push(m);
   const enFranja = (aulaId: number, m: number) =>
     delDia.filter((o) => o.aula_id === aulaId && minutos(o.hora_inicio) < m + PASO && minutos(o.hora_fin) > m);
 
-  const url = (f: string) => `/aulas?${new URLSearchParams({ fecha: f, ...(edificio ? { edificio } : {}) })}`;
+  const url = (f: string) =>
+    `/aulas?${new URLSearchParams({ fecha: f, ...(edificio ? { edificio } : {}), ...(aulaFiltro ? { aula: aulaFiltro } : {}) })}`;
   const diaSemana = dias[new Date(`${fecha}T12:00:00Z`).getUTCDay()];
   const aulaNombre = new Map(visibles.map((a) => [a.id, `${a.codigo} (${a.edificio?.nombre ?? "—"})`]));
 
@@ -89,6 +99,7 @@ export default async function OcupacionAulas({ searchParams }: PageProps<"/aulas
         <Link aria-label="Día anterior" className="sga-flecha" href={url(sumarDias(fecha, -1))}>&lt;</Link>
         <label>Fecha <input defaultValue={fecha} name="fecha" type="date" /></label>
         <Link aria-label="Día siguiente" className="sga-flecha" href={url(sumarDias(fecha, 1))}>&gt;</Link>
+        <label>Aula <input defaultValue={aulaFiltro} name="aula" placeholder="Ej.: 101R" /></label>
         <label>
           Edificio{" "}
           <select defaultValue={edificio} name="edificio">
@@ -121,7 +132,7 @@ export default async function OcupacionAulas({ searchParams }: PageProps<"/aulas
             )}
             {visibles.map((a) => (
               <tr key={a.id}>
-                <th title={a.edificio?.nombre}>{a.codigo} ({a.capacidad})</th>
+                <th title={a.edificio?.nombre}>{a.codigo} ({a.capacidad ?? "—"})</th>
                 {franjas.map((m) => {
                   const items = enFranja(a.id, m);
                   const estado = estadoCelda(items);
@@ -130,7 +141,7 @@ export default async function OcupacionAulas({ searchParams }: PageProps<"/aulas
                       className={estado ? `sga-ocupacion-${estado}` : undefined}
                       key={m}
                       title={items.map((o) => `${o.descripcion} · ${o.hora_inicio.slice(0, 5)}-${o.hora_fin.slice(0, 5)}`
-                        + (o.inscriptos !== null ? ` · ${o.inscriptos}/${o.capacidad} inscriptos` : "")).join("\n") || undefined}
+                        + (o.inscriptos !== null ? ` · ${o.inscriptos}/${o.capacidad ?? "—"} inscriptos` : "")).join("\n") || undefined}
                     />
                   );
                 })}
@@ -141,17 +152,24 @@ export default async function OcupacionAulas({ searchParams }: PageProps<"/aulas
       </div>
 
       <h3 className="sga-subtitulo">Detalle del día</h3>
-      {delDia.length === 0 ? (
-        <p className="sga-vacio">No hay clases, eventos ni exámenes en aulas para esta fecha.</p>
+      {referencia.length > 0 && (
+        <p className="sga-texto">
+          La grilla incluye {referencia.length} bloques de ocupación de referencia tomados del SGA actual{" "}
+          {referencia[0].descripcion.replace("Ocupación según el SGA actual ", "")}: muestran qué aulas están
+          ocupadas, pero no qué materia las ocupa.
+        </p>
+      )}
+      {cargados.length === 0 ? (
+        <p className="sga-vacio">No hay clases, eventos ni exámenes cargados en el sistema para esta fecha.</p>
       ) : (
         <div className="sga-tabla-scroll">
           <table className="sga-tabla">
             <thead><tr><th>Horario</th><th>Aula</th><th>Tipo</th><th>Descripción</th><th>Inscriptos / capacidad</th></tr></thead>
             <tbody>
-              {[...delDia].sort((x, y) => x.hora_inicio.localeCompare(y.hora_inicio) || x.aula_id - y.aula_id).map((o, i) => {
+              {[...cargados].sort((x, y) => x.hora_inicio.localeCompare(y.hora_inicio) || x.aula_id - y.aula_id).map((o, i) => {
                 const superpuesta = delDia.some((p) => p !== o && p.aula_id === o.aula_id
                   && minutos(p.hora_inicio) < minutos(o.hora_fin) && minutos(p.hora_fin) > minutos(o.hora_inicio));
-                const excedida = o.inscriptos !== null && o.inscriptos > o.capacidad;
+                const excedida = excede(o);
                 return (
                   <tr key={i}>
                     <td>{o.hora_inicio.slice(0, 5)} - {o.hora_fin.slice(0, 5)}</td>
@@ -162,7 +180,7 @@ export default async function OcupacionAulas({ searchParams }: PageProps<"/aulas
                       {superpuesta && <span className="sga-alerta-aula"> · Superposición horaria</span>}
                     </td>
                     <td className={excedida ? "sga-desaprobado" : undefined}>
-                      {o.inscriptos !== null ? `${o.inscriptos} / ${o.capacidad}${excedida ? " (excedida)" : ""}` : "—"}
+                      {o.inscriptos !== null ? `${o.inscriptos} / ${o.capacidad ?? "—"}${excedida ? " (excedida)" : ""}` : "—"}
                     </td>
                   </tr>
                 );
