@@ -7,16 +7,27 @@ import { getSesion, type Rol } from "@/lib/sesion";
 type ItemMenu = { label: string; href?: string };
 type Menu = { label: string; items: ItemMenu[]; roles?: Rol[] };
 
-// Los ítems sin href son módulos todavía no implementados.
+// Misma estructura de menú que el SGA actual. Los ítems sin href son
+// pantallas todavía no implementadas (ver "Pantallas del SGA actual" en
+// ROADMAP.md).
 const menus: Menu[] = [
   {
+    label: "Encuestas",
+    items: [{ label: "General" }],
+  },
+  {
     label: "Académica",
-    items: [{ label: "Aulas", href: "/aulas" }, { label: "Cursos" }, { label: "Exámenes finales" }],
+    items: [
+      { label: "Autoridades" },
+      { label: "Carreras" },
+      { label: "Cursos" },
+      { label: "Hoy en el ITBA" },
+    ],
   },
   {
     label: "Legajos",
     roles: ["ALUMNO"],
-    items: [{ label: "Mi legajo" }, { label: "Facturación" }],
+    items: [{ label: "Mi legajo" }],
   },
   {
     label: "Docencia",
@@ -25,8 +36,7 @@ const menus: Menu[] = [
   },
   {
     label: "Administración",
-    roles: ["ADMINISTRATIVO"],
-    items: [{ label: "Legajos" }, { label: "Docentes" }, { label: "Facturación" }],
+    items: [{ label: "Ocupación de Aulas", href: "/aulas" }],
   },
 ];
 
@@ -78,7 +88,8 @@ export default async function SgaLayout({ children }: LayoutProps<"/">) {
         <div className="sga-nav-menu">
           <button type="button">Usuario<span aria-hidden="true">▾</span></button>
           <ul>
-            <li><span title="Próximamente">Mis datos</span></li>
+            <li><span title="Próximamente">Cambio de clave</span></li>
+            <li><span title="Próximamente">Mensajes</span></li>
             <li>
               <form action={logout}>
                 <button type="submit">Cerrar sesión</button>

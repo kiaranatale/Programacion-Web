@@ -196,12 +196,47 @@ Falta:
   aparecen en gris en el menú.
 - **Probar:** cada rol ve un menú y unos cursos distintos.
 
+### Pantallas del SGA actual (según `Estructuracion_SGA.pdf`)
+
+Inventario de lo que muestra el SGA actual, con las tablas que ya lo
+cubren y el orden sugerido (columna **#**). "Falta modelo" = hay que
+agregar tablas antes de hacer la pantalla.
+
+| # | Menú → Pantalla | Qué muestra | Tablas | Estado |
+|---|---|---|---|---|
+| — | Inicio | Notificaciones, tareas, trámites, cronogramas, cursos en progreso | `notificacion`, `cronograma_academico`, `inscripcion_curso`, `horario_comision` | ✅ Hecho (tareas y trámites son texto fijo) |
+| 1 | Legajos → Mi legajo → **General** | Foto y datos personales | `persona`, `legajo` | Pendiente (foto: falta Supabase Storage) |
+| 1 | Mi legajo → **Títulos** | Títulos previos | `titulo_previo` | Pendiente |
+| 1 | Mi legajo → Datos del alumno → **Roles** | Roles, legajos, carreras en curso, historial de actividades | `persona_rol`, `legajo`, `plan_estudio`, `hito_academico` | Pendiente |
+| 2 | Datos del alumno → **Analítico de notas** | Rendimiento, créditos aprobados / en curso, % de carrera, materias por año con cursada y finales | `legajo`, `plan_materia`, `inscripcion_curso`, `inscripcion_examen_final` | Pendiente |
+| 2 | Datos del alumno → **Historia académica** | Materias por cuatrimestre con nota de cursada y final | `inscripcion_curso`, `inscripcion_examen_final`, `curso` | Pendiente |
+| 3 | Datos del alumno → **Calendario semanal** | Grilla lunes–sábado con los horarios de cada materia | `inscripcion_curso`, `horario_comision` | Pendiente |
+| 4 | Administración → **Ocupación de Aulas** | Grilla aula × hora: cursos, eventos, exámenes, capacidad excedida | `aula`, `horario_comision`, `evento_academico`, `examen_final` | Hoy `/aulas` es un listado; falta la grilla |
+| 5 | Académica → **Carreras** | Listado con filtros (código, escuela, nivel, activa) | `carrera`, `escuela` | Pendiente |
+| 5 | Académica → **Cursos** | Listado con filtros (materia, depto., período, año, alumnos) | `curso`, `materia`, `departamento`, `inscripcion_curso` | Pendiente |
+| 5 | Académica → **Autoridades** | Cargo y nombre | `autoridad`, `cargo_institucional`, `persona` | Pendiente |
+| 5 | Académica → **Hoy en el ITBA** | Aulas ocupadas hoy por hora (curso, evento, examen) | `horario_comision`, `evento_academico`, `examen_final` | Pendiente |
+| 6 | Datos del alumno → **Datos familiares** | Familiares | `dato_familiar` | Pendiente |
+| 6 | Datos del alumno → **Historial de inhibiciones** / **Histórico excepciones** | Inhibiciones y excepciones con fechas | `inhibicion`, `excepcion` | Pendiente |
+| 6 | Datos del alumno → **Exámenes habilitados** | Exámenes especiales (inglés, castellano, práctica laboral) | `examen_especial`, `examen_especial_intento` | Pendiente |
+| 6 | Datos del alumno → **Documentación** | Documentos obligatorios, entregados y validados, con carga de archivos | `documento_requerido`, `documento_legajo` | Pendiente (archivos: Supabase Storage) |
+| 7 | Datos del alumno → **Facturables** / Mi legajo → **Estado de cuenta** | Ítems activos, saldo, facturas y pagos | `item_facturable_legajo`, `factura`, `orden_pago` | Pendiente (Paso 4, con Mercado Pago) |
+| 8 | Encuestas → **General** | Listado de encuestas con estado y fechas | `encuesta`, `encuesta_respuesta` | Pendiente |
+| 9 | Usuario → **Cambio de clave** | Cambiar contraseña | Supabase Auth | Pendiente |
+| 9 | Usuario → **Mensajes** | Bandeja de mensajes | `mensaje` | Pendiente |
+| — | Mi legajo → **Planes de pago** | Planes de pago | — | Falta modelo |
+| — | Mi legajo → **Proyectos** | Roles en proyectos (investigador, tecnólogo, etc.) | — | Falta modelo |
+| — | Mi legajo → **Información personal** | Datos de Salesforce | — | Fuera de alcance (sistema externo) |
+
+El menú de la app ya replica esta estructura (Encuestas, Académica,
+Legajos, Administración, Usuario); lo no implementado aparece en gris.
+
 ### Paso 3 — Primeros CRUD reales (temas: Server Components, formularios, Route Handlers)
 Orden sugerido, de lo más simple a lo más complejo:
-1. **Aulas/edificios** (admin): listado + alta/edición. Es un catálogo
-   sin reglas raras, ideal para aprender el patrón.
-2. **Mi legajo** (alumno): datos propios + materias cursadas y notas
-   (RLS ya filtra al legajo propio).
+1. **Mi legajo** (alumno): pantallas 1–3 de la tabla de arriba. Son
+   lecturas (RLS ya filtra al legajo propio) y es lo que más se usa.
+2. **Aulas/edificios** (admin): alta/edición. Es un catálogo sin reglas
+   raras, ideal para aprender el patrón de formularios.
 3. **Inscripción a cursada** (alumno): elegir curso/comisión →
    `inscripcion_curso`. El trigger de comisión↔curso ya valida.
 4. **Carga de notas** (docente): sobre sus comisiones. El trigger de
