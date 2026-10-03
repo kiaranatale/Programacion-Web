@@ -225,6 +225,9 @@ Actualmente se aplican, en orden:
   estudiantiles (organizaciones, miembros, publicaciones y comentarios,
   con sus políticas y las vistas `publicacion_listado` y
   `comentario_listado`).
+- `20261007000001_hoy_moderacion_miembros.sql`: los miembros de una
+  organización también borran comentarios en las publicaciones de su
+  organización.
 
 Datos en el SQL Editor, en este orden (todos se pueden volver a correr):
 

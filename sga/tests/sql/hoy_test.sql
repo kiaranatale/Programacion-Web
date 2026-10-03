@@ -1,6 +1,8 @@
--- Prueba de Hoy en el ITBA (20261007000000_hoy_en_el_itba): solo los
--- miembros publican en nombre de su organización, cualquiera comenta, y
--- cada uno borra lo suyo (Administración modera todo). Requiere Supabase
+-- Prueba de Hoy en el ITBA (20261007000000_hoy_en_el_itba y
+-- 20261007000001_hoy_moderacion_miembros): solo los miembros publican en
+-- nombre de su organización y editan cualquier publicación de ella;
+-- cualquiera comenta; los comentarios los borra su autor, un miembro de
+-- la organización de la publicación o Administración. Requiere Supabase
 -- (schema auth y roles).
 --
 -- Corre dentro de una transacción con ROLLBACK final: no modifica la base.
@@ -10,18 +12,23 @@ BEGIN;
 INSERT INTO auth.users (id, email, email_confirmed_at) VALUES
     ('99999999-9999-9999-9999-999999999991', 'miembro.hoy@test.local', now()),
     ('99999999-9999-9999-9999-999999999992', 'otro.hoy@test.local', now()),
-    ('99999999-9999-9999-9999-999999999993', 'admin.hoy@test.local', now());
+    ('99999999-9999-9999-9999-999999999993', 'admin.hoy@test.local', now()),
+    ('99999999-9999-9999-9999-999999999994', 'segundo.hoy@test.local', now()),
+    ('99999999-9999-9999-9999-999999999995', 'ajeno.hoy@test.local', now());
 INSERT INTO sga.persona (tipo_documento, nro_documento, nombre, apellido, mail_institucional) VALUES
     ('DNI', '94000001', 'Miembro', 'Hoy', 'miembro.hoy@test.local'),
     ('DNI', '94000002', 'Otro', 'Hoy', 'otro.hoy@test.local'),
-    ('DNI', '94000003', 'Admin', 'Hoy', 'admin.hoy@test.local');
+    ('DNI', '94000003', 'Admin', 'Hoy', 'admin.hoy@test.local'),
+    ('DNI', '94000004', 'Segundo', 'Hoy', 'segundo.hoy@test.local'),
+    ('DNI', '94000005', 'Ajeno', 'Hoy', 'ajeno.hoy@test.local');
 INSERT INTO sga.persona_rol (persona_id, rol)
 SELECT id, 'ADMINISTRATIVO' FROM sga.persona WHERE nro_documento = '94000003';
 
 INSERT INTO sga.organizacion (nombre) VALUES ('Organización de Prueba Hoy'), ('Otra Organización de Prueba Hoy');
 INSERT INTO sga.organizacion_miembro (organizacion_id, persona_id)
 SELECT o.id, p.id FROM sga.organizacion o, sga.persona p
-WHERE o.nombre = 'Organización de Prueba Hoy' AND p.nro_documento = '94000001';
+WHERE (o.nombre = 'Organización de Prueba Hoy' AND p.nro_documento IN ('94000001', '94000004'))
+   OR (o.nombre = 'Otra Organización de Prueba Hoy' AND p.nro_documento = '94000005');
 
 CREATE TEMP TABLE hoy_ids AS
 SELECT
@@ -95,21 +102,40 @@ SELECT pg_temp.espera_error(
     'row-level security')
 FROM hoy_ids;
 
--- ---------- Miembro: edita (autor y fecha no cambian), no borra comentarios ajenos ----------
-SET LOCAL request.jwt.claims TO '{"sub": "99999999-9999-9999-9999-999999999991"}';
+-- ---------- Miembro de otra organización: no modera comentarios ajenos ----------
+SET LOCAL request.jwt.claims TO '{"sub": "99999999-9999-9999-9999-999999999995"}';
+
+DO $$
+BEGIN
+    IF (SELECT puede_borrar FROM sga.comentario_listado WHERE cuerpo = 'Comentario de prueba') THEN
+        RAISE EXCEPTION 'Hoy: un miembro de otra organización no debería poder borrar el comentario';
+    END IF;
+    DELETE FROM sga.publicacion_comentario WHERE cuerpo = 'Comentario de prueba';
+    IF NOT EXISTS (SELECT 1 FROM sga.publicacion_comentario WHERE cuerpo = 'Comentario de prueba') THEN
+        RAISE EXCEPTION 'Hoy: un miembro de otra organización borró un comentario ajeno';
+    END IF;
+END;
+$$;
+
+-- ---------- Otro miembro de la misma organización: edita la publicación
+-- de su compañero (autor y fecha no cambian) y modera comentarios ----------
+SET LOCAL request.jwt.claims TO '{"sub": "99999999-9999-9999-9999-999999999994"}';
 
 DO $$
 BEGIN
     UPDATE sga.publicacion SET titulo = 'Evento de prueba Hoy (editado)', autor_persona_id = NULL
     WHERE titulo = 'Evento de prueba Hoy';
     IF NOT EXISTS (SELECT 1 FROM sga.publicacion_listado
-                   WHERE titulo = 'Evento de prueba Hoy (editado)' AND autor_apellido = 'Hoy' AND editada IS NOT NULL) THEN
-        RAISE EXCEPTION 'Hoy: el miembro no pudo editar o se perdió el autor';
+                   WHERE titulo = 'Evento de prueba Hoy (editado)' AND autor_nombre = 'Miembro' AND editada IS NOT NULL) THEN
+        RAISE EXCEPTION 'Hoy: otro miembro no pudo editar o se perdió el autor original';
     END IF;
 
+    IF NOT (SELECT puede_borrar FROM sga.comentario_listado WHERE cuerpo = 'Comentario de prueba') THEN
+        RAISE EXCEPTION 'Hoy: el miembro debería ver que puede borrar el comentario';
+    END IF;
     DELETE FROM sga.publicacion_comentario WHERE cuerpo = 'Comentario de prueba';
-    IF NOT EXISTS (SELECT 1 FROM sga.publicacion_comentario WHERE cuerpo = 'Comentario de prueba') THEN
-        RAISE EXCEPTION 'Hoy: el miembro no debería borrar comentarios ajenos';
+    IF EXISTS (SELECT 1 FROM sga.publicacion_comentario WHERE cuerpo = 'Comentario de prueba') THEN
+        RAISE EXCEPTION 'Hoy: el miembro debería poder borrar comentarios en publicaciones de su organización';
     END IF;
 END;
 $$;
@@ -128,7 +154,6 @@ FROM hoy_ids;
 SET LOCAL request.jwt.claims TO '{"sub": "99999999-9999-9999-9999-999999999993"}';
 DO $$
 BEGIN
-    DELETE FROM sga.publicacion_comentario WHERE cuerpo = 'Comentario de prueba';
     DELETE FROM sga.publicacion WHERE titulo = 'Evento de prueba Hoy (editado)';
     IF NOT FOUND THEN
         RAISE EXCEPTION 'Hoy: Administración debería poder borrar publicaciones';
