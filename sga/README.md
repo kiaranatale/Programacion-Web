@@ -221,6 +221,13 @@ Actualmente se aplican, en orden:
   de una comisión para sus alumnos y docentes (`companeros_comision`) y
   edición de contenidos mínimos por el responsable del curso
   (`actualizar_contenidos_minimos`).
+- `20261007000000_hoy_en_el_itba.sql`: foro de organizaciones
+  estudiantiles (organizaciones, miembros, publicaciones y comentarios,
+  con sus políticas y las vistas `publicacion_listado` y
+  `comentario_listado`).
+- `20261007000001_hoy_moderacion_miembros.sql`: los miembros de una
+  organización también borran comentarios en las publicaciones de su
+  organización.
 
 Datos en el SQL Editor, en este orden (todos se pueden volver a correr):
 
@@ -235,6 +242,9 @@ Datos en el SQL Editor, en este orden (todos se pueden volver a correr):
    `scripts/csv_a_seed_aulas.py`).
 5. `supabase/seed_usuarios.sql`: personas de prueba.
 6. `supabase/seed_legajo_demo.sql`: legajo completo de la alumna.
+7. `supabase/seed_hoy.sql`: organizaciones estudiantiles y publicaciones
+   de ejemplo para Hoy en el ITBA (la alumna demo puede publicar en el
+   Centro de Estudiantes).
 
 Usuarios de prueba: `supabase/seed_usuarios.sql` crea alumno, docente y administrativo; los usuarios de Auth
 se crean en el dashboard con los mismos mails.
@@ -310,6 +320,7 @@ psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f tests/sql/rls_test.sql
 psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f tests/sql/auth_test.sql
 psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f tests/sql/documentacion_test.sql
 psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f tests/sql/curso_detalle_test.sql
+psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f tests/sql/hoy_test.sql
 ```
 
 También se pueden pegar completos en el **SQL Editor** del dashboard de

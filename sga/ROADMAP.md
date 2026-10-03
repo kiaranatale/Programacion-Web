@@ -215,7 +215,7 @@ agregar tablas antes de hacer la pantalla.
 | 5 | Académica → **Carreras** | Listado con filtros (código, escuela, nivel, activa); detalle con planes y materias de cada plan | `carrera`, `escuela`, `plan_estudio`, `plan_materia` | ✅ Hecho (18 carreras reales; plan A22 de LAES completo, faltan los demás planes) |
 | 5 | Académica → **Cursos** | Listado con filtros (materia, depto., período, año, alumnos) y detalle con Plantel Docente, Comisiones, Contenidos mínimos e Información de la materia | `curso_listado` y `curso_plantel` (vistas), `comision`, `horario_comision`, `plan_materia` | ✅ Hecho (492 cursos reales del 2C 2026) |
 | 5 | Académica → **Autoridades** | Cargo y nombre | `autoridad`, `cargo_institucional`, `persona` | Pendiente |
-| 5 | Académica → **Hoy en el ITBA** | Aulas ocupadas hoy por hora (curso, evento, examen) | `horario_comision`, `evento_academico`, `examen_final` | Pendiente |
+| 5 | Académica → **Hoy en el ITBA** | Foro de las organizaciones estudiantiles: eventos (fecha, hora, lugar) y novedades, con comentarios y próximos eventos | `organizacion`, `organizacion_miembro`, `publicacion`, `publicacion_comentario` (vistas `publicacion_listado`, `comentario_listado`) | ✅ Hecho: publican los miembros de cada organización, que editan cualquier publicación de ella y moderan sus comentarios; Administración da de alta organizaciones y miembros en Administración → Organizaciones estudiantiles y modera |
 | 6 | Datos del alumno → **Datos familiares** | Familiares | `dato_familiar` | ✅ Hecho |
 | 6 | Datos del alumno → **Historial de inhibiciones** / **Histórico excepciones** | Inhibiciones y excepciones con fechas | `inhibicion`, `excepcion` | ✅ Hecho |
 | 6 | Datos del alumno → **Exámenes habilitados** | Exámenes especiales (inglés, castellano, práctica laboral) | `examen_especial`, `examen_especial_intento` | ✅ Hecho |
@@ -232,7 +232,7 @@ El menú de la app ya replica esta estructura (Encuestas, Académica,
 Legajos, Administración, Usuario); lo no implementado aparece en gris.
 
 Orden de los seeds: `seed.sql` → `seed_plan_a22.sql` → `seed_cursos.sql`
-→ `seed_aulas.sql` → `seed_usuarios.sql` → `seed_legajo_demo.sql`. Las materias del A22 que no
+→ `seed_aulas.sql` → `seed_usuarios.sql` → `seed_legajo_demo.sql` → `seed_hoy.sql`. Las materias del A22 que no
 se dictan en el período cargado siguen en el departamento "A confirmar".
 
 #### Cómo bajar la ocupación de aulas del SGA actual
