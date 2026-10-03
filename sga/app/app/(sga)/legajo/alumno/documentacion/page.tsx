@@ -40,7 +40,7 @@ export default async function Documentacion({ searchParams }: PageProps<"/legajo
     <>
       <h3 className="sga-subtitulo">Documentación</h3>
       <p className="sga-texto">
-        Archivos PDF, PNG o JPG de hasta 5 MB. Al subirlos quedan <strong>pendientes de validación</strong> por
+        Archivos PDF, PNG o JPG de hasta 4 MB. Al subirlos quedan <strong>pendientes de validación</strong> por
         Administración; mientras tanto podés reemplazarlos o eliminarlos.
       </p>
       {typeof ok === "string" && <p className="sga-mensaje-ok" role="status">{ok}</p>}

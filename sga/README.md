@@ -257,23 +257,30 @@ para que `persona.auth_user_id` se complete al registrarse/iniciar sesión.
 
 ### 5. Desplegar la app en Vercel
 
-La app está en `sga/app/`. En Vercel, importar el repositorio y configurar
-`sga/app` como **Root Directory**. El framework se detecta como Next.js; los
-comandos por defecto (`npm run build` y `npm run start`) y el directorio de
-salida también deben quedar en sus valores automáticos.
+La app está en `sga/app/`. Vercel publica la rama `main` como producción y
+cada push a otra rama como una *preview* con su propia URL.
 
-La pantalla actual es una demo sin conexión a Supabase, por lo que se puede
-desplegar sin variables de entorno. Al implementar la integración, cargar las
-variables correspondientes en **Project Settings → Environment Variables** y
-crear localmente `sga/app/.env.local`:
-
-- `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
+1. En [vercel.com](https://vercel.com), **Add New → Project** e importar el
+   repositorio de GitHub.
+2. **Root Directory:** `sga/app`. El framework se detecta como Next.js; los
+   comandos de build y el directorio de salida quedan en sus valores
+   automáticos.
+3. **Environment Variables** (antes del primer deploy: las `NEXT_PUBLIC_*`
+   se incorporan al código en el build):
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
+4. **Deploy**. Si las variables se agregan o cambian después, hace falta un
+   **Redeploy** para que tomen efecto.
+5. En Supabase, **Authentication → URL Configuration → Site URL**: poner la
+   URL de producción de Vercel (la usan los mails de Auth, como el de
+   recuperar contraseña).
 
 No configurar `SUPABASE_SERVICE_ROLE_KEY` como variable `NEXT_PUBLIC_*` ni
-usarla en componentes del navegador. No cargar datos reales hasta implementar
-autenticación: las políticas RLS ya existen, pero sin login nadie puede
-ver ni cargar datos desde la app.
+usarla en componentes del navegador; cuando haga falta (webhook de Mercado
+Pago) va solo como variable de servidor.
+
+Límite de Vercel: los pedidos al servidor no pueden superar 4,5 MB, por eso
+la carga de documentación acepta archivos de hasta 4 MB.
 
 Para comprobar la app localmente, ejecutar desde `sga/app/`:
 
@@ -282,8 +289,7 @@ npm install
 npm run dev
 ```
 
-La verificación de producción es `npm run build`. Requiere que la instalación
-de dependencias haya terminado correctamente.
+La verificación de producción es `npm run build`.
 
 ## Pruebas
 

@@ -2,9 +2,9 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   experimental: {
-    // La carga de documentación admite archivos de hasta 5 MB (más el
-    // resto del formulario). El bucket de Storage tiene el mismo límite.
-    serverActions: { bodySizeLimit: "6mb" },
+    // La carga de documentación admite archivos de hasta 4 MB (más el resto
+    // del formulario). Vercel no acepta pedidos de más de 4,5 MB.
+    serverActions: { bodySizeLimit: "4.5mb" },
   },
 };
 

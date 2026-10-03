@@ -20,7 +20,7 @@ export async function subirDocumento(formData: FormData) {
 
   if (!Number.isInteger(documentoId)) volver("Documento inválido.", "error");
   if (!(archivo instanceof File) || archivo.size === 0) volver("Elegí un archivo antes de subirlo.", "error");
-  if (archivo.size > TAMANIO_MAXIMO) volver("El archivo supera los 5 MB.", "error");
+  if (archivo.size > TAMANIO_MAXIMO) volver("El archivo supera los 4 MB.", "error");
   if (!TIPOS_PERMITIDOS[archivo.type]) volver("Solo se aceptan archivos PDF, PNG o JPG.", "error");
 
   const { legajo } = await getLegajoActual();

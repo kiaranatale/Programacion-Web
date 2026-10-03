@@ -1,5 +1,6 @@
 export const BUCKET_DOCUMENTACION = "documentacion";
-export const TAMANIO_MAXIMO = 5 * 1024 * 1024;
+// Vercel acepta hasta 4,5 MB por pedido al servidor; el bucket admite 5 MB.
+export const TAMANIO_MAXIMO = 4 * 1024 * 1024;
 export const TIPOS_PERMITIDOS: Record<string, string> = {
   "application/pdf": "PDF",
   "image/png": "PNG",
