@@ -259,3 +259,46 @@ a:hover { text-decoration: underline; }
 .sga-ayuda { margin: 4px 0; color: #777; font-size: 10px; }
 .sga-acciones-form { display: flex; align-items: center; gap: 10px; margin: 8px 0 0; font-size: 11px; }
 .sga-acciones-form button { padding: 3px 12px; border: 1px solid var(--azul); background: var(--azul); color: #fff; font-size: 11px; cursor: pointer; }
+
+/* Hoy en el ITBA */
+.sga-hoy-encabezado { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.sga-boton { display: inline-block; padding: 5px 12px; border: 1px solid var(--azul); background: var(--azul); color: #fff; font-size: 11px; }
+.sga-boton:hover { background: var(--azul-oscuro); }
+.sga-hoy { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 18px; margin-top: 10px; }
+@media (max-width: 820px) { .sga-hoy { grid-template-columns: minmax(0, 1fr); } }
+.sga-hoy-filtros { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 10px; font-size: 11px; }
+.sga-hoy-filtros select { height: 24px; border: 1px solid #c8c8c8; font-size: 11px; }
+.sga-hoy-filtros button { padding: 3px 10px; border: 1px solid #c8c8c8; background: #fff; color: var(--azul-link); font-size: 11px; cursor: pointer; }
+.sga-post { margin-bottom: 12px; padding: 12px 14px; border: 1px solid var(--borde); }
+.sga-post header { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 10px; }
+.sga-post h3 { margin: 8px 0 4px; color: var(--titulo); font-size: 14px; }
+.sga-post h3 a { color: inherit; }
+.sga-post-org { font-weight: 700; }
+.sga-post-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; color: var(--gris-suave); font-size: 10px; }
+.sga-post-meta form { display: inline; }
+.sga-post-meta button { padding: 0; border: 0; background: none; color: #c0281c; font-size: 10px; cursor: pointer; }
+.sga-post-evento { margin: 4px 0; color: var(--marron); font-size: 11px; font-weight: 700; }
+.sga-post-cuerpo { margin: 6px 0; color: #444; font-size: 11px; line-height: 1.6; white-space: pre-line; overflow-wrap: anywhere; }
+.sga-post-comentarios { font-size: 10px; }
+.sga-post-completo .sga-acciones-form form { display: inline; }
+.sga-etiqueta { padding: 2px 6px; color: #fff; font-size: 9px; font-weight: 700; text-transform: uppercase; }
+.sga-etiqueta-evento { background: var(--naranja); }
+.sga-etiqueta-novedad { background: var(--azul); }
+.sga-hoy-paginas { display: flex; justify-content: space-between; gap: 10px; font-size: 11px; }
+.sga-hoy-lateral .sga-caja { margin-bottom: 12px; min-height: 0; }
+.sga-proximos li, .sga-organizaciones li { display: flex; flex-direction: column; gap: 2px; margin-bottom: 10px; }
+.sga-proximos span, .sga-organizaciones span { color: var(--gris-suave); font-size: 10px; }
+.sga-comentarios { margin: 0 0 10px; padding: 0; list-style: none; }
+.sga-comentarios li { padding: 8px 0; border-bottom: 1px solid #eee; }
+.sga-comentarios p { margin: 4px 0 0; font-size: 11px; line-height: 1.5; white-space: pre-line; overflow-wrap: anywhere; }
+.sga-form-comentario textarea, .sga-form-publicacion textarea, .sga-form-publicacion input, .sga-form-publicacion select {
+  box-sizing: border-box; width: 100%; padding: 5px 7px; border: 1px solid #c8c8c8; font: inherit; font-size: 11px;
+}
+.sga-form-publicacion { display: flex; flex-direction: column; gap: 10px; max-width: 720px; }
+.sga-form-publicacion label { display: flex; flex-direction: column; gap: 4px; font-size: 11px; }
+.sga-form-publicacion label > span { font-weight: 700; }
+.sga-form-publicacion fieldset { display: grid; grid-template-columns: 1fr 1fr 2fr; gap: 10px; margin: 0; padding: 8px 10px; border: 1px solid var(--borde); }
+@media (max-width: 600px) { .sga-form-publicacion fieldset { grid-template-columns: 1fr; } }
+.sga-form-publicacion legend { color: var(--gris-suave); font-size: 10px; }
+.sga-acciones-form .sga-boton-peligro { padding: 3px 12px; border: 1px solid #c0281c; background: #fff; color: #c0281c; font-size: 11px; cursor: pointer; }
+.sga-acciones-doc input[type="email"] { width: 180px; height: 22px; padding: 0 5px; border: 1px solid #c8c8c8; font-size: 10px; }

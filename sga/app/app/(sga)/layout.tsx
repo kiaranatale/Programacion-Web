@@ -21,7 +21,7 @@ const menus: Menu[] = [
       { label: "Autoridades" },
       { label: "Carreras", href: "/carreras" },
       { label: "Cursos", href: "/cursos" },
-      { label: "Hoy en el ITBA" },
+      { label: "Hoy en el ITBA", href: "/hoy" },
     ],
   },
   {
@@ -39,6 +39,7 @@ const menus: Menu[] = [
     items: [
       { label: "Ocupación de Aulas", href: "/aulas" },
       { label: "Documentación pendiente", href: "/administracion/documentacion", roles: ["ADMINISTRATIVO"] },
+      { label: "Organizaciones estudiantiles", href: "/administracion/organizaciones", roles: ["ADMINISTRATIVO"] },
     ],
   },
 ];
