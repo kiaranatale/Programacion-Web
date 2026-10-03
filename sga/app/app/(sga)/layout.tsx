@@ -27,7 +27,7 @@ const menus: Menu[] = [
   {
     label: "Legajos",
     roles: ["ALUMNO"],
-    items: [{ label: "Mi legajo" }],
+    items: [{ label: "Mi legajo", href: "/legajo" }],
   },
   {
     label: "Docencia",

@@ -191,10 +191,17 @@ Actualmente se aplican, en orden:
 - `20261002000000_auth_vinculo_persona.sql`: vínculo automático entre
   usuarios de Supabase Auth y `persona` por mail institucional, y triggers
   de notas como `SECURITY DEFINER` para que funcionen con RLS.
+- `20261003000000_documento_requerido_unico.sql`: evita documentos
+  requeridos duplicados cuando carrera y nivel quedan en NULL.
 
 Usuarios de prueba: `supabase/seed_usuarios.sql` (correr después de
 `seed.sql`) crea alumno, docente y administrativo; los usuarios de Auth
 se crean en el dashboard con los mismos mails.
+
+Legajo de demo: `supabase/seed_legajo_demo.sql` (correr después de
+`seed_usuarios.sql`) completa todas las solapas de "Mi legajo" de la
+alumna: títulos, cursadas anteriores con finales, documentación,
+exámenes habilitados, facturas y pagos.
 
 Datos de prueba: `supabase/seed.sql` (escuela, carrera, plan, materias,
 edificios, aulas, cursos, comisiones y horarios). En Supabase en la nube se

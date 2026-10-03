@@ -15,7 +15,7 @@ WHERE nombre = 'Sistemas Digitales y Datos';
 
 -- Persona + legajo (dispara activación automática de facturables)
 INSERT INTO sga.item_facturable (codigo, nombre, monto)
-VALUES ('ADITBA', 'Aporte ADITBA', 1000);
+VALUES ('SMK-ADITBA', 'Aporte ADITBA (smoke)', 1000);
 
 INSERT INTO sga.persona (tipo_documento, nro_documento, nombre, apellido, mail_institucional)
 VALUES ('DNI', '47345567', 'Kiara', 'Natale', 'knatale@itba.edu.ar');
@@ -43,7 +43,7 @@ $$;
 
 -- Nuevo item facturable posterior: debe propagarse a legajos existentes
 INSERT INTO sga.item_facturable (codigo, nombre, monto)
-VALUES ('CEITBA', 'Aporte CEITBA', 500);
+VALUES ('SMK-CEITBA', 'Aporte CEITBA (smoke)', 500);
 
 DO $$
 BEGIN
@@ -53,7 +53,7 @@ BEGIN
         JOIN sga.legajo ON legajo.id = item_facturable_legajo.legajo_id
         JOIN sga.item_facturable ON item_facturable.id = item_facturable_legajo.item_facturable_id
         WHERE legajo.numero_legajo = '66092'
-          AND item_facturable.codigo = 'CEITBA'
+          AND item_facturable.codigo = 'SMK-CEITBA'
     ) THEN
         RAISE EXCEPTION 'El item facturable creado después no se propagó a legajos existentes';
     END IF;
