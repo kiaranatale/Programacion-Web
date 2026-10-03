@@ -55,6 +55,20 @@ JOIN sga.comision co ON co.curso_id = c.id AND co.nombre = 'A'
 WHERE p.mail_institucional = 'docente.demo@itba.edu.ar'
 ON CONFLICT (docente_id, comision_id) DO NOTHING;
 
+-- Cargo en la comisión y responsable del curso
+UPDATE sga.docente_comision dc
+SET cargo = 'Adjunto'
+FROM sga.docente d, sga.persona p
+WHERE dc.docente_id = d.id AND d.persona_id = p.id
+  AND p.mail_institucional = 'docente.demo@itba.edu.ar' AND dc.cargo IS NULL;
+
+UPDATE sga.curso c
+SET responsable_docente_id = d.id
+FROM sga.materia m, sga.docente d, sga.persona p
+WHERE m.id = c.materia_id AND m.codigo = '71.38' AND c.anio = 2026 AND c.periodo = '2C'
+  AND d.persona_id = p.id AND p.mail_institucional = 'docente.demo@itba.edu.ar'
+  AND c.responsable_docente_id IS NULL;
+
 -- El alumno cursa Programación Web en esa comisión
 INSERT INTO sga.inscripcion_curso (legajo_id, curso_id, comision_id, docente_id)
 SELECT l.id, c.id, co.id, d.id

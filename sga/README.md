@@ -203,6 +203,9 @@ Actualmente se aplican, en orden:
 - `20261004000000_cursos_reales.sql`: varios cursos de una materia en el
   mismo período (bimestrales), créditos de materia opcionales y la vista
   `curso_listado` con la cantidad de alumnos por curso.
+- `20261004000001_curso_plantel.sql`: responsable del curso, cargo de cada
+  docente, contenidos mínimos de la materia y la vista `curso_plantel`
+  (nombre, cargo y mail institucional de los docentes de cada curso).
 
 Datos en el SQL Editor, en este orden (todos se pueden volver a correr):
 

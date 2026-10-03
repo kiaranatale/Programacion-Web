@@ -213,7 +213,7 @@ agregar tablas antes de hacer la pantalla.
 | 3 | Datos del alumno → **Calendario semanal** | Grilla lunes–sábado con los horarios de cada materia | `inscripcion_curso`, `horario_comision` | ✅ Hecho |
 | 4 | Administración → **Ocupación de Aulas** | Grilla aula × hora: cursos, eventos, exámenes, capacidad excedida | `aula`, `horario_comision`, `evento_academico`, `examen_final` | Hoy `/aulas` es un listado; falta la grilla |
 | 5 | Académica → **Carreras** | Listado con filtros (código, escuela, nivel, activa); detalle con planes y materias de cada plan | `carrera`, `escuela`, `plan_estudio`, `plan_materia` | ✅ Hecho (18 carreras reales; plan A22 de LAES completo, faltan los demás planes) |
-| 5 | Académica → **Cursos** | Listado con filtros (materia, depto., período, año, alumnos) y detalle con comisiones | `curso_listado` (vista), `comision`, `horario_comision` | ✅ Hecho (492 cursos reales del 2C 2026) |
+| 5 | Académica → **Cursos** | Listado con filtros (materia, depto., período, año, alumnos) y detalle con Plantel Docente, Comisiones, Contenidos mínimos e Información de la materia | `curso_listado` y `curso_plantel` (vistas), `comision`, `horario_comision`, `plan_materia` | ✅ Hecho (492 cursos reales del 2C 2026) |
 | 5 | Académica → **Autoridades** | Cargo y nombre | `autoridad`, `cargo_institucional`, `persona` | Pendiente |
 | 5 | Académica → **Hoy en el ITBA** | Aulas ocupadas hoy por hora (curso, evento, examen) | `horario_comision`, `evento_academico`, `examen_final` | Pendiente |
 | 6 | Datos del alumno → **Datos familiares** | Familiares | `dato_familiar` | ✅ Hecho |
