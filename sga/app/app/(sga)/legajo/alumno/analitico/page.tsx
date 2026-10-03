@@ -1,17 +1,12 @@
-import { createClient } from "@/lib/supabase/server";
 import { getCursadas, type Cursada } from "@/lib/cursadas";
 import { fecha, getLegajoActual, nota, periodo } from "@/lib/legajo";
-
-type PlanMateria = {
-  anio_sugerido: number | null;
-  cuatrimestre_sugerido: number | null;
-  materia: { id: number; codigo: string; nombre: string; creditos: number } | null;
-};
-
-const ordinal = ["", "1", "2", "3", "4", "5", "6"];
+import { getPlanDetalle, grilla, type Bloque, type MateriaPlan } from "@/lib/plan";
 
 function celdaCursada(c: Cursada) {
   if (c.estado === "CURSANDO") return <span className="sga-cursando">Cursando {periodo(c.curso!.anio, c.curso!.periodo)}</span>;
+  if (c.estado === "DESAPROBADA" || c.estado === "ABANDONADA") {
+    return <span className="sga-desaprobado">{c.estado === "ABANDONADA" ? "Abandonada" : "Desaprobada"} {periodo(c.curso!.anio, c.curso!.periodo)}</span>;
+  }
   return <>{nota(c.nota_cursada)} {periodo(c.curso!.anio, c.curso!.periodo)}</>;
 }
 
@@ -27,46 +22,45 @@ export default async function Analitico() {
   const { legajo, nombre } = await getLegajoActual();
   if (!legajo?.plan_estudio) return null;
 
-  const supabase = await createClient();
-  const [{ data: planMaterias }, cursadas] = await Promise.all([
-    supabase
-      .schema("sga")
-      .from("plan_materia")
-      .select("anio_sugerido, cuatrimestre_sugerido, materia:materia_id(id, codigo, nombre, creditos)")
-      .eq("plan_id", legajo.plan_estudio.id)
-      .returns<PlanMateria[]>(),
-    getCursadas(legajo.id),
-  ]);
+  const [plan, cursadas] = await Promise.all([getPlanDetalle({ id: legajo.plan_estudio.id }), getCursadas(legajo.id)]);
+  if (!plan) return null;
 
   const porMateria = new Map<number, Cursada[]>();
   for (const c of cursadas) {
     const id = c.curso?.materia?.id;
     if (id) porMateria.set(id, [...(porMateria.get(id) ?? []), c]);
   }
-
+  const historial = (id: number) => (porMateria.get(id) ?? []).sort((a, b) =>
+    `${a.curso?.anio}${a.curso?.periodo}`.localeCompare(`${b.curso?.anio}${b.curso?.periodo}`));
   const aprobada = (id: number) => porMateria.get(id)?.some((c) => c.estado === "APROBADA") ?? false;
-  const materias = (planMaterias ?? []).filter((pm) => pm.materia);
-  const creditosAprobados = materias.filter((pm) => aprobada(pm.materia!.id)).reduce((s, pm) => s + pm.materia!.creditos, 0);
-  const creditosEnCurso = cursadas.filter((c) => c.estado === "CURSANDO").reduce((s, c) => s + (c.curso?.materia?.creditos ?? 0), 0);
-  const total = legajo.plan_estudio.creditos_totales;
-  const porcentaje = total > 0 ? Math.round((creditosAprobados / total) * 100) : 0;
 
-  // Agrupa por "Año X - Cuatrimestre Y" del plan
-  const grupos = new Map<string, PlanMateria[]>();
-  for (const pm of [...materias].sort((a, b) =>
-    (a.anio_sugerido ?? 99) - (b.anio_sugerido ?? 99) ||
-    (a.cuatrimestre_sugerido ?? 99) - (b.cuatrimestre_sugerido ?? 99) ||
-    a.materia!.codigo.localeCompare(b.materia!.codigo))) {
-    const clave = pm.anio_sugerido
-      ? `Año ${ordinal[pm.anio_sugerido]} - Cuatrimestre ${ordinal[pm.cuatrimestre_sugerido ?? 0] || "—"}`
-      : "Sin ubicación en el plan";
-    grupos.set(clave, [...(grupos.get(clave) ?? []), pm]);
-  }
+  // Créditos por bloque: los de electivas cuentan hasta lo que pide el bloque
+  const aprobadosEn = (b: Bloque) => b.materias.filter((m) => aprobada(m.id)).reduce((s, m) => s + m.creditos, 0);
+  const resumen = plan.bloques.map((b) => {
+    const aprobados = aprobadosEn(b);
+    const requeridos = b.requisito === "APROBAR_TODOS" ? b.materias.reduce((s, m) => s + m.creditos, 0) : b.creditos;
+    return { bloque: b, aprobados, computables: Math.min(aprobados, requeridos), requeridos };
+  });
+  const creditosAprobados = resumen.reduce((s, r) => s + r.computables, 0);
+  const creditosEnCurso = cursadas.filter((c) => c.estado === "CURSANDO").reduce((s, c) => s + (c.curso?.materia?.creditos ?? 0), 0);
+  const porcentaje = plan.creditosTotales > 0 ? Math.round((creditosAprobados / plan.creditosTotales) * 100) : 0;
+  const aprobadosBloque = new Map(resumen.map((r) => [r.bloque.nombre, r.aprobados]));
+
+  const filaMateria = (m: MateriaPlan) => (
+    <tr className={aprobada(m.id) ? "sga-fila-aprobada" : ""} key={m.id}>
+      <td>
+        {aprobada(m.id) && <span className="sga-check" aria-label="Aprobada">✔</span>}
+        <strong>{m.codigo} - {m.nombre}</strong> <span className="sga-creditos">({m.creditos} Créditos)</span>
+      </td>
+      <td>{historial(m.id).map((c) => <div key={c.id}>{celdaCursada(c)}</div>)}</td>
+      <td>{historial(m.id).map((c) => <div key={c.id}>{celdaFinales(c)}</div>)}</td>
+    </tr>
+  );
 
   return (
     <>
       <h3 className="sga-subtitulo">Analítico de notas de {nombre} - {legajo.numero_legajo}</h3>
-      <p className="sga-texto">Plan de estudios: <strong>{legajo.plan_estudio.codigo}</strong></p>
+      <p className="sga-texto">Plan de estudios: <strong>{plan.codigo}</strong> ({plan.carrera?.nombre})</p>
 
       <p className="sga-banner">
         IMPORTANTE: Los alumnos con rendimiento académico inferior a 4 (cuatro) puntos dejan de ser
@@ -80,15 +74,17 @@ export default async function Analitico() {
 
       <div className="sga-resumen">
         <table className="sga-tabla sga-tabla-compacta">
-          <thead><tr><th colSpan={2}>Resumen de créditos aprobados</th></tr></thead>
+          <thead><tr><th>Resumen de créditos aprobados</th><th>Aprobados</th><th>Requeridos</th></tr></thead>
           <tbody>
-            <tr><td>Créditos aprobados</td><td>{creditosAprobados}</td></tr>
-            <tr><td>Créditos totales del plan</td><td>{total}</td></tr>
+            {resumen.map((r) => (
+              <tr key={r.bloque.nombre}><td>{r.bloque.huecos.length > 0 ? `${r.bloque.nombre} (materias obligatorias)` : r.bloque.nombre}</td><td>{r.aprobados}</td><td>{r.requeridos}</td></tr>
+            ))}
           </tbody>
         </table>
         <div className="sga-texto">
+          Créditos aprobados: <strong>{creditosAprobados}</strong><br />
           Créditos en curso: <strong>{creditosEnCurso}</strong><br />
-          Créditos totales del plan: <strong>{total}</strong>
+          Créditos totales del plan: <strong>{plan.creditosTotales}</strong>
         </div>
       </div>
 
@@ -100,29 +96,33 @@ export default async function Analitico() {
 
       <div className="sga-tabla-scroll">
         <table className="sga-tabla">
-          <thead>
-            <tr><th>Materia</th><th>Cursada</th><th>Finales</th></tr>
-          </thead>
-          {[...grupos.entries()].map(([grupo, pms]) => (
-            <tbody key={grupo}>
-              <tr className="sga-fila-grupo"><td colSpan={3}>{grupo}</td></tr>
-              {pms.map((pm) => {
-                const m = pm.materia!;
-                const historial = (porMateria.get(m.id) ?? []).sort((a, b) =>
-                  `${a.curso?.anio}${a.curso?.periodo}`.localeCompare(`${b.curso?.anio}${b.curso?.periodo}`));
-                return (
-                  <tr className={aprobada(m.id) ? "sga-fila-aprobada" : ""} key={m.id}>
-                    <td>
-                      {aprobada(m.id) && <span className="sga-check" aria-label="Aprobada">✔</span>}
-                      <strong>{m.codigo} - {m.nombre}</strong> <span className="sga-creditos">({m.creditos} Créditos)</span>
-                    </td>
-                    <td>{historial.map((c) => <div key={c.id}>{celdaCursada(c)}</div>)}</td>
-                    <td>{historial.map((c) => <div key={c.id}>{celdaFinales(c)}</div>)}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          ))}
+          <thead><tr><th>Materia</th><th>Cursada</th><th>Finales</th></tr></thead>
+          {plan.bloques.map((b) =>
+            b.requisito === "APROBAR_TODOS" ? (
+              grilla(b).map((g) => (
+                <tbody key={`${b.nombre}-${g.titulo}`}>
+                  <tr className="sga-fila-grupo"><td colSpan={3}>{g.titulo}</td></tr>
+                  {g.materias.map(filaMateria)}
+                  {g.huecos.map((h) => (
+                    <tr className="sga-fila-hueco" key={h.bloque}>
+                      <td>{h.bloque} ({h.creditos} Créditos)</td>
+                      <td colSpan={2}>{aprobadosBloque.get(h.bloque) ?? 0} de {h.creditos} créditos aprobados</td>
+                    </tr>
+                  ))}
+                </tbody>
+              ))
+            ) : (
+              <tbody key={b.nombre}>
+                <tr className="sga-fila-grupo">
+                  <td colSpan={3}>{b.nombre} — {aprobadosBloque.get(b.nombre) ?? 0} de {b.creditos} créditos aprobados</td>
+                </tr>
+                {b.materias.filter((m) => porMateria.has(m.id)).map(filaMateria)}
+                {!b.materias.some((m) => porMateria.has(m.id)) && (
+                  <tr><td className="sga-vacio" colSpan={3}>Todavía no cursaste materias de este bloque.</td></tr>
+                )}
+              </tbody>
+            ),
+          )}
         </table>
       </div>
     </>

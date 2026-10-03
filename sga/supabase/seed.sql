@@ -58,33 +58,42 @@ ON CONFLICT (codigo) DO NOTHING;
 UPDATE sga.carrera SET nivel_informatico = 'Grado'
 WHERE nivel = 'GRADO' AND nivel_informatico IS NULL;
 
-INSERT INTO sga.plan_estudio (carrera_id, codigo, creditos_totales, vigencia_desde)
-SELECT id, 'INF-2023', 240, DATE '2023-01-01'
-FROM sga.carrera WHERE codigo = 'S'
-ON CONFLICT (carrera_id, codigo) DO NOTHING;
+-- Bases cargadas con una versión anterior de este seed: las materias
+-- tenían códigos inventados. Se renombran a las reales del plan A22, así
+-- sus cursos y cursadas se conservan.
+UPDATE sga.materia m
+SET codigo = x.nuevo, nombre = x.nombre, creditos = x.creditos
+FROM (VALUES
+    ('93.58', '93.20', 'Análisis Matemático',                6),
+    ('93.59', '93.21', 'Álgebra',                            6),
+    ('72.31', '71.45', 'Estructura de Datos y Programación', 6),
+    ('72.40', '71.38', 'Programación web',                   3)
+) AS x (viejo, nuevo, nombre, creditos)
+WHERE m.codigo = x.viejo
+  AND NOT EXISTS (SELECT 1 FROM sga.materia y WHERE y.codigo = x.nuevo);
 
+-- El plan inventado INF-2023 se reemplaza por el plan real A22 de LAES
+-- (seed_plan_a22.sql). Se borra solo si ningún legajo lo usa.
+DELETE FROM sga.plan_materia pm
+USING sga.plan_estudio p
+WHERE pm.plan_id = p.id AND p.codigo = 'INF-2023'
+  AND NOT EXISTS (SELECT 1 FROM sga.legajo l WHERE l.plan_estudio_id = p.id);
+DELETE FROM sga.plan_estudio p
+WHERE p.codigo = 'INF-2023'
+  AND NOT EXISTS (SELECT 1 FROM sga.legajo l WHERE l.plan_estudio_id = p.id);
+
+-- Materias con cursos en el cuatrimestre actual (el resto del plan A22
+-- se carga en seed_plan_a22.sql)
 INSERT INTO sga.materia (codigo, nombre, departamento_id, creditos)
 SELECT m.codigo, m.nombre, d.id, m.creditos
 FROM (VALUES
-    ('93.58', 'Análisis Matemático I',           'Ciencias Básicas', 6),
-    ('93.59', 'Álgebra',                         'Ciencias Básicas', 6),
-    ('72.31', 'Introducción a la Programación',  'Informática',      6),
-    ('72.40', 'Programación Web',                'Informática',      3)
+    ('93.20', 'Análisis Matemático',                'Ciencias Básicas', 6),
+    ('93.21', 'Álgebra',                            'Ciencias Básicas', 6),
+    ('71.45', 'Estructura de Datos y Programación', 'Informática',      6),
+    ('71.38', 'Programación web',                   'Informática',      3)
 ) AS m (codigo, nombre, departamento, creditos)
 JOIN sga.departamento d ON d.nombre = m.departamento
 ON CONFLICT (codigo) DO NOTHING;
-
-INSERT INTO sga.plan_materia (plan_id, materia_id, anio_sugerido, cuatrimestre_sugerido)
-SELECT p.id, m.id, x.anio, x.cuatri
-FROM (VALUES
-    ('93.58', 1, 1),
-    ('93.59', 1, 1),
-    ('72.31', 1, 2),
-    ('72.40', 2, 2)
-) AS x (codigo, anio, cuatri)
-JOIN sga.materia m ON m.codigo = x.codigo
-JOIN sga.plan_estudio p ON p.codigo = 'INF-2023'
-ON CONFLICT (plan_id, materia_id) DO NOTHING;
 
 INSERT INTO sga.edificio (codigo, nombre, direccion) VALUES
     ('SEDE-DM', 'Sede Distrito Financiero', 'Av. Eduardo Madero 399, CABA'),
@@ -104,7 +113,7 @@ ON CONFLICT (edificio_id, codigo) DO NOTHING;
 
 INSERT INTO sga.curso (materia_id, anio, periodo, fecha_inicio, fecha_fin)
 SELECT id, 2026, '2C', DATE '2026-08-10', DATE '2026-12-04'
-FROM sga.materia WHERE codigo IN ('93.58', '72.31', '72.40')
+FROM sga.materia WHERE codigo IN ('93.20', '71.45', '71.38')
 ON CONFLICT (materia_id, anio, periodo) DO NOTHING;
 
 INSERT INTO sga.comision (curso_id, nombre, cupo)
@@ -120,12 +129,12 @@ ON CONFLICT (curso_id, nombre) DO NOTHING;
 INSERT INTO sga.horario_comision (comision_id, dia_semana, hora_inicio, hora_fin, aula_id)
 SELECT co.id, h.dia::sga.dia_semana, h.inicio::time, h.fin::time, a.id
 FROM (VALUES
-    ('93.58', 'A', 'LUNES',     '09:00', '12:00', 'SEDE-DM', '304'),
-    ('93.58', 'B', 'MARTES',    '09:00', '12:00', 'SEDE-PT', '108'),
-    ('72.31', 'A', 'MIERCOLES', '11:30', '14:30', 'SEDE-DM', 'LAB-2'),
-    ('72.31', 'B', 'JUEVES',    '11:30', '14:30', 'SEDE-DM', 'LAB-2'),
-    ('72.40', 'A', 'VIERNES',   '14:00', '17:00', 'SEDE-DM', '101'),
-    ('72.40', 'B', 'VIERNES',   '18:00', '21:00', 'SEDE-DM', '101')
+    ('93.20', 'A', 'LUNES',     '09:00', '12:00', 'SEDE-DM', '304'),
+    ('93.20', 'B', 'MARTES',    '09:00', '12:00', 'SEDE-PT', '108'),
+    ('71.45', 'A', 'MIERCOLES', '11:30', '14:30', 'SEDE-DM', 'LAB-2'),
+    ('71.45', 'B', 'JUEVES',    '11:30', '14:30', 'SEDE-DM', 'LAB-2'),
+    ('71.38', 'A', 'VIERNES',   '14:00', '17:00', 'SEDE-DM', '101'),
+    ('71.38', 'B', 'VIERNES',   '18:00', '21:00', 'SEDE-DM', '101')
 ) AS h (materia, comision, dia, inicio, fin, edificio, aula)
 JOIN sga.materia m   ON m.codigo = h.materia
 JOIN sga.curso c     ON c.materia_id = m.id AND c.anio = 2026 AND c.periodo = '2C'

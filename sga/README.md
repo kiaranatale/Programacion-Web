@@ -196,9 +196,20 @@ Actualmente se aplican, en orden:
   requeridos duplicados cuando carrera y nivel quedan en NULL.
 - `20261003000001_carrera_nombre_plan_version.sql`: nombre de la carrera
   (además del oficial) y versión del plan, como en el SGA actual.
+- `20261003000002_plan_bloques.sql`: bloques del plan con su requisito
+  (aprobar todos / juntar créditos), huecos de electivas en la grilla,
+  créditos requeridos, correlativas por plan, títulos que otorga el plan
+  y materias de 0 créditos.
 
-Usuarios de prueba: `supabase/seed_usuarios.sql` (correr después de
-`seed.sql`) crea alumno, docente y administrativo; los usuarios de Auth
+Datos en el SQL Editor, en este orden (todos se pueden volver a correr):
+
+1. `supabase/seed.sql`: carreras reales, aulas, cursos y comisiones.
+2. `supabase/seed_plan_a22.sql`: plan A22 completo de LAES (119 materias,
+   bloques de electivas, correlativas).
+3. `supabase/seed_usuarios.sql`: personas de prueba.
+4. `supabase/seed_legajo_demo.sql`: legajo completo de la alumna.
+
+Usuarios de prueba: `supabase/seed_usuarios.sql` crea alumno, docente y administrativo; los usuarios de Auth
 se crean en el dashboard con los mismos mails.
 
 Legajo de demo: `supabase/seed_legajo_demo.sql` (correr después de

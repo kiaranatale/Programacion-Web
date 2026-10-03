@@ -10,6 +10,33 @@
 
 BEGIN;
 
+-- Versiones anteriores de los seeds dejaban a la alumna en el plan
+-- inventado INF-2023: se la pasa al plan real A22 de LAES y se borra el
+-- plan viejo si ya nadie lo usa.
+UPDATE sga.legajo l
+SET plan_estudio_id = p.id
+FROM sga.plan_estudio p
+JOIN sga.carrera c ON c.id = p.carrera_id
+WHERE l.numero_legajo = 'DEMO-001'
+  AND c.codigo = 'LAES' AND p.codigo = 'A22'
+  AND l.plan_estudio_id <> p.id;
+
+DELETE FROM sga.plan_materia pm
+USING sga.plan_estudio p
+WHERE pm.plan_id = p.id AND p.codigo = 'INF-2023'
+  AND NOT EXISTS (SELECT 1 FROM sga.legajo l WHERE l.plan_estudio_id = p.id);
+DELETE FROM sga.plan_estudio p
+WHERE p.codigo = 'INF-2023'
+  AND NOT EXISTS (SELECT 1 FROM sga.legajo l WHERE l.plan_estudio_id = p.id);
+
+UPDATE sga.hito_academico
+SET descripcion = 'Inicio de estudios en el plan A22 (Licenciatura en Analítica Empresarial y Social)'
+WHERE descripcion LIKE '%INF-2023%';
+
+UPDATE sga.excepcion
+SET descripcion = 'Se autoriza cursar 71.38 sin la correlativa 71.20 aprobada'
+WHERE descripcion LIKE '%72.40%';
+
 CREATE TEMP TABLE demo_legajo ON COMMIT DROP AS
 SELECT l.id, l.plan_estudio_id FROM sga.legajo l WHERE l.numero_legajo = 'DEMO-001';
 
@@ -38,7 +65,7 @@ SELECT d.id, h.tipo, h.descripcion, h.fecha
 FROM demo_legajo d
 CROSS JOIN (VALUES
     ('Ingreso',         'Aprobó el curso de ingreso',                          DATE '2025-03-01'),
-    ('Inicio de plan',  'Inicio de estudios en el plan INF-2023 (Ingeniería en Informática)', DATE '2025-08-01')
+    ('Inicio de plan',  'Inicio de estudios en el plan A22 (Licenciatura en Analítica Empresarial y Social)', DATE '2025-08-01')
 ) AS h (tipo, descripcion, fecha)
 WHERE NOT EXISTS (SELECT 1 FROM sga.hito_academico x JOIN demo_legajo d2 ON x.legajo_id = d2.id);
 
@@ -47,9 +74,9 @@ WHERE NOT EXISTS (SELECT 1 FROM sga.hito_academico x JOIN demo_legajo d2 ON x.le
 INSERT INTO sga.curso (materia_id, anio, periodo, fecha_inicio, fecha_fin)
 SELECT m.id, x.anio, x.periodo, x.inicio, x.fin
 FROM (VALUES
-    ('93.58', 2025, '2C', DATE '2025-08-11', DATE '2025-12-05'),
-    ('93.59', 2025, '2C', DATE '2025-08-11', DATE '2025-12-05'),
-    ('72.31', 2026, '1C', DATE '2026-03-09', DATE '2026-07-03')
+    ('93.20', 2025, '2C', DATE '2025-08-11', DATE '2025-12-05'),
+    ('93.21', 2025, '2C', DATE '2025-08-11', DATE '2025-12-05'),
+    ('71.45', 2026, '1C', DATE '2026-03-09', DATE '2026-07-03')
 ) AS x (codigo, anio, periodo, inicio, fin)
 JOIN sga.materia m ON m.codigo = x.codigo
 ON CONFLICT (materia_id, anio, periodo) DO NOTHING;
@@ -65,9 +92,9 @@ SELECT c.id, f.fecha, '09:00', '12:00'
 FROM sga.curso c
 JOIN sga.materia m ON m.id = c.materia_id
 JOIN (VALUES
-    ('93.58', 2025, '2C', DATE '2025-12-15'),
-    ('93.59', 2025, '2C', DATE '2025-12-16'),
-    ('93.59', 2025, '2C', DATE '2026-02-20')
+    ('93.20', 2025, '2C', DATE '2025-12-15'),
+    ('93.21', 2025, '2C', DATE '2025-12-16'),
+    ('93.21', 2025, '2C', DATE '2026-02-20')
 ) AS f (codigo, anio, periodo, fecha)
   ON f.codigo = m.codigo AND f.anio = c.anio AND f.periodo = c.periodo
 WHERE NOT EXISTS (
@@ -79,25 +106,25 @@ INSERT INTO sga.inscripcion_curso (legajo_id, curso_id, comision_id, estado, not
 SELECT d.id, c.id, co.id, x.estado::sga.estado_inscripcion_curso, x.nota, x.fecha
 FROM demo_legajo d
 CROSS JOIN (VALUES
-    ('93.58', 2025, '2C', 'CURSANDO',         8.00, TIMESTAMP '2025-12-01 10:00'),
-    ('93.59', 2025, '2C', 'CURSANDO',         6.00, TIMESTAMP '2025-12-01 10:00'),
-    ('72.31', 2026, '1C', 'CURSADA_APROBADA', 9.00, TIMESTAMP '2026-07-01 10:00')
+    ('93.20', 2025, '2C', 'CURSANDO',         8.00, TIMESTAMP '2025-12-01 10:00'),
+    ('93.21', 2025, '2C', 'CURSANDO',         6.00, TIMESTAMP '2025-12-01 10:00'),
+    ('71.45', 2026, '1C', 'CURSADA_APROBADA', 9.00, TIMESTAMP '2026-07-01 10:00')
 ) AS x (codigo, anio, periodo, estado, nota, fecha)
 JOIN sga.materia m   ON m.codigo = x.codigo
 JOIN sga.curso c     ON c.materia_id = m.id AND c.anio = x.anio AND c.periodo = x.periodo
 JOIN sga.comision co ON co.curso_id = c.id AND co.nombre = 'A'
 ON CONFLICT (legajo_id, curso_id) DO NOTHING;
 
--- Finales: Análisis aprueba con 7; Álgebra desaprueba (3) y después
--- aprueba (5). Los triggers calculan nota definitiva y rendimiento.
+-- Finales: Análisis Matemático aprueba con 7; Álgebra desaprueba (3) y
+-- después aprueba (5). Los triggers calculan nota definitiva y rendimiento.
 -- (NOT EXISTS y no ON CONFLICT: el trigger que valida intentos rechaza
 -- la fila antes de que ON CONFLICT pueda ignorarla.)
 INSERT INTO sga.inscripcion_examen_final (inscripcion_curso_id, examen_final_id, numero_intento, nota_final, fecha_carga_final)
 SELECT ic.id, ef.id, x.intento, x.nota, x.fecha::timestamp
 FROM (VALUES
-    ('93.58', DATE '2025-12-15', 1, 7.00),
-    ('93.59', DATE '2025-12-16', 1, 3.00),
-    ('93.59', DATE '2026-02-20', 2, 5.00)
+    ('93.20', DATE '2025-12-15', 1, 7.00),
+    ('93.21', DATE '2025-12-16', 1, 3.00),
+    ('93.21', DATE '2026-02-20', 2, 5.00)
 ) AS x (codigo, fecha, intento, nota)
 JOIN sga.materia m           ON m.codigo = x.codigo
 JOIN sga.curso c             ON c.materia_id = m.id AND c.anio = 2025 AND c.periodo = '2C'
@@ -121,7 +148,7 @@ CROSS JOIN (VALUES
 WHERE NOT EXISTS (SELECT 1 FROM sga.inhibicion i JOIN demo_legajo d2 ON i.legajo_id = d2.id);
 
 INSERT INTO sga.excepcion (legajo_id, tipo, descripcion, fecha)
-SELECT id, 'Correlativa', 'Se autoriza cursar 72.40 sin el final de 72.31 aprobado', DATE '2026-08-05'
+SELECT id, 'Correlativa', 'Se autoriza cursar 71.38 sin la correlativa 71.20 aprobada', DATE '2026-08-05'
 FROM demo_legajo
 WHERE NOT EXISTS (SELECT 1 FROM sga.excepcion e JOIN demo_legajo d ON e.legajo_id = d.id);
 

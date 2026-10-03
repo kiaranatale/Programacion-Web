@@ -1,5 +1,6 @@
 -- =====================================================================
--- Personas de prueba para el login (correr DESPUÉS de seed.sql)
+-- Personas de prueba para el login (correr DESPUÉS de seed.sql y
+-- seed_plan_a22.sql)
 -- Crea un alumno, un docente y un administrativo con sus roles. Cada
 -- persona se vincula sola con su usuario de Auth por el mail, sin
 -- importar qué se cree primero (ver 20261002000000_auth_vinculo_persona).
@@ -30,15 +31,16 @@ FROM (VALUES
 JOIN sga.persona p ON p.mail_institucional = x.mail
 ON CONFLICT (persona_id, rol) DO NOTHING;
 
--- Legajo del alumno en el plan de seed.sql
+-- Legajo del alumno en el plan A22 de LAES (seed_plan_a22.sql)
 INSERT INTO sga.legajo (persona_id, numero_legajo, plan_estudio_id)
 SELECT p.id, 'DEMO-001', pl.id
 FROM sga.persona p
-JOIN sga.plan_estudio pl ON pl.codigo = 'INF-2023'
+JOIN sga.carrera ca      ON ca.codigo = 'LAES'
+JOIN sga.plan_estudio pl ON pl.carrera_id = ca.id AND pl.codigo = 'A22'
 WHERE p.mail_institucional = 'alumno.demo@itba.edu.ar'
 ON CONFLICT (persona_id) DO NOTHING;
 
--- El docente dicta la comisión A de Programación Web (72.40)
+-- El docente dicta la comisión A de Programación web (71.38)
 INSERT INTO sga.docente (persona_id)
 SELECT id FROM sga.persona WHERE mail_institucional = 'docente.demo@itba.edu.ar'
 ON CONFLICT (persona_id) DO NOTHING;
@@ -47,7 +49,7 @@ INSERT INTO sga.docente_comision (docente_id, comision_id)
 SELECT d.id, co.id
 FROM sga.docente d
 JOIN sga.persona p   ON p.id = d.persona_id
-JOIN sga.materia m   ON m.codigo = '72.40'
+JOIN sga.materia m   ON m.codigo = '71.38'
 JOIN sga.curso c     ON c.materia_id = m.id AND c.anio = 2026 AND c.periodo = '2C'
 JOIN sga.comision co ON co.curso_id = c.id AND co.nombre = 'A'
 WHERE p.mail_institucional = 'docente.demo@itba.edu.ar'
@@ -57,7 +59,7 @@ ON CONFLICT (docente_id, comision_id) DO NOTHING;
 INSERT INTO sga.inscripcion_curso (legajo_id, curso_id, comision_id, docente_id)
 SELECT l.id, c.id, co.id, d.id
 FROM sga.legajo l
-JOIN sga.materia m   ON m.codigo = '72.40'
+JOIN sga.materia m   ON m.codigo = '71.38'
 JOIN sga.curso c     ON c.materia_id = m.id AND c.anio = 2026 AND c.periodo = '2C'
 JOIN sga.comision co ON co.curso_id = c.id AND co.nombre = 'A'
 JOIN sga.persona pd  ON pd.mail_institucional = 'docente.demo@itba.edu.ar'

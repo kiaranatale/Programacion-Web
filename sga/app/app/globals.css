@@ -183,3 +183,14 @@ a:hover { text-decoration: underline; }
 .sga-encabezado-carrera strong { color: var(--titulo); font-size: 13px; }
 .sga-encabezado-carrera span { color: var(--marron); font-size: 11px; }
 .sga-titulo-suelto { margin: 12px 4px 8px; }
+
+/* ---------- Detalle de plan ---------- */
+.sga-bloque-plan { margin: 14px 0; border: 1px solid var(--borde-tabla); }
+.sga-bloque-plan-titulo { margin: 0; padding: 9px 8px; border-bottom: 1px solid var(--borde-tabla); background: #eef3fa; color: #222; font-size: 10px; font-weight: 700; }
+.sga-bloque-plan-grupo { padding: 4px 8px 12px; border-bottom: 1px solid var(--borde); }
+.sga-bloque-plan-grupo:last-child { border-bottom: 0; }
+.sga-tabla-plan th { text-align: left; font-weight: 700; }
+.sga-materia-plan { color: var(--azul-link); }
+.sga-materia-plan span { color: var(--azul-link); }
+.sga-requeridos { color: var(--azul-link); }
+.sga-fila-hueco td { color: #333; font-style: italic; }
