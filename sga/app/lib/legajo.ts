@@ -60,3 +60,9 @@ const periodos: Record<string, string> = { "1C": "Primer Cuat.", "2C": "Segundo 
 export function periodo(anio: number, codigo: string): string {
   return `${periodos[codigo] ?? codigo} ${anio}`;
 }
+
+// Cuatrimestre al que pertenece una fecha (agosto en adelante: segundo).
+export function periodoDeFecha(valor: string): string {
+  const [anio, mes] = valor.slice(0, 10).split("-").map(Number);
+  return periodo(anio, mes >= 8 ? "2C" : "1C");
+}

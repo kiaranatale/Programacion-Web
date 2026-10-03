@@ -19,7 +19,7 @@ const menus: Menu[] = [
     label: "Académica",
     items: [
       { label: "Autoridades" },
-      { label: "Carreras" },
+      { label: "Carreras", href: "/carreras" },
       { label: "Cursos" },
       { label: "Hoy en el ITBA" },
     ],

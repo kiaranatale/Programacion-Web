@@ -2,16 +2,16 @@
 BEGIN;
 
 -- Catálogos base
-INSERT INTO sga.escuela (nombre) VALUES ('Escuela de Gestión y Tecnología');
-INSERT INTO sga.departamento (nombre) VALUES ('Sistemas Digitales y Datos');
+INSERT INTO sga.escuela (nombre) VALUES ('Escuela de Prueba Smoke');
+INSERT INTO sga.departamento (nombre) VALUES ('Departamento de Prueba Smoke');
 INSERT INTO sga.carrera (codigo, nombre_oficial, escuela_id)
 SELECT 'SMK', 'Carrera de Prueba Smoke', id FROM sga.escuela
-WHERE nombre = 'Escuela de Gestión y Tecnología';
+WHERE nombre = 'Escuela de Prueba Smoke';
 INSERT INTO sga.plan_estudio (carrera_id, codigo, creditos_totales, vigencia_desde)
 SELECT id, 'AI2', 180, DATE '2020-01-01' FROM sga.carrera WHERE codigo = 'SMK';
 INSERT INTO sga.materia (codigo, nombre, departamento_id, creditos)
 SELECT '71.28', 'Programación Web (smoke)', id, 6 FROM sga.departamento
-WHERE nombre = 'Sistemas Digitales y Datos';
+WHERE nombre = 'Departamento de Prueba Smoke';
 
 -- Persona + legajo (dispara activación automática de facturables)
 INSERT INTO sga.item_facturable (codigo, nombre, monto)

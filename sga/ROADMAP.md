@@ -212,7 +212,7 @@ agregar tablas antes de hacer la pantalla.
 | 2 | Datos del alumno → **Historia académica** | Materias por cuatrimestre con nota de cursada y final | `inscripcion_curso`, `inscripcion_examen_final`, `curso` | ✅ Hecho |
 | 3 | Datos del alumno → **Calendario semanal** | Grilla lunes–sábado con los horarios de cada materia | `inscripcion_curso`, `horario_comision` | ✅ Hecho |
 | 4 | Administración → **Ocupación de Aulas** | Grilla aula × hora: cursos, eventos, exámenes, capacidad excedida | `aula`, `horario_comision`, `evento_academico`, `examen_final` | Hoy `/aulas` es un listado; falta la grilla |
-| 5 | Académica → **Carreras** | Listado con filtros (código, escuela, nivel, activa) | `carrera`, `escuela` | Pendiente |
+| 5 | Académica → **Carreras** | Listado con filtros (código, escuela, nivel, activa); detalle con planes y materias de cada plan | `carrera`, `escuela`, `plan_estudio`, `plan_materia` | ✅ Hecho (18 carreras reales; faltan los planes y materias reales) |
 | 5 | Académica → **Cursos** | Listado con filtros (materia, depto., período, año, alumnos) | `curso`, `materia`, `departamento`, `inscripcion_curso` | Pendiente |
 | 5 | Académica → **Autoridades** | Cargo y nombre | `autoridad`, `cargo_institucional`, `persona` | Pendiente |
 | 5 | Académica → **Hoy en el ITBA** | Aulas ocupadas hoy por hora (curso, evento, examen) | `horario_comision`, `evento_academico`, `examen_final` | Pendiente |

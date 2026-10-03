@@ -144,8 +144,9 @@ confirmados — revisar si en algún momento se puede validar:
 - `curso`/`comision` siguen la misma lógica estructural que
   `instancia`/`comision` de SecAdmision, pero sin el cupo fijo en 24
   (depende del aula asignada).
-- `carrera.nivel_informatico` es un campo suelto sin lógica relacional
-  propia (posible remanente de integración con un sistema legado).
+- `carrera.nivel_informatico` corresponde al "Nivel informativo" del
+  listado de carreras del SGA actual (hoy siempre "Grado" en grado).
+  Sigue sin lógica relacional propia.
 - Confirmación de pago vía Mercado Pago: webhook como mecanismo primario
   + reconciliación periódica de respaldo (no implementado aún, es lógica
   de backend, no de base de datos).
@@ -193,6 +194,8 @@ Actualmente se aplican, en orden:
   de notas como `SECURITY DEFINER` para que funcionen con RLS.
 - `20261003000000_documento_requerido_unico.sql`: evita documentos
   requeridos duplicados cuando carrera y nivel quedan en NULL.
+- `20261003000001_carrera_nombre_plan_version.sql`: nombre de la carrera
+  (además del oficial) y versión del plan, como en el SGA actual.
 
 Usuarios de prueba: `supabase/seed_usuarios.sql` (correr después de
 `seed.sql`) crea alumno, docente y administrativo; los usuarios de Auth

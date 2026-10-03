@@ -10,7 +10,7 @@
 BEGIN;
 
 INSERT INTO sga.escuela (nombre) VALUES
-    ('Escuela de Ingeniería y Tecnología')
+    ('Escuela de Gestión y Tecnología')
 ON CONFLICT (nombre) DO NOTHING;
 
 INSERT INTO sga.departamento (nombre) VALUES
@@ -18,14 +18,49 @@ INSERT INTO sga.departamento (nombre) VALUES
     ('Informática')
 ON CONFLICT (nombre) DO NOTHING;
 
-INSERT INTO sga.carrera (codigo, nombre_oficial, escuela_id)
-SELECT 'INF', 'Ingeniería en Informática', id
-FROM sga.escuela WHERE nombre = 'Escuela de Ingeniería y Tecnología'
+-- Bases cargadas con una versión anterior de este seed: Informática tenía
+-- el código inventado 'INF' y una escuela inexistente.
+UPDATE sga.carrera c
+SET codigo = 'S', escuela_id = e.id
+FROM sga.escuela e
+WHERE c.codigo = 'INF' AND e.nombre = 'Escuela de Gestión y Tecnología';
+
+DELETE FROM sga.escuela e
+WHERE e.nombre = 'Escuela de Ingeniería y Tecnología'
+  AND NOT EXISTS (SELECT 1 FROM sga.carrera c WHERE c.escuela_id = e.id);
+
+-- Carreras de grado del SGA actual (Académica → Carreras)
+INSERT INTO sga.carrera (codigo, nombre_oficial, escuela_id, nivel, nivel_informatico)
+SELECT x.codigo, x.nombre, e.id, 'GRADO', 'Grado'
+FROM (VALUES
+    ('BIO',  'Bioingeniería'),
+    ('AER',  'Ingeniería Aeroespacial'),
+    ('C',    'Ingeniería Civil'),
+    ('E',    'Ingeniería Electricista'),
+    ('K',    'Ingeniería Electrónica'),
+    ('B',    'Ingeniería en Biotecnología'),
+    ('S',    'Ingeniería en Informática'),
+    ('P',    'Ingeniería en Petróleo'),
+    ('I',    'Ingeniería Industrial'),
+    ('M',    'Ingeniería Mecánica'),
+    ('N',    'Ingeniería Naval'),
+    ('Q',    'Ingeniería Química'),
+    ('X',    'Intercambio'),
+    ('L',    'Lic. en Administración y Sistemas'),
+    ('LAES', 'Licenciatura en Analítica Empresarial y Social'),
+    ('LCA',  'Licenciatura en Ciencias Aplicadas'),
+    ('LCC',  'Licenciatura en Ciencias del Comportamiento'),
+    ('LN',   'Licenciatura en Gestión de Negocios')
+) AS x (codigo, nombre)
+JOIN sga.escuela e ON e.nombre = 'Escuela de Gestión y Tecnología'
 ON CONFLICT (codigo) DO NOTHING;
+
+UPDATE sga.carrera SET nivel_informatico = 'Grado'
+WHERE nivel = 'GRADO' AND nivel_informatico IS NULL;
 
 INSERT INTO sga.plan_estudio (carrera_id, codigo, creditos_totales, vigencia_desde)
 SELECT id, 'INF-2023', 240, DATE '2023-01-01'
-FROM sga.carrera WHERE codigo = 'INF'
+FROM sga.carrera WHERE codigo = 'S'
 ON CONFLICT (carrera_id, codigo) DO NOTHING;
 
 INSERT INTO sga.materia (codigo, nombre, departamento_id, creditos)

@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { fecha, getLegajoActual, periodo } from "@/lib/legajo";
+import { fecha, getLegajoActual, periodoDeFecha } from "@/lib/legajo";
 import { getSesion } from "@/lib/sesion";
 
 type Hito = { id: number; tipo: string; descripcion: string | null; fecha_evento: string; fecha_registro: string };
@@ -7,11 +7,6 @@ type Hito = { id: number; tipo: string; descripcion: string | null; fecha_evento
 const rolesLegibles: Record<string, string> = {
   ALUMNO: "Alumno", DOCENTE: "Docente", AYUDANTE: "Ayudante", ADMINISTRATIVO: "Administrativo",
 };
-
-function periodoDeFecha(f: string): string {
-  const [anio, mes] = f.split("-").map(Number);
-  return periodo(anio, mes >= 8 ? "2C" : "1C");
-}
 
 export default async function Roles() {
   const [{ legajo, nombre }, sesion] = await Promise.all([getLegajoActual(), getSesion()]);
