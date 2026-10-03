@@ -93,8 +93,8 @@ export default async function SgaLayout({ children }: LayoutProps<"/">) {
         <div className="sga-nav-menu">
           <button type="button">Usuario<span aria-hidden="true">▾</span></button>
           <ul>
-            <li><span title="Próximamente">Cambio de clave</span></li>
-            <li><span title="Próximamente">Mensajes</span></li>
+            <li><Link href="/usuario/clave">Cambio de clave</Link></li>
+            <li><Link href="/usuario/mensajes">Mensajes</Link></li>
             <li>
               <form action={logout}>
                 <button type="submit">Cerrar sesión</button>
