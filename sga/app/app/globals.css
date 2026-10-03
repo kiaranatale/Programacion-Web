@@ -251,3 +251,4 @@ a:hover { text-decoration: underline; }
 @media (max-width: 640px) {
   .sga-tabla-historia { min-width: 560px; }
 }
+.sga-col-lupa { width: 1%; text-align: center; white-space: nowrap; }
