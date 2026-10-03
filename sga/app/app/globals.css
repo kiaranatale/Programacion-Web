@@ -252,3 +252,10 @@ a:hover { text-decoration: underline; }
   .sga-tabla-historia { min-width: 560px; }
 }
 .sga-col-lupa { width: 1%; text-align: center; white-space: nowrap; }
+.sga-col-cupo { white-space: nowrap; text-align: center; }
+.sga-lista-inscriptos { margin: 6px 0 0 22px; padding: 0; font-size: 11px; columns: 3 220px; }
+.sga-lista-inscriptos li { padding: 2px 0; }
+.sga-form-contenidos textarea { box-sizing: border-box; width: 100%; padding: 6px 8px; border: 1px solid #c8c8c8; font: inherit; font-size: 11px; line-height: 1.5; resize: vertical; }
+.sga-ayuda { margin: 4px 0; color: #777; font-size: 10px; }
+.sga-acciones-form { display: flex; align-items: center; gap: 10px; margin: 8px 0 0; font-size: 11px; }
+.sga-acciones-form button { padding: 3px 12px; border: 1px solid var(--azul); background: var(--azul); color: #fff; font-size: 11px; cursor: pointer; }
