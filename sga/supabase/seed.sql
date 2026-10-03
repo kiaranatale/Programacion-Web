@@ -14,8 +14,8 @@ INSERT INTO sga.escuela (nombre) VALUES
 ON CONFLICT (nombre) DO NOTHING;
 
 INSERT INTO sga.departamento (nombre) VALUES
-    ('Ciencias Básicas'),
-    ('Informática')
+    ('Ciencias Exactas y Naturales'),
+    ('Sistemas Digitales y Datos')
 ON CONFLICT (nombre) DO NOTHING;
 
 -- Bases cargadas con una versión anterior de este seed: Informática tenía
@@ -87,10 +87,10 @@ WHERE p.codigo = 'INF-2023'
 INSERT INTO sga.materia (codigo, nombre, departamento_id, creditos)
 SELECT m.codigo, m.nombre, d.id, m.creditos
 FROM (VALUES
-    ('93.20', 'Análisis Matemático',                'Ciencias Básicas', 6),
-    ('93.21', 'Álgebra',                            'Ciencias Básicas', 6),
-    ('71.45', 'Estructura de Datos y Programación', 'Informática',      6),
-    ('71.38', 'Programación web',                   'Informática',      3)
+    ('93.20', 'Análisis Matemático',                'Ciencias Exactas y Naturales', 6),
+    ('93.21', 'Álgebra',                            'Ciencias Exactas y Naturales', 6),
+    ('71.45', 'Estructura de Datos y Programación', 'Sistemas Digitales y Datos',   6),
+    ('71.38', 'Programación web',                   'Sistemas Digitales y Datos',   3)
 ) AS m (codigo, nombre, departamento, creditos)
 JOIN sga.departamento d ON d.nombre = m.departamento
 ON CONFLICT (codigo) DO NOTHING;
@@ -111,10 +111,18 @@ FROM (VALUES
 JOIN sga.edificio e ON e.codigo = a.edificio
 ON CONFLICT (edificio_id, codigo) DO NOTHING;
 
+-- Cursos del cuatrimestre con las fechas reales del SGA actual (versiones
+-- anteriores de este seed usaban 10/08 al 04/12)
+UPDATE sga.curso c
+SET fecha_inicio = DATE '2026-07-26', fecha_fin = DATE '2026-12-31'
+FROM sga.materia m
+WHERE m.id = c.materia_id AND m.codigo IN ('93.20', '71.45', '71.38')
+  AND c.anio = 2026 AND c.periodo = '2C' AND c.fecha_inicio = DATE '2026-08-10';
+
 INSERT INTO sga.curso (materia_id, anio, periodo, fecha_inicio, fecha_fin)
-SELECT id, 2026, '2C', DATE '2026-08-10', DATE '2026-12-04'
+SELECT id, 2026, '2C', DATE '2026-07-26', DATE '2026-12-31'
 FROM sga.materia WHERE codigo IN ('93.20', '71.45', '71.38')
-ON CONFLICT (materia_id, anio, periodo) DO NOTHING;
+ON CONFLICT (materia_id, anio, periodo, fecha_inicio) DO NOTHING;
 
 INSERT INTO sga.comision (curso_id, nombre, cupo)
 SELECT c.id, x.nombre, x.cupo
@@ -122,6 +130,7 @@ FROM sga.curso c
 JOIN sga.materia m ON m.id = c.materia_id
 CROSS JOIN (VALUES ('A', 40), ('B', 30)) AS x (nombre, cupo)
 WHERE c.anio = 2026 AND c.periodo = '2C'
+  AND m.codigo IN ('93.20', '71.45', '71.38')
 ON CONFLICT (curso_id, nombre) DO NOTHING;
 
 -- horario_comision no tiene clave única: solo se cargan horarios para

@@ -213,7 +213,7 @@ agregar tablas antes de hacer la pantalla.
 | 3 | Datos del alumno → **Calendario semanal** | Grilla lunes–sábado con los horarios de cada materia | `inscripcion_curso`, `horario_comision` | ✅ Hecho |
 | 4 | Administración → **Ocupación de Aulas** | Grilla aula × hora: cursos, eventos, exámenes, capacidad excedida | `aula`, `horario_comision`, `evento_academico`, `examen_final` | Hoy `/aulas` es un listado; falta la grilla |
 | 5 | Académica → **Carreras** | Listado con filtros (código, escuela, nivel, activa); detalle con planes y materias de cada plan | `carrera`, `escuela`, `plan_estudio`, `plan_materia` | ✅ Hecho (18 carreras reales; plan A22 de LAES completo, faltan los demás planes) |
-| 5 | Académica → **Cursos** | Listado con filtros (materia, depto., período, año, alumnos) | `curso`, `materia`, `departamento`, `inscripcion_curso` | Pendiente |
+| 5 | Académica → **Cursos** | Listado con filtros (materia, depto., período, año, alumnos) y detalle con comisiones | `curso_listado` (vista), `comision`, `horario_comision` | ✅ Hecho (492 cursos reales del 2C 2026) |
 | 5 | Académica → **Autoridades** | Cargo y nombre | `autoridad`, `cargo_institucional`, `persona` | Pendiente |
 | 5 | Académica → **Hoy en el ITBA** | Aulas ocupadas hoy por hora (curso, evento, examen) | `horario_comision`, `evento_academico`, `examen_final` | Pendiente |
 | 6 | Datos del alumno → **Datos familiares** | Familiares | `dato_familiar` | ✅ Hecho |
@@ -231,9 +231,60 @@ agregar tablas antes de hacer la pantalla.
 El menú de la app ya replica esta estructura (Encuestas, Académica,
 Legajos, Administración, Usuario); lo no implementado aparece en gris.
 
-Orden de los seeds: `seed.sql` → `seed_plan_a22.sql` → `seed_usuarios.sql`
-→ `seed_legajo_demo.sql`. Las materias del A22 que no tenían departamento
-conocido quedan en "A confirmar".
+Orden de los seeds: `seed.sql` → `seed_plan_a22.sql` → `seed_cursos.sql`
+→ `seed_usuarios.sql` → `seed_legajo_demo.sql`. Las materias del A22 que no
+se dictan en el período cargado siguen en el departamento "A confirmar".
+
+#### Cómo bajar el listado de cursos del SGA actual
+
+`seed_cursos.sql` se genera a partir del listado de **Académica → Cursos**
+del SGA actual. Para actualizarlo (por ejemplo, al empezar un cuatrimestre):
+
+1. En el SGA, abrir Académica → Cursos con los filtros deseados.
+2. F12 → Console. Si el filtro "Custom levels" oculta "Info", los avisos
+   del script igual se ven porque usa `console.warn`.
+3. Pegar el script de abajo y Enter. Descarga `cursos_sga.csv`.
+4. `python3 sga/scripts/csv_a_seed_cursos.py cursos_sga.csv > sga/supabase/seed_cursos.sql`
+5. Correr el seed en el SQL Editor. El CSV no se sube al repo (trae la
+   cantidad de alumnos por curso, que no se usa).
+
+El SGA pagina con links normales (recarga la página), así que el script
+pide cada página con `fetch` en vez de hacer clic.
+
+```js
+await (async () => {
+  const texto = (el) => el.textContent.replace(/\s+/g, " ").trim();
+  const filasDe = (doc) => {
+    const tabla = [...doc.querySelectorAll("table")].filter((t) => /Cód\./.test(t.textContent)).pop();
+    return [...(tabla?.querySelectorAll("tr") ?? [])]
+      .map((tr) => [...tr.querySelectorAll("td")].map(texto))
+      .filter((c) => c.length >= 10 && /^\d+\.\d+/.test(c[0]));
+  };
+  const siguienteDe = (doc) => [...doc.querySelectorAll("a")].find((a) => texto(a) === ">");
+  const cursos = new Map();
+  const agregar = (filas) => filas.forEach((c) => cursos.set(c.slice(0, 8).join("|"), c));
+  let doc = document, base = location.href, link = siguienteDe(doc);
+  agregar(filasDe(doc));
+  for (let pagina = 2; link && pagina <= 200; pagina++) {
+    const antes = cursos.size;
+    const resp = await fetch(new URL(link.getAttribute("href"), base), { credentials: "include" });
+    base = resp.url;
+    doc = new DOMParser().parseFromString(await resp.text(), "text/html");
+    agregar(filasDe(doc));
+    console.warn(`Página ${pagina}: total ${cursos.size}`);
+    if (cursos.size === antes) break;
+    link = siguienteDe(doc);
+  }
+  const columnas = ["codigo", "materia", "nivel", "departamento", "periodo", "anio", "comienzo", "fin", "activo", "alumnos", "nominada"];
+  const csv = [columnas, ...[...cursos.values()].map((c) => c.slice(0, 11))]
+    .map((f) => f.map((v) => `"${String(v ?? "").replace(/"/g, '""')}"`).join(",")).join("\n");
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8" }));
+  a.download = "cursos_sga.csv";
+  a.click();
+  return `Listo: ${cursos.size} cursos`;
+})();
+```
 
 Datos de demo para todas las solapas de Mi legajo:
 `supabase/seed_legajo_demo.sql` (después de `seed.sql` y

@@ -194,3 +194,6 @@ a:hover { text-decoration: underline; }
 .sga-materia-plan span { color: var(--azul-link); }
 .sga-requeridos { color: var(--azul-link); }
 .sga-fila-hueco td { color: #333; font-style: italic; }
+.sga-paginador { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; margin: 6px 0; padding: 6px 8px; background: #eef3fa; font-size: 10px; }
+.sga-paginador nav { display: flex; flex-wrap: wrap; gap: 5px; }
+.sga-paginador nav strong { color: #333; }

@@ -20,7 +20,7 @@ const menus: Menu[] = [
     items: [
       { label: "Autoridades" },
       { label: "Carreras", href: "/carreras" },
-      { label: "Cursos" },
+      { label: "Cursos", href: "/cursos" },
       { label: "Hoy en el ITBA" },
     ],
   },

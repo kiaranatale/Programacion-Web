@@ -4,7 +4,7 @@ import type { Sesion } from "@/lib/sesion";
 export type ComisionEnCurso = { nombre: string; horarios: string[] };
 export type CursoEnProgreso = { id: number; codigo: string; nombre: string; comisiones: ComisionEnCurso[] };
 
-type HorarioRow = {
+export type HorarioRow = {
   dia_semana: string;
   hora_inicio: string;
   hora_fin: string;
@@ -36,7 +36,7 @@ const modalidades: Record<string, string> = {
 const ordenDias = Object.keys(dias);
 
 // "Lunes (09:00 - 12:00) - Aula 304 → Sede Distrito Financiero: Presencial"
-function formatearHorario(h: HorarioRow): string {
+export function formatearHorario(h: HorarioRow): string {
   const dia = dias[h.dia_semana] ?? h.dia_semana;
   const rango = `${h.hora_inicio.slice(0, 5)} - ${h.hora_fin.slice(0, 5)}`;
   const lugar = h.aula ? ` - Aula ${h.aula.codigo} → ${h.aula.edificio?.nombre ?? "Sin edificio"}` : "";

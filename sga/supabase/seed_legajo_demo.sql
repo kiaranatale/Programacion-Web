@@ -79,7 +79,7 @@ FROM (VALUES
     ('71.45', 2026, '1C', DATE '2026-03-09', DATE '2026-07-03')
 ) AS x (codigo, anio, periodo, inicio, fin)
 JOIN sga.materia m ON m.codigo = x.codigo
-ON CONFLICT (materia_id, anio, periodo) DO NOTHING;
+ON CONFLICT (materia_id, anio, periodo, fecha_inicio) DO NOTHING;
 
 INSERT INTO sga.comision (curso_id, nombre)
 SELECT c.id, 'A'

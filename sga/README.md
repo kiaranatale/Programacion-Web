@@ -200,14 +200,20 @@ Actualmente se aplican, en orden:
   (aprobar todos / juntar créditos), huecos de electivas en la grilla,
   créditos requeridos, correlativas por plan, títulos que otorga el plan
   y materias de 0 créditos.
+- `20261004000000_cursos_reales.sql`: varios cursos de una materia en el
+  mismo período (bimestrales), créditos de materia opcionales y la vista
+  `curso_listado` con la cantidad de alumnos por curso.
 
 Datos en el SQL Editor, en este orden (todos se pueden volver a correr):
 
 1. `supabase/seed.sql`: carreras reales, aulas, cursos y comisiones.
 2. `supabase/seed_plan_a22.sql`: plan A22 completo de LAES (119 materias,
    bloques de electivas, correlativas).
-3. `supabase/seed_usuarios.sql`: personas de prueba.
-4. `supabase/seed_legajo_demo.sql`: legajo completo de la alumna.
+3. `supabase/seed_cursos.sql`: 492 cursos reales del segundo cuatrimestre
+   2026 con su departamento (generado con `scripts/csv_a_seed_cursos.py`;
+   ver "Cómo bajar el listado de cursos" en ROADMAP.md).
+4. `supabase/seed_usuarios.sql`: personas de prueba.
+5. `supabase/seed_legajo_demo.sql`: legajo completo de la alumna.
 
 Usuarios de prueba: `supabase/seed_usuarios.sql` crea alumno, docente y administrativo; los usuarios de Auth
 se crean en el dashboard con los mismos mails.
