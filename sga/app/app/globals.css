@@ -316,3 +316,27 @@ a:hover { text-decoration: underline; }
 .sga-mensaje-datos div { display: flex; gap: 6px; }
 .sga-mensaje-datos dt { min-width: 100px; color: var(--gris-suave); }
 .sga-mensaje-datos dd { margin: 0; }
+.sga-detalles { margin: 12px 0; font-size: 11px; }
+.sga-detalles summary { color: var(--azul-link); cursor: pointer; }
+
+/* Encuestas */
+.sga-estado-encuesta { padding: 2px 6px; font-size: 9px; font-weight: 700; text-transform: uppercase; }
+.sga-estado-activa { background: #eef8eb; color: #2f6d2f; }
+.sga-estado-programada { background: var(--fondo-tabla); color: var(--azul); }
+.sga-estado-finalizada { background: #f0f0f0; color: #777; }
+.sga-fieldset-fechas { grid-template-columns: 1fr 1fr !important; }
+.sga-form-publicacion .sga-preguntas { display: flex; flex-direction: column; gap: 6px; }
+.sga-preguntas div { display: grid; grid-template-columns: 20px minmax(0, 1fr) 130px; align-items: center; gap: 6px; font-size: 11px; }
+.sga-form-encuesta { display: flex; flex-direction: column; gap: 12px; max-width: 720px; }
+.sga-form-encuesta fieldset { margin: 0; padding: 10px 12px; border: 1px solid var(--borde); }
+.sga-form-encuesta legend { padding: 0 4px; color: var(--titulo); font-size: 12px; font-weight: 700; }
+.sga-form-encuesta textarea { box-sizing: border-box; width: 100%; padding: 5px 7px; border: 1px solid #c8c8c8; font: inherit; font-size: 11px; }
+.sga-escala { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+.sga-escala label { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 2px; border: 1px solid #eee; font-size: 11px; text-align: center; cursor: pointer; }
+.sga-escala label:has(input:checked) { border-color: var(--azul); background: var(--fondo-tabla); }
+.sga-escala small { color: var(--gris-suave); font-size: 9px; }
+.sga-barras { margin: 6px 0 0; padding: 0; list-style: none; font-size: 11px; }
+.sga-barras li { display: grid; grid-template-columns: 150px minmax(0, 1fr) 70px; align-items: center; gap: 8px; margin-bottom: 4px; }
+@media (max-width: 600px) { .sga-barras li { grid-template-columns: 110px minmax(0, 1fr) 60px; font-size: 10px; } }
+.sga-barra { height: 12px; background: #f0f3f7; }
+.sga-barra span { display: block; height: 100%; background: var(--azul); }

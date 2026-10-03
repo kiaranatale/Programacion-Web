@@ -18,7 +18,7 @@ export default async function Inicio() {
   const supabase = await createClient();
   const sga = supabase.schema("sga");
 
-  const [{ data: notificaciones }, { data: cronogramas }, cursos, { count: sinLeer }] = await Promise.all([
+  const [{ data: notificaciones }, { data: cronogramas }, cursos, { count: sinLeer }, { data: encuestas }] = await Promise.all([
     sga
       .from("notificacion")
       .select("id, mensaje")
@@ -34,7 +34,10 @@ export default async function Inicio() {
       .returns<Cronograma[]>(),
     getCursosEnProgreso(sesion),
     sga.from("mensaje_recibido").select("id", { count: "exact", head: true }).is("leido_en", null),
+    sga.rpc("encuestas_para_mi"),
   ]);
+  const encuestasPendientes = ((encuestas ?? []) as { estado: string; respondida: boolean }[])
+    .filter((e) => e.estado === "ACTIVA" && !e.respondida).length;
 
   return (
     <>
@@ -48,12 +51,19 @@ export default async function Inicio() {
       <section className="sga-panel sga-cajas">
         <div className="sga-caja">
           <h3>Notificaciones</h3>
-          {(sinLeer ?? 0) > 0 || (notificaciones && notificaciones.length > 0) ? (
+          {(sinLeer ?? 0) > 0 || encuestasPendientes > 0 || (notificaciones && notificaciones.length > 0) ? (
             <ul>
               {(sinLeer ?? 0) > 0 && (
                 <li>
                   <Link href="/usuario/mensajes">
                     {sinLeer === 1 ? "Tenés 1 mensaje sin leer" : `Tenés ${sinLeer} mensajes sin leer`}
+                  </Link>
+                </li>
+              )}
+              {encuestasPendientes > 0 && (
+                <li>
+                  <Link href="/encuestas">
+                    {encuestasPendientes === 1 ? "Tenés 1 encuesta para responder" : `Tenés ${encuestasPendientes} encuestas para responder`}
                   </Link>
                 </li>
               )}

@@ -231,6 +231,10 @@ Actualmente se aplican, en orden:
 - `20261008000000_mensajes.sql`: mensajes con varios destinatarios y
   estado de lectura por persona; se envían con `enviar_mensaje` y
   `responder_mensaje`, que deciden a quién puede escribirle cada rol.
+- `20261009000000_autoridades_encuestas.sql`: vista `autoridad_listado`;
+  preguntas de encuesta, respuestas anónimas (`encuesta_participacion`
+  guarda quién respondió y `encuesta_respuesta` qué, sin persona) y las
+  funciones para responder, ver resultados y crear encuestas.
 
 Datos en el SQL Editor, en este orden (todos se pueden volver a correr):
 
@@ -250,6 +254,8 @@ Datos en el SQL Editor, en este orden (todos se pueden volver a correr):
    Centro de Estudiantes).
 8. `supabase/seed_mensajes.sql`: un mensaje del docente demo a su
    comisión y uno de Administración a todos.
+9. `supabase/seed_autoridades_encuestas.sql`: cargos institucionales,
+   dos autoridades con las personas demo y dos encuestas abiertas.
 
 Usuarios de prueba: `supabase/seed_usuarios.sql` crea alumno, docente y administrativo; los usuarios de Auth
 se crean en el dashboard con los mismos mails.
@@ -339,6 +345,7 @@ psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f tests/sql/documentacion_test.sql
 psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f tests/sql/curso_detalle_test.sql
 psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f tests/sql/hoy_test.sql
 psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f tests/sql/mensajes_test.sql
+psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f tests/sql/encuestas_test.sql
 ```
 
 También se pueden pegar completos en el **SQL Editor** del dashboard de
