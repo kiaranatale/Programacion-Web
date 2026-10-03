@@ -206,6 +206,10 @@ Actualmente se aplican, en orden:
 - `20261004000001_curso_plantel.sql`: responsable del curso, cargo de cada
   docente, contenidos mínimos de la materia y la vista `curso_plantel`
   (nombre, cargo y mail institucional de los docentes de cada curso).
+- `20261004000002_documentacion_carga.sql`: bucket privado
+  `documentacion` en Supabase Storage con políticas por legajo, y
+  funciones para que el alumno suba/elimine documentos (quedan
+  "Pendiente de validación") y Administración los apruebe o rechace.
 
 Datos en el SQL Editor, en este orden (todos se pueden volver a correr):
 
@@ -284,6 +288,7 @@ de dependencias haya terminado correctamente.
 psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f tests/sql/smoke_test.sql
 psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f tests/sql/rls_test.sql
 psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f tests/sql/auth_test.sql
+psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f tests/sql/documentacion_test.sql
 ```
 
 También se pueden pegar completos en el **SQL Editor** del dashboard de

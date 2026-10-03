@@ -207,3 +207,17 @@ a:hover { text-decoration: underline; }
 .sga-foto-docente svg { width: 34px; height: 26px; background: none; fill: #8a8f96; }
 .sga-foto-docente span { color: #555; font-size: 7px; text-align: center; }
 .sga-texto-largo { max-width: 820px; white-space: pre-line; }
+
+/* ---------- Documentación ---------- */
+.sga-mensaje-ok, .sga-mensaje-error { margin: 8px 0; padding: 7px 10px; font-size: 11px; }
+.sga-mensaje-ok { border: 1px solid #b9dcb0; background: #eef8eb; color: #2f6d2f; }
+.sga-mensaje-error { border: 1px solid #e5b5a5; background: #fbeee9; color: #a3412a; }
+.sga-estado-cargado { color: #a06c00; }
+.sga-estado-validado { color: #2f8a2f; }
+.sga-estado-rechazado { color: #c0281c; font-weight: 700; }
+.sga-observacion { margin-top: 3px; color: #a3412a; font-size: 10px; }
+.sga-acciones-doc form { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin: 2px 0; }
+.sga-acciones-doc input[type="file"] { max-width: 190px; font-size: 10px; }
+.sga-acciones-doc button { padding: 2px 8px; border: 1px solid var(--azul); background: var(--azul); color: #fff; font-size: 10px; cursor: pointer; }
+.sga-acciones-doc button.sga-boton-peligro { border-color: #c0281c; background: #fff; color: #c0281c; }
+.sga-acciones-doc input[name="observaciones"] { width: 160px; height: 22px; padding: 0 5px; border: 1px solid #c8c8c8; font-size: 10px; }

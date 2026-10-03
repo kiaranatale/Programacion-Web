@@ -219,7 +219,7 @@ agregar tablas antes de hacer la pantalla.
 | 6 | Datos del alumno → **Datos familiares** | Familiares | `dato_familiar` | ✅ Hecho |
 | 6 | Datos del alumno → **Historial de inhibiciones** / **Histórico excepciones** | Inhibiciones y excepciones con fechas | `inhibicion`, `excepcion` | ✅ Hecho |
 | 6 | Datos del alumno → **Exámenes habilitados** | Exámenes especiales (inglés, castellano, práctica laboral) | `examen_especial`, `examen_especial_intento` | ✅ Hecho |
-| 6 | Datos del alumno → **Documentación** | Documentos obligatorios, entregados y validados, con carga de archivos | `documento_requerido`, `documento_legajo` | ✅ Lectura hecha (carga de archivos: falta Supabase Storage) |
+| 6 | Datos del alumno → **Documentación** | Documentos obligatorios, entregados y validados, con carga de archivos | `documento_requerido`, `documento_legajo`, Storage `documentacion` | ✅ Hecho: el alumno sube/reemplaza/elimina (PDF, PNG, JPG hasta 5 MB) y Administración aprueba o rechaza en Administración → Documentación pendiente |
 | 7 | Datos del alumno → **Facturables** / Mi legajo → **Estado de cuenta** | Ítems activos, saldo, facturas y pagos | `item_facturable_legajo`, `factura`, `orden_pago` | ✅ Lectura hecha (pagar: Paso 4, Mercado Pago) |
 | 8 | Encuestas → **General** | Listado de encuestas con estado y fechas | `encuesta`, `encuesta_respuesta` | Pendiente |
 | 9 | Usuario → **Cambio de clave** | Cambiar contraseña | Supabase Auth | Pendiente |

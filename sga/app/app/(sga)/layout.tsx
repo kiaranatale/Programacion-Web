@@ -4,7 +4,7 @@ import LogoSga from "@/components/logo-sga";
 import { logout } from "@/app/auth/actions";
 import { getSesion, type Rol } from "@/lib/sesion";
 
-type ItemMenu = { label: string; href?: string };
+type ItemMenu = { label: string; href?: string; roles?: Rol[] };
 type Menu = { label: string; items: ItemMenu[]; roles?: Rol[] };
 
 // Misma estructura de menú que el SGA actual. Los ítems sin href son
@@ -36,7 +36,10 @@ const menus: Menu[] = [
   },
   {
     label: "Administración",
-    items: [{ label: "Ocupación de Aulas", href: "/aulas" }],
+    items: [
+      { label: "Ocupación de Aulas", href: "/aulas" },
+      { label: "Documentación pendiente", href: "/administracion/documentacion", roles: ["ADMINISTRATIVO"] },
+    ],
   },
 ];
 
@@ -47,9 +50,10 @@ export default async function SgaLayout({ children }: LayoutProps<"/">) {
   const nombre = sesion.persona
     ? `${sesion.persona.apellido}, ${sesion.persona.nombre}`
     : sesion.email;
-  const visibles = menus.filter(
-    (m) => !m.roles || m.roles.some((r) => sesion.roles.includes(r)),
-  );
+  const permitido = (roles?: Rol[]) => !roles || roles.some((r) => sesion.roles.includes(r));
+  const visibles = menus
+    .filter((m) => permitido(m.roles))
+    .map((m) => ({ ...m, items: m.items.filter((i) => permitido(i.roles)) }));
 
   return (
     <div className="sga-shell">
