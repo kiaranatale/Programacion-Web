@@ -13,12 +13,12 @@ type Menu = { label: string; items: ItemMenu[]; roles?: Rol[] };
 const menus: Menu[] = [
   {
     label: "Encuestas",
-    items: [{ label: "General" }],
+    items: [{ label: "General", href: "/encuestas" }],
   },
   {
     label: "Académica",
     items: [
-      { label: "Autoridades" },
+      { label: "Autoridades", href: "/autoridades" },
       { label: "Carreras", href: "/carreras" },
       { label: "Cursos", href: "/cursos" },
       { label: "Hoy en el ITBA", href: "/hoy" },
