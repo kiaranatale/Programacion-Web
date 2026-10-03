@@ -154,6 +154,32 @@ WHERE NOT EXISTS (
     SELECT 1 FROM sga.horario_comision hc WHERE hc.comision_id = co.id
 );
 
+-- Eventos y exámenes de la semana del 5/10/2026, para ver todos los colores
+-- de Ocupación de Aulas: un examen (lunes), un evento (lunes) y un evento
+-- superpuesto con la clase de 71.38 en el Aula 101 (viernes).
+INSERT INTO sga.evento_academico (nombre, tipo, fecha, hora_inicio, hora_fin, aula_id)
+SELECT x.nombre, x.tipo, x.fecha, x.inicio::time, x.fin::time, a.id
+FROM (VALUES
+    ('Jornada de orientación vocacional', 'Jornada', DATE '2026-10-05', '18:00', '20:00', 'SEDE-PT', '108'),
+    ('Charla de bienvenida a ingresantes', 'Charla', DATE '2026-10-09', '15:00', '16:00', 'SEDE-DM', '101')
+) AS x (nombre, tipo, fecha, inicio, fin, edificio, aula)
+JOIN sga.edificio e ON e.codigo = x.edificio
+JOIN sga.aula a ON a.edificio_id = e.id AND a.codigo = x.aula
+WHERE NOT EXISTS (
+    SELECT 1 FROM sga.evento_academico ev WHERE ev.nombre = x.nombre AND ev.fecha = x.fecha
+);
+
+INSERT INTO sga.examen_final (curso_id, fecha, hora_inicio, hora_fin, aula_id)
+SELECT c.id, DATE '2026-10-05', '13:00', '15:00', a.id
+FROM sga.curso c
+JOIN sga.materia m ON m.id = c.materia_id AND m.codigo = '93.20'
+JOIN sga.edificio e ON e.codigo = 'SEDE-DM'
+JOIN sga.aula a ON a.edificio_id = e.id AND a.codigo = '304'
+WHERE c.anio = 2026 AND c.periodo = '2C'
+  AND NOT EXISTS (
+      SELECT 1 FROM sga.examen_final ef WHERE ef.curso_id = c.id AND ef.fecha = DATE '2026-10-05'
+  );
+
 COMMIT;
 
 SELECT

@@ -210,6 +210,9 @@ Actualmente se aplican, en orden:
   `documentacion` en Supabase Storage con políticas por legajo, y
   funciones para que el alumno suba/elimine documentos (quedan
   "Pendiente de validación") y Administración los apruebe o rechace.
+- `20261004000003_ocupacion_aulas.sql`: función `ocupacion_aulas(fecha)`
+  con clases, eventos y exámenes por aula y la cantidad de inscriptos
+  (para Administración → Ocupación de Aulas).
 
 Datos en el SQL Editor, en este orden (todos se pueden volver a correr):
 
