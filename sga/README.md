@@ -216,6 +216,11 @@ Actualmente se aplican, en orden:
 - `20261005000000_aulas_reales_ocupacion_referencia.sql`: capacidad de
   aula opcional, tabla `aula_ocupacion_referencia` (ocupación semanal
   tomada del SGA actual) y `ocupacion_aulas` que la incluye.
+- `20261006000000_curso_cupos_companeros_contenidos.sql`: ocupación del
+  cupo por comisión (vista `comision_inscriptos`), listado de inscriptos
+  de una comisión para sus alumnos y docentes (`companeros_comision`) y
+  edición de contenidos mínimos por el responsable del curso
+  (`actualizar_contenidos_minimos`).
 
 Datos en el SQL Editor, en este orden (todos se pueden volver a correr):
 
@@ -304,6 +309,7 @@ psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f tests/sql/smoke_test.sql
 psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f tests/sql/rls_test.sql
 psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f tests/sql/auth_test.sql
 psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f tests/sql/documentacion_test.sql
+psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f tests/sql/curso_detalle_test.sql
 ```
 
 También se pueden pegar completos en el **SQL Editor** del dashboard de
