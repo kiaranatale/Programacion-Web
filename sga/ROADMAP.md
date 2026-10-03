@@ -211,7 +211,7 @@ agregar tablas antes de hacer la pantalla.
 | 2 | Datos del alumno → **Analítico de notas** | Rendimiento, créditos aprobados / en curso, % de carrera, materias por año con cursada y finales | `legajo`, `plan_materia`, `inscripcion_curso`, `inscripcion_examen_final` | ✅ Hecho |
 | 2 | Datos del alumno → **Historia académica** | Materias por cuatrimestre con nota de cursada y final | `inscripcion_curso`, `inscripcion_examen_final`, `curso` | ✅ Hecho |
 | 3 | Datos del alumno → **Calendario semanal** | Grilla lunes–sábado con los horarios de cada materia | `inscripcion_curso`, `horario_comision` | ✅ Hecho |
-| 4 | Administración → **Ocupación de Aulas** | Grilla aula × hora: cursos, eventos, exámenes, capacidad excedida | `aula`, `horario_comision`, `evento_academico`, `examen_final` (función `ocupacion_aulas`) | ✅ Hecho: grilla aula × media hora con filtros de fecha y edificio, superposición y capacidad excedida |
+| 4 | Administración → **Ocupación de Aulas** | Grilla aula × hora: cursos, eventos, exámenes, capacidad excedida | `aula`, `horario_comision`, `evento_academico`, `examen_final`, `aula_ocupacion_referencia` (función `ocupacion_aulas`) | ✅ Hecho: grilla aula × media hora con filtros de fecha, aula y edificio; 227 aulas reales y la ocupación semanal del SGA actual como referencia |
 | 5 | Académica → **Carreras** | Listado con filtros (código, escuela, nivel, activa); detalle con planes y materias de cada plan | `carrera`, `escuela`, `plan_estudio`, `plan_materia` | ✅ Hecho (18 carreras reales; plan A22 de LAES completo, faltan los demás planes) |
 | 5 | Académica → **Cursos** | Listado con filtros (materia, depto., período, año, alumnos) y detalle con Plantel Docente, Comisiones, Contenidos mínimos e Información de la materia | `curso_listado` y `curso_plantel` (vistas), `comision`, `horario_comision`, `plan_materia` | ✅ Hecho (492 cursos reales del 2C 2026) |
 | 5 | Académica → **Autoridades** | Cargo y nombre | `autoridad`, `cargo_institucional`, `persona` | Pendiente |
@@ -232,8 +232,86 @@ El menú de la app ya replica esta estructura (Encuestas, Académica,
 Legajos, Administración, Usuario); lo no implementado aparece en gris.
 
 Orden de los seeds: `seed.sql` → `seed_plan_a22.sql` → `seed_cursos.sql`
-→ `seed_usuarios.sql` → `seed_legajo_demo.sql`. Las materias del A22 que no
+→ `seed_aulas.sql` → `seed_usuarios.sql` → `seed_legajo_demo.sql`. Las materias del A22 que no
 se dictan en el período cargado siguen en el departamento "A confirmar".
+
+#### Cómo bajar la ocupación de aulas del SGA actual
+
+`seed_aulas.sql` se genera desde **Administración → Ocupación de Aulas**:
+
+1. Abrir la grilla en un lunes de una semana normal, con Edificio "Seleccione
+   uno" (todas las aulas), y apretar Buscar.
+2. F12 → Console, pegar el script de abajo. Pide lunes a sábado de esa
+   semana enviando el mismo formulario con otra fecha y descarga
+   `ocupacion_aulas_sga.csv`.
+3. `python3 sga/scripts/csv_a_seed_aulas.py ocupacion_aulas_sga.csv 2026-07-26 2026-12-31 > sga/supabase/seed_aulas.sql`
+   (las fechas son el período en que vale esa ocupación).
+
+La grilla del SGA solo dice aula, horario y tipo (por color); no dice qué
+materia ocupa el aula. Las celdas vacías se detectan como la marca más
+frecuente.
+
+```js
+await (async () => {
+  const texto = (el) => (el?.textContent ?? "").replace(/\s+/g, " ").trim();
+  const RE_FECHA = /^\d{2}\/\d{2}\/\d{4}$/;
+  const marcaDe = (el) => {
+    if (!el) return "";
+    const estilo = el.getAttribute("style") || "";
+    const color = (estilo.match(/background(?:-color)?\s*:\s*([^;]+)/i) || [])[1] || el.getAttribute("bgcolor") || "";
+    return `${(el.className || "").trim()}|${color.trim().toLowerCase()}`;
+  };
+  const leer = (doc) => {
+    const tabla = [...doc.querySelectorAll("table")].filter((t) => /Aula\s*\(cap\.?\)/i.test(t.textContent)).pop();
+    if (!tabla) return null;
+    const filas = [...tabla.querySelectorAll("tr")];
+    const encabezado = filas.find((tr) => /\d{2}:\d{2}/.test(tr.textContent));
+    const horas = [...(encabezado?.children ?? [])].map(texto).filter((h) => /^\d{2}:\d{2}$/.test(h));
+    const fechaInput = [...doc.querySelectorAll("input")].find((i) => RE_FECHA.test(i.value || i.getAttribute("value") || ""));
+    const celdas = [];
+    for (const tr of filas) {
+      const tds = [...tr.children];
+      const aula = texto(tds[0]);
+      if (!aula || tr === encabezado || /Aula\s*\(cap/i.test(aula)) continue;
+      let col = 0;
+      for (const td of tds.slice(1)) {
+        const span = Number(td.getAttribute("colspan") || 1);
+        celdas.push({ aula, desde: horas[col] ?? "", franjas: span, marca: marcaDe(td),
+          titulo: td.getAttribute("title") || "", texto: texto(td) });
+        col += span;
+      }
+    }
+    return { fecha: fechaInput ? (fechaInput.value || fechaInput.getAttribute("value")) : "", celdas, form: fechaInput?.form, fechaInput };
+  };
+  const actual = leer(document);
+  if (!actual) return "No encontré la grilla.";
+  const dias = { [actual.fecha]: actual };
+  const [d, m, a] = actual.fecha.split("/").map(Number);
+  const base = new Date(a, m - 1, d);
+  const lunes = new Date(base); lunes.setDate(base.getDate() - ((base.getDay() + 6) % 7));
+  const boton = [...actual.form.querySelectorAll("button, input[type=submit]")].find((b) => /buscar/i.test(b.value || b.textContent));
+  for (let i = 0; i < 6; i++) {
+    const dia = new Date(lunes); dia.setDate(lunes.getDate() + i);
+    const f = `${String(dia.getDate()).padStart(2, "0")}/${String(dia.getMonth() + 1).padStart(2, "0")}/${dia.getFullYear()}`;
+    if (dias[f]) continue;
+    const datos = new FormData(actual.form);
+    datos.set(actual.fechaInput.name, f);
+    if (boton?.name) datos.set(boton.name, boton.value || "Buscar");
+    const resp = await fetch(actual.form.action, { method: "POST", body: new URLSearchParams(datos), credentials: "include" });
+    const otro = leer(new DOMParser().parseFromString(await resp.text(), "text/html"));
+    if (otro && otro.fecha === f) dias[f] = otro; else console.warn(`No pude pedir ${f}`);
+  }
+  const columnas = ["fecha", "aula", "desde", "franjas", "marca", "titulo", "texto"];
+  const filas = Object.entries(dias).flatMap(([f, x]) => x.celdas.map((c) => ({ fecha: f, ...c })));
+  const csv = [columnas, ...filas.map((o) => columnas.map((c) => o[c]))]
+    .map((r) => r.map((v) => `"${String(v ?? "").replace(/"/g, '""')}"`).join(",")).join("\n");
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8" }));
+  link.download = "ocupacion_aulas_sga.csv";
+  link.click();
+  return `Listo: ${Object.keys(dias).length} días`;
+})();
+```
 
 #### Cómo bajar el listado de cursos del SGA actual
 

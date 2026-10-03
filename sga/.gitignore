@@ -1,2 +1,3 @@
 # Listados exportados del SGA actual (traen cantidades de alumnos)
 cursos_sga*.csv
+ocupacion_aulas_sga*.csv

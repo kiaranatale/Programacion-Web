@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getCursosEnProgreso } from "@/lib/cursos";
 import { getSesion } from "@/lib/sesion";
@@ -83,7 +84,7 @@ export default async function Inicio() {
           <div className="sga-tabla-scroll">
             <table className="sga-tabla">
               <thead>
-                <tr><th>Curso</th><th>Horarios</th></tr>
+                <tr><th>Curso</th><th>Horarios</th><th></th></tr>
               </thead>
               <tbody>
                 {cursos.map((curso) => (
@@ -96,6 +97,9 @@ export default async function Inicio() {
                           {comision.horarios.length > 0 ? comision.horarios.join(" | ") : "Sin horarios cargados"}
                         </div>
                       ))}
+                    </td>
+                    <td className="sga-col-lupa">
+                      <Link aria-label={`Ver detalles de ${curso.nombre}`} href={`/cursos/${curso.id}`}>🔍</Link>
                     </td>
                   </tr>
                 ))}
