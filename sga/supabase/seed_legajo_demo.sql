@@ -214,7 +214,7 @@ INSERT INTO sga.orden_pago (legajo_id, monto_total, fecha_creacion)
 SELECT f.legajo_id, f.monto_total, f.fecha_emision
 FROM sga.factura f
 JOIN demo_legajo d ON d.id = f.legajo_id
-WHERE f.estado = 'PENDIENTE'
+WHERE f.estado = 'PENDIENTE' AND f.periodo IN ('2026-07', '2026-08')
   AND NOT EXISTS (SELECT 1 FROM sga.orden_pago_factura opf WHERE opf.factura_id = f.id);
 
 INSERT INTO sga.orden_pago_factura (orden_pago_id, factura_id)
@@ -223,14 +223,17 @@ FROM sga.factura f
 JOIN demo_legajo d ON d.id = f.legajo_id
 JOIN sga.orden_pago op ON op.legajo_id = f.legajo_id
      AND op.fecha_creacion::date = f.fecha_emision AND op.estado = 'PENDIENTE'
-WHERE NOT EXISTS (SELECT 1 FROM sga.orden_pago_factura opf WHERE opf.factura_id = f.id);
+WHERE f.periodo IN ('2026-07', '2026-08')
+  AND NOT EXISTS (SELECT 1 FROM sga.orden_pago_factura opf WHERE opf.factura_id = f.id);
 
 -- Confirmar los pagos (el trigger pasa las facturas a PAGADA)
 UPDATE sga.orden_pago op
 SET estado = 'PAGADO',
     fecha_pago = op.fecha_creacion + INTERVAL '9 days'
 FROM demo_legajo d
-WHERE op.legajo_id = d.id AND op.estado = 'PENDIENTE';
+WHERE op.legajo_id = d.id AND op.estado = 'PENDIENTE' AND op.external_preference_id IS NULL
+  AND op.id IN (SELECT opf.orden_pago_id FROM sga.orden_pago_factura opf
+                JOIN sga.factura f ON f.id = opf.factura_id WHERE f.periodo IN ('2026-07', '2026-08'));
 
 COMMIT;
 
