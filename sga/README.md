@@ -235,6 +235,10 @@ Actualmente se aplican, en orden:
   preguntas de encuesta, respuestas anónimas (`encuesta_participacion`
   guarda quién respondió y `encuesta_respuesta` qué, sin persona) y las
   funciones para responder, ver resultados y crear encuestas.
+- `20261010000000_pago_mercado_pago.sql`: inicio del pago de una
+  factura (`iniciar_pago_factura`), link de Mercado Pago de cada orden y
+  `registrar_pago_mp` (solo `service_role`), que marca la orden como
+  pagada si Mercado Pago la aprobó por el monto completo.
 
 Datos en el SQL Editor, en este orden (todos se pueden volver a correr):
 
@@ -256,6 +260,8 @@ Datos en el SQL Editor, en este orden (todos se pueden volver a correr):
    comisión y uno de Administración a todos.
 9. `supabase/seed_autoridades_encuestas.sql`: cargos institucionales,
    dos autoridades con las personas demo y dos encuestas abiertas.
+10. `supabase/seed_facturas.sql`: dos facturas impagas de la alumna demo
+    (septiembre vencida y octubre pendiente) para probar el pago.
 
 Usuarios de prueba: `supabase/seed_usuarios.sql` crea alumno, docente y administrativo; los usuarios de Auth
 se crean en el dashboard con los mismos mails.
@@ -319,9 +325,36 @@ El servidor de mails que trae Supabase manda pocos mails por hora y solo a
 los miembros del equipo del proyecto. Para usuarios reales hay que
 configurar un SMTP propio en **Authentication → Emails → SMTP Settings**.
 
-No configurar `SUPABASE_SERVICE_ROLE_KEY` como variable `NEXT_PUBLIC_*` ni
-usarla en componentes del navegador; cuando haga falta (webhook de Mercado
-Pago) va solo como variable de servidor.
+### 6. Pago con Mercado Pago
+
+En el [panel de desarrolladores](https://www.mercadopago.com.ar/developers/panel/app)
+de Mercado Pago, crear una aplicación con **Checkout Pro** (API de
+Preferences) y activar las **credenciales de prueba**. En **Cuentas de
+prueba** crear un comprador: con esa cuenta (o con las **tarjetas de
+prueba**) se paga sin plata real.
+
+Variables de servidor (en `.env.local` y en Vercel → Settings →
+Environment Variables, para Production y Preview; **sin** `NEXT_PUBLIC_`):
+
+- `MP_ACCESS_TOKEN`: Access Token de prueba de la aplicación.
+- `SUPABASE_SERVICE_ROLE_KEY`: Supabase → Project Settings → API Keys →
+  secret / service_role. La usa el servidor para registrar los pagos
+  confirmados.
+- `MP_WEBHOOK_SECRET` (opcional, recomendado): la clave secreta que
+  muestra Mercado Pago en **Webhooks**; con ella se valida la firma de
+  cada aviso.
+
+En la aplicación de Mercado Pago → **Webhooks**: URL
+`https://<tu-app>.vercel.app/api/mercadopago/webhook`, evento **Pagos**.
+Sin el webhook el pago igual se confirma cuando el alumno vuelve al SGA;
+el webhook cubre el caso en que cierra la pestaña antes de volver.
+
+El pago nunca se da por bueno con lo que mande el navegador: al volver
+de Mercado Pago y al llegar un aviso, el servidor consulta el pago a la
+API de Mercado Pago y recién ahí lo registra.
+
+No configurar `SUPABASE_SERVICE_ROLE_KEY` ni `MP_ACCESS_TOKEN` como
+variables `NEXT_PUBLIC_*` ni usarlas en componentes del navegador.
 
 Límite de Vercel: los pedidos al servidor no pueden superar 4,5 MB, por eso
 la carga de documentación acepta archivos de hasta 4 MB.
@@ -346,6 +379,7 @@ psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f tests/sql/curso_detalle_test.sql
 psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f tests/sql/hoy_test.sql
 psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f tests/sql/mensajes_test.sql
 psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f tests/sql/encuestas_test.sql
+psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f tests/sql/pago_test.sql
 ```
 
 También se pueden pegar completos en el **SQL Editor** del dashboard de

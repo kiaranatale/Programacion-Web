@@ -32,8 +32,11 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   // Sin sesión, todo salvo /login (y sus pantallas, como recuperar la
-  // contraseña) y el link del mail de recuperación redirige al login.
-  const publica = request.nextUrl.pathname.startsWith("/login") || request.nextUrl.pathname === "/auth/confirm";
+  // contraseña), el link del mail de recuperación y el webhook de Mercado
+  // Pago redirige al login.
+  const publica = request.nextUrl.pathname.startsWith("/login")
+    || request.nextUrl.pathname === "/auth/confirm"
+    || request.nextUrl.pathname.startsWith("/api/mercadopago/");
   if (!user && !publica) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";

@@ -220,7 +220,7 @@ agregar tablas antes de hacer la pantalla.
 | 6 | Datos del alumno → **Historial de inhibiciones** / **Histórico excepciones** | Inhibiciones y excepciones con fechas | `inhibicion`, `excepcion` | ✅ Hecho |
 | 6 | Datos del alumno → **Exámenes habilitados** | Exámenes especiales (inglés, castellano, práctica laboral) | `examen_especial`, `examen_especial_intento` | ✅ Hecho |
 | 6 | Datos del alumno → **Documentación** | Documentos obligatorios, entregados y validados, con carga de archivos | `documento_requerido`, `documento_legajo`, Storage `documentacion` | ✅ Hecho: el alumno sube/reemplaza/elimina (PDF, PNG, JPG hasta 4 MB por el límite de Vercel) y Administración aprueba o rechaza en Administración → Documentación pendiente |
-| 7 | Datos del alumno → **Facturables** / Mi legajo → **Estado de cuenta** | Ítems activos, saldo, facturas y pagos | `item_facturable_legajo`, `factura`, `orden_pago` | ✅ Lectura hecha (pagar: Paso 4, Mercado Pago) |
+| 7 | Datos del alumno → **Facturables** / Mi legajo → **Estado de cuenta** | Ítems activos, saldo, facturas y pagos | `item_facturable_legajo`, `factura`, `orden_pago` | ✅ Hecho: detalle de cada factura y pago con Mercado Pago (Checkout Pro); el pago se confirma consultando la API de Mercado Pago al volver y por webhook |
 | 8 | Encuestas → **General** | Listado de encuestas con estado y fechas; responder y ver resultados | `encuesta`, `encuesta_pregunta`, `encuesta_participacion`, `encuesta_respuesta` | ✅ Hecho: anónimas (quién respondió y qué se respondió van separados); Administración genera las de desempeño docente de todas las comisiones activas y crea generales; el docente ve sus resultados al cerrar, con 3 respuestas o más |
 | 9 | Usuario → **Cambio de clave** | Cambiar contraseña; "¿Olvidaste tu contraseña?" en el login | Supabase Auth | ✅ Hecho: pide la clave actual salvo al entrar con el link del mail de recuperación |
 | 9 | Usuario → **Mensajes** | Recibidos y enviados, con leído/no leído y respuestas | `mensaje`, `mensaje_destinatario` (vistas `mensaje_recibido`, `mensaje_enviado`) | ✅ Hecho: Administración escribe a todos, a una carrera, a una comisión o a una persona; los docentes a sus comisiones, a sus alumnos y a otros docentes; todos responden lo que reciben. Inicio avisa los no leídos |
@@ -232,7 +232,7 @@ El menú de la app ya replica esta estructura (Encuestas, Académica,
 Legajos, Administración, Usuario); lo no implementado aparece en gris.
 
 Orden de los seeds: `seed.sql` → `seed_plan_a22.sql` → `seed_cursos.sql`
-→ `seed_aulas.sql` → `seed_usuarios.sql` → `seed_legajo_demo.sql` → `seed_hoy.sql` → `seed_mensajes.sql` → `seed_autoridades_encuestas.sql`. Las materias del A22 que no
+→ `seed_aulas.sql` → `seed_usuarios.sql` → `seed_legajo_demo.sql` → `seed_hoy.sql` → `seed_mensajes.sql` → `seed_autoridades_encuestas.sql` → `seed_facturas.sql`. Las materias del A22 que no
 se dictan en el período cargado siguen en el departamento "A confirmar".
 
 #### Cómo bajar la ocupación de aulas del SGA actual

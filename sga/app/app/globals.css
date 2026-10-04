@@ -340,3 +340,12 @@ a:hover { text-decoration: underline; }
 @media (max-width: 600px) { .sga-barras li { grid-template-columns: 110px minmax(0, 1fr) 60px; font-size: 10px; } }
 .sga-barra { height: 12px; background: #f0f3f7; }
 .sga-barra span { display: block; height: 100%; background: var(--azul); }
+
+/* Factura y pago */
+.sga-movimiento-acciones { margin: 8px 0 0; font-size: 11px; }
+.sga-factura { max-width: 520px; }
+.sga-importe { text-align: right !important; white-space: nowrap; }
+.sga-total td { font-weight: 700; border-top: 2px solid var(--borde-tabla); }
+.sga-pagar { margin: 14px 0; }
+.sga-pagar button { padding: 9px 18px; border: 0; border-radius: 4px; background: #009ee3; color: #fff; font-size: 13px; font-weight: 700; cursor: pointer; }
+.sga-pagar button:hover { background: #007eb5; }

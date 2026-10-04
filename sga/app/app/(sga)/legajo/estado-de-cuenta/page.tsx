@@ -1,9 +1,10 @@
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { fecha, getLegajoActual, pesos } from "@/lib/legajo";
 
 type Factura = { id: number; periodo: string; monto_total: number; fecha_emision: string; fecha_vencimiento: string; estado: string };
 type Pago = { id: number; monto_total: number; fecha_pago: string | null; estado: string };
-type Movimiento = { key: string; tipo: "Factura" | "Pago"; importe: number; fecha: string; detalle: string };
+type Movimiento = { key: string; tipo: "Factura" | "Pago"; importe: number; fecha: string; detalle: string; facturaId?: number; aPagar?: boolean };
 
 const estadosFactura: Record<string, string> = { PENDIENTE: "Pendiente", PAGADA: "Pagada", VENCIDA: "Vencida", ANULADA: "Anulada" };
 
@@ -23,6 +24,7 @@ export default async function EstadoDeCuenta() {
     ...(facturas ?? []).map((f) => ({
       key: `f${f.id}`, tipo: "Factura" as const, importe: Number(f.monto_total), fecha: f.fecha_emision,
       detalle: `Período ${f.periodo} · Vence ${fecha(f.fecha_vencimiento)} · ${estadosFactura[f.estado] ?? f.estado}`,
+      facturaId: f.id, aPagar: f.estado === "PENDIENTE" || f.estado === "VENCIDA",
     })),
     ...(pagos ?? []).map((p) => ({
       key: `p${p.id}`, tipo: "Pago" as const, importe: -Number(p.monto_total), fecha: p.fecha_pago ?? "",
@@ -49,6 +51,11 @@ export default async function EstadoDeCuenta() {
               <div><dt>{m.tipo === "Pago" ? "Fecha de pago:" : "Fecha de emisión:"}</dt><dd>{fecha(m.fecha)}</dd></div>
               <div><dt>Detalle:</dt><dd>{m.detalle}</dd></div>
             </dl>
+            {m.facturaId && (
+              <p className="sga-movimiento-acciones">
+                <Link href={`/legajo/estado-de-cuenta/factura/${m.facturaId}`}>{m.aPagar ? "Ver detalle y pagar" : "Ver detalle"}</Link>
+              </p>
+            )}
           </article>
         ))}
       </div>
