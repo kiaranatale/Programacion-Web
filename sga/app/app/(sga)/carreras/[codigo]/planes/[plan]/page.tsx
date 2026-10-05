@@ -3,13 +3,23 @@ import { notFound } from "next/navigation";
 import { periodoDeFecha } from "@/lib/legajo";
 import { getPlanDetalle, grilla, requisitoBloque, type MateriaPlan } from "@/lib/plan";
 
-function FilaMateria({ m }: { m: MateriaPlan }) {
+const idMateria = (codigo: string) => `materia-${codigo}`;
+
+// Cada correlativa lleva a la fila de esa materia en el plan; si no es del
+// plan, al listado de cursos de esa materia.
+function FilaMateria({ m, enPlan }: { m: MateriaPlan; enPlan: Set<string> }) {
   return (
-    <tr>
+    <tr className="sga-fila-materia" id={idMateria(m.codigo)}>
       <td className="sga-materia-plan"><span>{m.codigo}</span> - {m.nombre}</td>
       <td className="sga-curso">{m.creditos}</td>
       <td className="sga-requeridos">{m.creditosRequeridos}</td>
-      <td className="sga-curso">{m.correlativas.join("  ")}</td>
+      <td className="sga-correlativas">
+        {m.correlativas.map((c) => enPlan.has(c)
+          // Enlace común: el salto a #id activa el resaltado (:target), que el
+          // Link de Next no dispara.
+          ? <a href={`#${idMateria(c)}`} key={c} title="Ver la materia en el plan">{c}</a>
+          : <Link href={`/cursos?f=1&codigo=${encodeURIComponent(c)}`} key={c} title="Ver los cursos de la materia">{c}</Link>)}
+      </td>
     </tr>
   );
 }
@@ -26,6 +36,7 @@ export default async function DetallePlan({ params }: PageProps<"/carreras/[codi
   const carrera = decodeURIComponent(codigo);
   const plan = await getPlanDetalle({ carrera, codigo: decodeURIComponent(planCodigo) });
   if (!plan) notFound();
+  const enPlan = new Set(plan.bloques.flatMap((b) => b.materias.map((m) => m.codigo)));
 
   return (
     <>
@@ -49,7 +60,7 @@ export default async function DetallePlan({ params }: PageProps<"/carreras/[codi
                     <table className="sga-tabla sga-tabla-plan">
                       {encabezado}
                       <tbody>
-                        {g.materias.map((m) => <FilaMateria key={m.id} m={m} />)}
+                        {g.materias.map((m) => <FilaMateria enPlan={enPlan} key={m.id} m={m} />)}
                         {g.huecos.map((h) => (
                           <tr className="sga-fila-hueco" key={h.bloque}>
                             <td>{h.bloque}</td><td>{h.creditos}</td><td>{h.creditos}</td><td></td>
@@ -66,7 +77,7 @@ export default async function DetallePlan({ params }: PageProps<"/carreras/[codi
                 <div className="sga-tabla-scroll">
                   <table className="sga-tabla sga-tabla-plan">
                     {encabezado}
-                    <tbody>{b.materias.map((m) => <FilaMateria key={m.id} m={m} />)}</tbody>
+                    <tbody>{b.materias.map((m) => <FilaMateria enPlan={enPlan} key={m.id} m={m} />)}</tbody>
                   </table>
                 </div>
               </div>
