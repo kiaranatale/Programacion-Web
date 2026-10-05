@@ -1,4 +1,4 @@
-import { clavePeriodo, getCursadas } from "@/lib/cursadas";
+import { clavePeriodo, getCursadas, resultadoFinal } from "@/lib/cursadas";
 import { fecha, getLegajoActual, nota, periodo } from "@/lib/legajo";
 
 export default async function HistoriaAcademica() {
@@ -51,11 +51,10 @@ export default async function HistoriaAcademica() {
                               : `${nota(c.nota_cursada)} ${periodo(anio, p)}`}
                         </td>
                         <td>
-                          {c.inscripcion_examen_final.map((f) => (
-                            <div className={f.nota_final !== null && f.nota_final >= 4 ? "sga-aprobado" : "sga-desaprobado"} key={f.numero_intento}>
-                              {nota(f.nota_final)} ({fecha(f.examen_final?.fecha)})
-                            </div>
-                          ))}
+                          {c.inscripcion_examen_final.map((f) => {
+                            const r = resultadoFinal(f, nota);
+                            return <div className={r.clase} key={f.numero_intento}>{r.texto} ({fecha(f.examen_final?.fecha)})</div>;
+                          })}
                         </td>
                       </tr>
                     );

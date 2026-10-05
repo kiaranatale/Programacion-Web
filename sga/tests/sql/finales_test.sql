@@ -1,5 +1,6 @@
 -- Prueba de la inscripción a finales por turnos
--- (20261012000000_turnos_finales). Requiere Supabase (schema auth y roles).
+-- (20261012000000_turnos_finales y 20261012000001_final_ausente).
+-- Requiere Supabase (schema auth y roles).
 --
 -- Corre dentro de una transacción con ROLLBACK final: no modifica la base.
 
@@ -134,22 +135,36 @@ SELECT pg_temp.espera_error(format('SELECT * FROM sga.inscriptos_fecha_final(%s)
 SELECT pg_temp.espera_error(format('SELECT sga.cargar_nota_final(%s, 8)', inscripcion_id), 'todavía no se tomó')
 FROM sga.inscriptos_fecha_final((SELECT f1_b FROM fin_ids));
 
--- El examen pasó: ausente no cuenta como intento; después aprueba
+-- El examen pasó: el docente lo marca ausente (cuenta como intento)
 RESET ROLE;
 UPDATE sga.examen_final SET fecha = sga.hoy() - 1 WHERE id = (SELECT f1_b FROM fin_ids);
 SET LOCAL ROLE authenticated;
-SET LOCAL request.jwt.claims TO '{"sub": "eeeeeeee-0000-0000-0000-000000000001"}';
-SELECT pg_temp.espera_error(format('SELECT sga.inscribirse_final(%s)', futuro), 'abre el') FROM fin_ids;
 SET LOCAL request.jwt.claims TO '{"sub": "eeeeeeee-0000-0000-0000-000000000002"}';
 SELECT sga.cargar_nota_final(inscripcion_id, NULL, TRUE) FROM sga.inscriptos_fecha_final((SELECT f1_b FROM fin_ids));
+SELECT pg_temp.espera_error(format('SELECT sga.cargar_nota_final(%s, 7)', inscripcion_id), 'ya está cargada')
+FROM sga.inscriptos_fecha_final((SELECT f1_b FROM fin_ids));
+DO $$
+BEGIN
+    IF NOT (SELECT ausente FROM sga.inscriptos_fecha_final((SELECT f1_b FROM fin_ids))) THEN
+        RAISE EXCEPTION 'Finales: el alumno debería figurar ausente';
+    END IF;
+    IF (SELECT sin_nota FROM sga.mesas_de_final_docente() WHERE examen_final_id = (SELECT f1_b FROM fin_ids)) <> 0 THEN
+        RAISE EXCEPTION 'Finales: un ausente no queda pendiente de nota';
+    END IF;
+END;
+$$;
+
+-- Ya usó una fecha del turno (ausente): no puede anotarse a la otra
+SET LOCAL request.jwt.claims TO '{"sub": "eeeeeeee-0000-0000-0000-000000000001"}';
+SELECT pg_temp.espera_error(format('SELECT sga.inscribirse_final(%s)', f1_a), 'otra fecha de esta materia') FROM fin_ids;
 
 RESET ROLE;
--- Otra fecha en un turno nuevo, ya tomada, con el alumno anotado
+-- Otra fecha en otro turno, ya tomada, con el alumno anotado: 2º intento
 INSERT INTO sga.examen_final (curso_id, turno_id, fecha, hora_inicio, hora_fin)
 SELECT curso_id, (SELECT id FROM sga.turno_examen WHERE nombre = 'Turno cerrado Fin'), sga.hoy() - 2, TIME '09:00', TIME '12:00'
 FROM sga.examen_final WHERE id = (SELECT f1_a FROM fin_ids);
 INSERT INTO sga.inscripcion_examen_final (inscripcion_curso_id, examen_final_id, numero_intento)
-SELECT ic.id, ef.id, 1 FROM sga.inscripcion_curso ic JOIN sga.legajo l ON l.id = ic.legajo_id
+SELECT ic.id, ef.id, 2 FROM sga.inscripcion_curso ic JOIN sga.legajo l ON l.id = ic.legajo_id
 JOIN sga.curso c ON c.id = ic.curso_id JOIN sga.materia m ON m.id = c.materia_id,
 sga.examen_final ef WHERE l.numero_legajo = 'FIN-1' AND m.codigo = 'FIN.01' AND ef.fecha = sga.hoy() - 2
   AND ef.curso_id = (SELECT curso_id FROM sga.examen_final WHERE id = (SELECT f1_a FROM fin_ids));
@@ -157,7 +172,7 @@ SET LOCAL ROLE authenticated;
 
 -- Con una nota pendiente no se puede anotar a otra fecha
 SET LOCAL request.jwt.claims TO '{"sub": "eeeeeeee-0000-0000-0000-000000000001"}';
-SELECT pg_temp.espera_error(format('SELECT sga.inscribirse_final(%s)', f1_a), 'no está cargada la nota') FROM fin_ids;
+SELECT pg_temp.espera_error(format('SELECT sga.inscribirse_final(%s)', futuro), 'abre el') FROM fin_ids;
 
 SET LOCAL request.jwt.claims TO '{"sub": "eeeeeeee-0000-0000-0000-000000000002"}';
 SELECT sga.cargar_nota_final(i.inscripcion_id, 9)
@@ -172,8 +187,8 @@ BEGIN
         RAISE EXCEPTION 'Finales: FIN.01 debería quedar aprobada';
     END IF;
     IF (SELECT numero_intento FROM sga.inscripcion_examen_final ief JOIN sga.examen_final ef ON ef.id = ief.examen_final_id
-        WHERE ef.fecha = sga.hoy() - 2) <> 1 THEN
-        RAISE EXCEPTION 'Finales: el ausente no debería contar como intento';
+        WHERE ef.fecha = sga.hoy() - 2) <> 2 THEN
+        RAISE EXCEPTION 'Finales: el ausente debería contar como intento (este es el 2º)';
     END IF;
 END;
 $$;
@@ -182,5 +197,28 @@ $$;
 SET LOCAL ROLE authenticated;
 SET LOCAL request.jwt.claims TO '{"sub": "eeeeeeee-0000-0000-0000-000000000001"}';
 SELECT sga.inscribirse_final(f2) FROM fin_ids;
+
+-- Ausente en el 3er intento: la cursada queda desaprobada
+RESET ROLE;
+INSERT INTO sga.examen_final (curso_id, turno_id, fecha, hora_inicio, hora_fin)
+SELECT ef.curso_id, (SELECT id FROM sga.turno_examen WHERE nombre = 'Turno cerrado Fin'), sga.hoy() - x.d, TIME '09:00', TIME '12:00'
+FROM sga.examen_final ef, (VALUES (25), (24), (23)) AS x (d) WHERE ef.id = (SELECT f2 FROM fin_ids);
+DELETE FROM sga.inscripcion_examen_final WHERE examen_final_id = (SELECT f2 FROM fin_ids);
+INSERT INTO sga.inscripcion_examen_final (inscripcion_curso_id, examen_final_id, numero_intento, nota_final, ausente)
+SELECT ic.id, ef.id, x.n, x.nota, x.ausente
+FROM (VALUES (1, 25, 2::NUMERIC, FALSE), (2, 24, NULL, TRUE), (3, 23, NULL, TRUE)) AS x (n, d, nota, ausente)
+JOIN sga.examen_final ef ON ef.fecha = sga.hoy() - x.d AND ef.curso_id = (SELECT curso_id FROM sga.examen_final WHERE id = (SELECT f2 FROM fin_ids))
+JOIN sga.inscripcion_curso ic ON ic.curso_id = ef.curso_id
+JOIN sga.legajo l ON l.id = ic.legajo_id AND l.numero_legajo = 'FIN-1'
+ORDER BY x.n;
+DO $$
+BEGIN
+    IF (SELECT ic.estado FROM sga.inscripcion_curso ic JOIN sga.legajo l ON l.id = ic.legajo_id
+        JOIN sga.curso c ON c.id = ic.curso_id JOIN sga.materia m ON m.id = c.materia_id
+        WHERE l.numero_legajo = 'FIN-1' AND m.codigo = 'FIN.02') <> 'DESAPROBADA' THEN
+        RAISE EXCEPTION 'Finales: un ausente en el 3er intento debería desaprobar la cursada';
+    END IF;
+END;
+$$;
 
 ROLLBACK;

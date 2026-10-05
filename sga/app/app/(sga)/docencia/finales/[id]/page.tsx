@@ -15,6 +15,7 @@ type Anotado = {
   numero_intento: number;
   nota_cursada: number | null;
   nota_final: number | null;
+  ausente: boolean;
   nota_definitiva: number | null;
 };
 type Fecha = {
@@ -49,7 +50,7 @@ export default async function NotasDeFinal({ params, searchParams }: PageProps<"
 
   const anotados = (data ?? []) as Anotado[];
   const tomada = ef.fecha <= hoy();
-  const pendientes = anotados.filter((a) => a.nota_final === null).length;
+  const pendientes = anotados.filter((a) => a.nota_final === null && !a.ausente).length;
 
   return (
     <section className="sga-panel">
@@ -69,7 +70,7 @@ export default async function NotasDeFinal({ params, searchParams }: PageProps<"
             <thead><tr><th>Alumno</th><th>Legajo</th><th>Cursó</th><th>Intento</th><th>Cursada</th><th>Nota de final</th><th>Ausente</th><th>Definitiva</th></tr></thead>
             <tbody>
               {anotados.length > 0 ? anotados.map((a) => {
-                const editable = tomada && a.nota_final === null;
+                const editable = tomada && a.nota_final === null && !a.ausente;
                 const nombre = `${a.apellido}, ${a.nombre}`;
                 return (
                   <tr key={a.inscripcion_id}>
@@ -85,7 +86,7 @@ export default async function NotasDeFinal({ params, searchParams }: PageProps<"
                           <input aria-label={`Nota de final de ${nombre}`} className="sga-input-nota" inputMode="decimal"
                             name={`n_${a.inscripcion_id}`} pattern="(10|[0-9])([.,][0-9]{1,2})?" placeholder="—" />
                         </>
-                      ) : nota(a.nota_final)}
+                      ) : a.ausente ? <span className="sga-desaprobado">Ausente</span> : nota(a.nota_final)}
                     </td>
                     <td className="sga-col-cupo">
                       {editable && <input aria-label={`${nombre} estuvo ausente`} name={`x_${a.inscripcion_id}`} type="checkbox" value="1" />}
@@ -100,8 +101,8 @@ export default async function NotasDeFinal({ params, searchParams }: PageProps<"
         {tomada && pendientes > 0 && (
           <>
             <p className="sga-ayuda">
-              Las notas de final se cargan una sola vez: revisalas antes de guardar. &quot;Ausente&quot; quita al alumno de la fecha y no
-              le cuenta como intento. Para corregir una nota ya cargada, pedíselo a Administración.
+              Las notas de final se cargan una sola vez: revisalas antes de guardar. Marcá &quot;Ausente&quot; a quien se anotó y no se
+              presentó: cuenta como intento. Para corregir una nota ya cargada, pedíselo a Administración.
             </p>
             <div className="sga-acciones-form"><button type="submit">Guardar notas</button></div>
           </>

@@ -248,6 +248,8 @@ Actualmente se aplican, en orden:
   (`inscribirse_final`, una fecha por materia y turno, hasta 48 h antes,
   con cursada aprobada y correlativas para rendir) y baja; los docentes
   de la materia ven a todos los anotados y cargan notas o ausente.
+- `20261012000001_final_ausente.sql`: el ausente queda registrado y
+  cuenta como intento (en el 3.º, la cursada queda desaprobada).
 
 Datos en el SQL Editor, en este orden (todos se pueden volver a correr):
 
