@@ -239,6 +239,10 @@ Actualmente se aplican, en orden:
   factura (`iniciar_pago_factura`), link de Mercado Pago de cada orden y
   `registrar_pago_mp` (solo `service_role`), que marca la orden como
   pagada si Mercado Pago la aprobó por el monto completo.
+- `20261011000000_docencia.sql`: comisiones del docente
+  (`mis_comisiones`), mesas de final de sus materias y carga de notas de
+  cursada y de final con sus reglas (`cargar_nota_cursada`,
+  `cargar_nota_final`).
 
 Datos en el SQL Editor, en este orden (todos se pueden volver a correr):
 
@@ -262,6 +266,9 @@ Datos en el SQL Editor, en este orden (todos se pueden volver a correr):
    dos autoridades con las personas demo y dos encuestas abiertas.
 10. `supabase/seed_facturas.sql`: dos facturas impagas de la alumna demo
     (septiembre vencida y octubre pendiente) para probar el pago.
+11. `supabase/seed_docencia.sql`: cuatro alumnos ficticios más en la
+    comisión del docente demo y una comisión del 1C con una mesa de final
+    tomada, para probar la carga de notas.
 
 Usuarios de prueba: `supabase/seed_usuarios.sql` crea alumno, docente y administrativo; los usuarios de Auth
 se crean en el dashboard con los mismos mails.
@@ -380,6 +387,7 @@ psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f tests/sql/hoy_test.sql
 psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f tests/sql/mensajes_test.sql
 psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f tests/sql/encuestas_test.sql
 psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f tests/sql/pago_test.sql
+psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f tests/sql/docencia_test.sql
 ```
 
 También se pueden pegar completos en el **SQL Editor** del dashboard de

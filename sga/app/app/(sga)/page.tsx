@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getCursosEnProgreso } from "@/lib/cursos";
+import { hoy } from "@/lib/hoy";
 import { getSesion } from "@/lib/sesion";
 
 type Notificacion = { id: number; mensaje: string };
@@ -38,6 +39,11 @@ export default async function Inicio() {
   ]);
   const encuestasPendientes = ((encuestas ?? []) as { estado: string; respondida: boolean }[])
     .filter((e) => e.estado === "ACTIVA" && !e.respondida).length;
+  // Docentes: notas de final pendientes de mesas ya tomadas
+  const docente = sesion.roles.includes("DOCENTE") || sesion.roles.includes("AYUDANTE");
+  const { data: mesas } = docente ? await sga.rpc("mesas_de_final_docente") : { data: [] };
+  const notasPendientes = ((mesas ?? []) as { fecha: string; sin_nota: number }[])
+    .filter((m) => m.fecha <= hoy()).reduce((total, m) => total + m.sin_nota, 0);
 
   return (
     <>
@@ -51,12 +57,19 @@ export default async function Inicio() {
       <section className="sga-panel sga-cajas">
         <div className="sga-caja">
           <h3>Notificaciones</h3>
-          {(sinLeer ?? 0) > 0 || encuestasPendientes > 0 || (notificaciones && notificaciones.length > 0) ? (
+          {(sinLeer ?? 0) > 0 || encuestasPendientes > 0 || notasPendientes > 0 || (notificaciones && notificaciones.length > 0) ? (
             <ul>
               {(sinLeer ?? 0) > 0 && (
                 <li>
                   <Link href="/usuario/mensajes">
                     {sinLeer === 1 ? "Tenés 1 mensaje sin leer" : `Tenés ${sinLeer} mensajes sin leer`}
+                  </Link>
+                </li>
+              )}
+              {notasPendientes > 0 && (
+                <li>
+                  <Link href="/docencia/notas">
+                    {notasPendientes === 1 ? "Tenés 1 nota de final para cargar" : `Tenés ${notasPendientes} notas de final para cargar`}
                   </Link>
                 </li>
               )}

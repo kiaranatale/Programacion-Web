@@ -32,7 +32,7 @@ const menus: Menu[] = [
   {
     label: "Docencia",
     roles: ["DOCENTE", "AYUDANTE"],
-    items: [{ label: "Mis comisiones" }, { label: "Carga de notas" }],
+    items: [{ label: "Mis comisiones", href: "/docencia" }, { label: "Carga de notas", href: "/docencia/notas" }],
   },
   {
     label: "Administración",

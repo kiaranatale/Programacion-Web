@@ -349,3 +349,7 @@ a:hover { text-decoration: underline; }
 .sga-pagar { margin: 14px 0; }
 .sga-pagar button { padding: 9px 18px; border: 0; border-radius: 4px; background: #009ee3; color: #fff; font-size: 13px; font-weight: 700; cursor: pointer; }
 .sga-pagar button:hover { background: #007eb5; }
+
+/* Docencia */
+.sga-input-nota { width: 60px; height: 22px; padding: 0 5px; border: 1px solid #c8c8c8; font-size: 11px; text-align: center; }
+.sga-input-nota:invalid { border-color: #c0281c; background: #fbeee9; }
