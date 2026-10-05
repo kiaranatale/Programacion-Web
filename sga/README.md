@@ -243,6 +243,11 @@ Actualmente se aplican, en orden:
   (`mis_comisiones`), mesas de final de sus materias y carga de notas de
   cursada y de final con sus reglas (`cargar_nota_cursada`,
   `cargar_nota_final`).
+- `20261012000000_turnos_finales.sql`: turnos de examen con período de
+  inscripción; fechas de final por materia; inscripción del alumno
+  (`inscribirse_final`, una fecha por materia y turno, hasta 48 h antes,
+  con cursada aprobada y correlativas para rendir) y baja; los docentes
+  de la materia ven a todos los anotados y cargan notas o ausente.
 
 Datos en el SQL Editor, en este orden (todos se pueden volver a correr):
 
@@ -269,6 +274,9 @@ Datos en el SQL Editor, en este orden (todos se pueden volver a correr):
 11. `supabase/seed_docencia.sql`: cuatro alumnos ficticios más en la
     comisión del docente demo y una comisión del 1C con una mesa de final
     tomada, para probar la carga de notas.
+12. `supabase/seed_finales.sql`: turnos Julio 2026, Diciembre 2026
+    (inscripción abierta desde el 01/10 para probar) y Febrero 2027, con
+    fechas de 71.38 y 71.45.
 
 Usuarios de prueba: `supabase/seed_usuarios.sql` crea alumno, docente y administrativo; los usuarios de Auth
 se crean en el dashboard con los mismos mails.
@@ -388,6 +396,7 @@ psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f tests/sql/mensajes_test.sql
 psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f tests/sql/encuestas_test.sql
 psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f tests/sql/pago_test.sql
 psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f tests/sql/docencia_test.sql
+psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f tests/sql/finales_test.sql
 ```
 
 También se pueden pegar completos en el **SQL Editor** del dashboard de

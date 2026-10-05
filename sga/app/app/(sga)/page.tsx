@@ -10,7 +10,10 @@ type Cronograma = { id: number; anio: number; nombre: string; url_archivo: strin
 // Accesos de las cajas superiores; se convierten en links a medida que se
 // implementa cada módulo.
 const tareas = ["Iniciar nuevo trámite", "Ver historial de trámites"];
-const tramites = ["Inscripción a exámenes finales", "Inscripción a eventos académicos"];
+const tramites: { label: string; href?: string }[] = [
+  { label: "Inscripción a exámenes finales", href: "/inscripciones/finales" },
+  { label: "Inscripción a eventos académicos" },
+];
 
 export default async function Inicio() {
   const sesion = await getSesion();
@@ -92,7 +95,13 @@ export default async function Inicio() {
         </div>
         <div className="sga-caja">
           <h3>Trámites</h3>
-          <ul>{tramites.map((t) => <li key={t}><span className="sga-proximamente" title="Próximamente">{t}</span></li>)}</ul>
+          <ul>
+            {tramites.map((t) => (
+              <li key={t.label}>
+                {t.href ? <Link href={t.href}>{t.label}</Link> : <span className="sga-proximamente" title="Próximamente">{t.label}</span>}
+              </li>
+            ))}
+          </ul>
         </div>
       </section>
 
