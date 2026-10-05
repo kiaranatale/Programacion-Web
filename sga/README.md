@@ -250,6 +250,10 @@ Actualmente se aplican, en orden:
   de la materia ven a todos los anotados y cargan notas o ausente.
 - `20261012000001_final_ausente.sql`: el ausente queda registrado y
   cuenta como intento (en el 3.º, la cursada queda desaprobada).
+- `20261013000000_inscripcion_cursadas.sql`: períodos de inscripción por
+  cuatrimestre e inscripción del alumno a una comisión por materia (plan,
+  correlativas para cursar, cupo por orden de llegada y sin superposición
+  de horarios), con baja mientras el período esté abierto.
 
 Datos en el SQL Editor, en este orden (todos se pueden volver a correr):
 
@@ -279,6 +283,9 @@ Datos en el SQL Editor, en este orden (todos se pueden volver a correr):
 12. `supabase/seed_finales.sql`: turnos Julio 2026, Diciembre 2026
     (inscripción abierta desde el 01/10 para probar) y Febrero 2027, con
     fechas de 71.38 y 71.45.
+13. `supabase/seed_cursadas.sql`: 1.er cuatrimestre 2027 con inscripción
+    abierta desde el 01/10/2026 y comisiones que muestran los distintos
+    casos (disponible, superposición, sin vacantes, correlativa faltante).
 
 Usuarios de prueba: `supabase/seed_usuarios.sql` crea alumno, docente y administrativo; los usuarios de Auth
 se crean en el dashboard con los mismos mails.
@@ -399,6 +406,7 @@ psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f tests/sql/encuestas_test.sql
 psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f tests/sql/pago_test.sql
 psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f tests/sql/docencia_test.sql
 psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f tests/sql/finales_test.sql
+psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f tests/sql/cursadas_test.sql
 ```
 
 También se pueden pegar completos en el **SQL Editor** del dashboard de
