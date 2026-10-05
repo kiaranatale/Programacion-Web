@@ -18,6 +18,7 @@ export type MesaDeFinal = {
   curso_id: number;
   codigo: string;
   materia: string;
+  turno: string | null;
   fecha: string;
   hora_inicio: string;
   inscriptos: number;

@@ -1,4 +1,4 @@
-import { getCursadas, type Cursada } from "@/lib/cursadas";
+import { getCursadas, resultadoFinal, type Cursada } from "@/lib/cursadas";
 import { fecha, getLegajoActual, nota, periodo } from "@/lib/legajo";
 import { getPlanDetalle, grilla, type Bloque, type MateriaPlan } from "@/lib/plan";
 
@@ -11,11 +11,10 @@ function celdaCursada(c: Cursada) {
 }
 
 function celdaFinales(c: Cursada) {
-  return c.inscripcion_examen_final.map((f) => (
-    <div className={f.nota_final !== null && f.nota_final >= 4 ? "sga-aprobado" : "sga-desaprobado"} key={f.numero_intento}>
-      {nota(f.nota_final)} ({fecha(f.examen_final?.fecha)})
-    </div>
-  ));
+  return c.inscripcion_examen_final.map((f) => {
+    const r = resultadoFinal(f, nota);
+    return <div className={r.clase} key={f.numero_intento}>{r.texto} ({fecha(f.examen_final?.fecha)})</div>;
+  });
 }
 
 export default async function Analitico() {

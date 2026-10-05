@@ -15,6 +15,7 @@ export type Cursada = {
   inscripcion_examen_final: {
     numero_intento: number;
     nota_final: number | null;
+    ausente: boolean;
     examen_final: { fecha: string } | null;
   }[];
 };
@@ -28,7 +29,7 @@ export async function getCursadas(legajoId: number): Promise<Cursada[]> {
     .select(`id, estado, nota_cursada, nota_definitiva,
       comision:comision_id(nombre, horario_comision(dia_semana, hora_inicio, hora_fin)),
       curso:curso_id(anio, periodo, materia:materia_id(id, codigo, nombre, creditos)),
-      inscripcion_examen_final(numero_intento, nota_final, examen_final:examen_final_id(fecha))`)
+      inscripcion_examen_final(numero_intento, nota_final, ausente, examen_final:examen_final_id(fecha))`)
     .eq("legajo_id", legajoId)
     .returns<Cursada[]>();
 
@@ -41,4 +42,11 @@ export async function getCursadas(legajoId: number): Promise<Cursada[]> {
 // Orden cronológico de períodos: 2025-2C antes que 2026-1C.
 export function clavePeriodo(c: Cursada): string {
   return `${c.curso?.anio ?? 0}-${c.curso?.periodo ?? ""}`;
+}
+
+// Resultado de un final para el legajo: nota, "Ausente" o "Anotado".
+export function resultadoFinal(f: Cursada["inscripcion_examen_final"][number], nota: (n: number | null) => string): { texto: string; clase: string } {
+  if (f.ausente) return { texto: "Ausente", clase: "sga-desaprobado" };
+  if (f.nota_final === null) return { texto: "Anotado", clase: "sga-cursando" };
+  return { texto: nota(f.nota_final), clase: f.nota_final >= 4 ? "sga-aprobado" : "sga-desaprobado" };
 }

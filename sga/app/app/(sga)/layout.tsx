@@ -27,7 +27,7 @@ const menus: Menu[] = [
   {
     label: "Legajos",
     roles: ["ALUMNO"],
-    items: [{ label: "Mi legajo", href: "/legajo" }],
+    items: [{ label: "Mi legajo", href: "/legajo" }, { label: "Inscripción a finales", href: "/inscripciones/finales" }],
   },
   {
     label: "Docencia",
@@ -40,6 +40,7 @@ const menus: Menu[] = [
       { label: "Ocupación de Aulas", href: "/aulas" },
       { label: "Documentación pendiente", href: "/administracion/documentacion", roles: ["ADMINISTRATIVO"] },
       { label: "Organizaciones estudiantiles", href: "/administracion/organizaciones", roles: ["ADMINISTRATIVO"] },
+      { label: "Turnos de examen", href: "/administracion/finales", roles: ["ADMINISTRATIVO"] },
     ],
   },
 ];

@@ -353,3 +353,9 @@ a:hover { text-decoration: underline; }
 /* Docencia */
 .sga-input-nota { width: 60px; height: 22px; padding: 0 5px; border: 1px solid #c8c8c8; font-size: 11px; text-align: center; }
 .sga-input-nota:invalid { border-color: #c0281c; background: #fbeee9; }
+.sga-fila-anotado td { background: #f2f9ef; }
+.sga-form-fecha-final { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 18px; }
+.sga-form-fecha-final input { height: 24px; padding: 0 6px; border: 1px solid #c8c8c8; font-size: 11px; }
+.sga-form-fecha-final input[name="codigo"] { width: 130px; }
+.sga-form-fecha-final input[name="aula"] { width: 120px; }
+.sga-form-fecha-final button { padding: 3px 10px; border: 1px solid var(--azul); background: var(--azul); color: #fff; font-size: 11px; cursor: pointer; }

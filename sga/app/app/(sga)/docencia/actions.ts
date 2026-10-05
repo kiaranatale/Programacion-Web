@@ -51,10 +51,15 @@ export async function guardarNotasFinal(formData: FormData) {
     const m = clave.match(/^n_(\d+)$/);
     if (!m) continue;
     const nombre = String(formData.get(`a_${m[1]}`) ?? "");
+    const ausente = formData.get(`x_${m[1]}`) === "1";
     const nota = leerNota(valor);
-    if (nota === null) continue;
-    if (nota === "invalida") { errores.push(`${nombre}: la nota tiene que ser un número de 0 a 10`); continue; }
-    const { error } = await sga.rpc("cargar_nota_final", { p_inscripcion_examen_final_id: Number(m[1]), p_nota: nota });
+    if (nota === null && !ausente) continue;
+    if (nota === "invalida" && !ausente) { errores.push(`${nombre}: la nota tiene que ser un número de 0 a 10`); continue; }
+    const { error } = await sga.rpc("cargar_nota_final", {
+      p_inscripcion_examen_final_id: Number(m[1]),
+      p_nota: ausente || nota === "invalida" ? null : nota,
+      p_ausente: ausente,
+    });
     if (error) errores.push(`${nombre}: ${error.message}`);
     else guardadas++;
   }
