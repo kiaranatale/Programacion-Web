@@ -394,6 +394,21 @@ La verificación de producción es `npm run build`.
 
 ## Pruebas
 
+GitHub Actions (`.github/workflows/ci.yml`) verifica cada push y pull
+request: lint y build de la app, y en un Postgres 16 vacío aplica todas
+las migraciones, corre los seeds dos veces y todos los tests de
+`tests/sql`. El resultado se ve en la pestaña **Actions** del repositorio
+y como ✓/✗ en cada pull request.
+
+Lo mismo se puede correr en una base local (nunca en el proyecto de
+Supabase):
+
+```bash
+PGHOST=localhost PGUSER=postgres PGDATABASE=sga_test bash scripts/probar_base.sh
+```
+
+Contra Supabase, los tests se corren de a uno (no modifican la base):
+
 ```bash
 psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f tests/sql/smoke_test.sql
 psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f tests/sql/rls_test.sql
