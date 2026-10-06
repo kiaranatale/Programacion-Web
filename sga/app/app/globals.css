@@ -389,3 +389,33 @@ a:hover { text-decoration: underline; }
 .sga-cv-descripcion { margin: 4px 0 0; font-size: 11px; white-space: pre-line; }
 .sga-cv-editando { background: var(--fondo-tabla); }
 .sga-cv .sga-acciones-doc a { font-size: 10px; }
+
+/* Trámites */
+.sga-estado-rechazado-chip { background: #fbeaea; color: #c0281c; }
+.sga-tramite-detalle { margin: 6px 0 10px; font-size: 11px; white-space: pre-line; }
+.sga-tramite-historial { margin: 0 0 12px; padding: 0; list-style: none; }
+.sga-tramite-historial li { padding: 6px 10px; border-left: 3px solid var(--borde); }
+.sga-tramite-historial li + li { margin-top: 4px; }
+.sga-tramite-historial li.sga-tramite-admin { border-left-color: var(--azul); background: var(--fondo-tabla); }
+.sga-tramite-historial p { margin: 4px 0 0; font-size: 11px; white-space: pre-line; }
+.sga-tramite-gestion input[name="comentario"] { width: 200px; height: 22px; padding: 0 5px; border: 1px solid #c8c8c8; font-size: 10px; }
+.sga-form-tramite { display: grid; grid-template-columns: 110px minmax(0, 420px); gap: 12px 10px; align-items: start; margin-top: 12px; font-size: 11px; }
+.sga-form-tramite > label { padding-top: 5px; text-align: right; }
+.sga-form-tramite input, .sga-form-tramite select, .sga-form-tramite textarea {
+  box-sizing: border-box; width: 100%; padding: 4px 6px; border: 1px solid #c8c8c8; border-bottom: 2px solid #f0a500; font: inherit; font-size: 11px;
+}
+.sga-form-tramite select { width: auto; border-bottom: 1px solid #c8c8c8; }
+.sga-form-tramite .sga-acciones-form { grid-column: 2; }
+@media (max-width: 600px) { .sga-form-tramite { grid-template-columns: 1fr; } .sga-form-tramite > label { text-align: left; } .sga-form-tramite .sga-acciones-form { grid-column: 1; } }
+.sga-referencias { margin: 4px 0 8px; font-size: 10px; }
+.sga-csv { display: block; margin: 0 0 -1px; padding: 6px 8px; border: 1px solid var(--borde); background: var(--fondo-tabla); font-size: 10px; font-weight: 700; }
+.sga-fila-filtros th { background: #fff; font-weight: 400; }
+.sga-fila-filtros input, .sga-fila-filtros select { box-sizing: border-box; height: 22px; border: 1px solid #c8c8c8; font-size: 10px; }
+.sga-fila-filtros input[type="text"] { width: 100%; }
+.sga-fila-filtros .sga-filtro-fechas { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
+.sga-fila-filtros input[type="date"] { width: 120px; }
+.sga-fila-filtros button { padding: 0 4px; border: 0; background: none; cursor: pointer; font-size: 13px; }
+th[aria-sort] { background: #1f5aa6; }
+th a.sga-orden { color: #fff; font-weight: 700; }
+.sga-datos-tramite { margin: 0 0 10px; }
+.sga-datos-tramite div { grid-template-columns: 140px 1fr; }

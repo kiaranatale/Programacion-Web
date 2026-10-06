@@ -24,7 +24,7 @@ done
 
 # Mismo orden que en el README
 SEEDS=(seed seed_plan_a22 seed_cursos seed_aulas seed_usuarios seed_legajo_demo seed_hoy seed_mensajes
-       seed_autoridades_encuestas seed_facturas seed_docencia seed_finales seed_cursadas seed_eventos seed_proyectos)
+       seed_autoridades_encuestas seed_facturas seed_docencia seed_finales seed_cursadas seed_eventos seed_proyectos seed_tramites)
 for vuelta in 1 2; do
   echo "== Seeds (vuelta $vuelta)"
   for s in "${SEEDS[@]}"; do
