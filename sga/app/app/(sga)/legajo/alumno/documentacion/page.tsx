@@ -1,6 +1,7 @@
 import { SiNo } from "@/components/tabla";
 import { createClient } from "@/lib/supabase/server";
 import { getLegajoActual } from "@/lib/legajo";
+import { getSesion } from "@/lib/sesion";
 import { estadosDocumento, TIPOS_PERMITIDOS } from "@/lib/documentacion";
 import { eliminarDocumento, subirDocumento } from "./actions";
 
@@ -18,9 +19,10 @@ const aceptados = Object.keys(TIPOS_PERMITIDOS).join(",");
 
 export default async function Documentacion({ searchParams }: PageProps<"/legajo/alumno/documentacion">) {
   const { ok, error } = await searchParams;
-  const { legajo } = await getLegajoActual();
+  const [{ legajo }, sesion] = await Promise.all([getLegajoActual(), getSesion()]);
   const supabase = await createClient();
   const sga = supabase.schema("sga");
+  // Al ver la documentación, los avisos de validación o rechazo quedan leídos
   const [{ data: requeridos }, { data: entregados }, { data: carrera }] = await Promise.all([
     sga.from("documento_requerido").select("id, nombre, categoria, obligatoria, carrera_id, nivel")
       .order("obligatoria", { ascending: false }).order("nombre").returns<Requerido[]>(),
@@ -28,6 +30,8 @@ export default async function Documentacion({ searchParams }: PageProps<"/legajo
       .eq("legajo_id", legajo?.id ?? 0).returns<Entregado[]>(),
     sga.from("plan_estudio").select("carrera_id").eq("id", legajo?.plan_estudio?.id ?? 0)
       .maybeSingle<{ carrera_id: number }>(),
+    sga.from("notificacion").update({ leida: true })
+      .eq("persona_id", sesion?.persona?.id ?? 0).eq("tipo", "DOCUMENTACION").eq("leida", false),
   ]);
 
   // Aplica si es para todas las carreras/niveles o para la del alumno
