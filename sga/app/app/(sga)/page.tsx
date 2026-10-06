@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCursosEnProgreso } from "@/lib/cursos";
 import { hoy } from "@/lib/hoy";
 import { getLegajoActual } from "@/lib/legajo";
+import { destinoNotificacion } from "@/lib/notificaciones";
 import { getSesion } from "@/lib/sesion";
 
 type Notificacion = { id: number; tipo: string; mensaje: string };
@@ -105,7 +106,9 @@ export default async function Inicio() {
                 </li>
               )}
               {(notificaciones ?? []).map((n) => (
-                <li key={n.id}>{n.tipo === "TRAMITE" ? <Link href="/tramites">{n.mensaje}</Link> : n.mensaje}</li>
+                <li key={n.id}>
+                  {destinoNotificacion[n.tipo] ? <Link href={destinoNotificacion[n.tipo]}>{n.mensaje}</Link> : n.mensaje}
+                </li>
               ))}
             </ul>
           ) : (
