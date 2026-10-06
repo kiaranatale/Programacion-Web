@@ -273,6 +273,13 @@ Actualmente se aplican, en orden:
   resto lo carga el alumno (`proyecto_alumno`, `cargar_proyecto`,
   `editar_proyecto`, `borrar_proyecto`) y Administración lo valida o lo
   rechaza con motivo (`revisar_proyecto`).
+- `20261017000000_tramites.sql`: trámites como en el SGA (Inicio →
+  Tareas). Cada trámite tiene título, destino (Secretaría Académica o
+  Administrativa) y descripción de hasta 8000 caracteres. Administración
+  lo toma (queda asignado), responde y lo resuelve o rechaza
+  (`iniciar_tramite`, `cancelar_tramite`, `comentar_tramite`,
+  `cambiar_estado_tramite`). El historial queda en `tramite_movimiento` y
+  cada novedad notifica a quien envió el trámite.
 
 Datos en el SQL Editor, en este orden (todos se pueden volver a correr):
 
@@ -311,6 +318,8 @@ Datos en el SQL Editor, en este orden (todos se pueden volver a correr):
     feria de empresas con inscripción.
 15. `supabase/seed_proyectos.sql`: proyectos de la alumna demo, uno
     validado, uno pendiente y uno rechazado.
+16. `supabase/seed_tramites.sql`: trámites de la alumna demo, uno
+    rechazado, uno resuelto y uno pendiente.
 
 Usuarios de prueba: `supabase/seed_usuarios.sql` crea alumno, docente y administrativo; los usuarios de Auth
 se crean en el dashboard con los mismos mails.

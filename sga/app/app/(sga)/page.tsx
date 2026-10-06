@@ -5,12 +5,15 @@ import { hoy } from "@/lib/hoy";
 import { getLegajoActual } from "@/lib/legajo";
 import { getSesion } from "@/lib/sesion";
 
-type Notificacion = { id: number; mensaje: string };
+type Notificacion = { id: number; tipo: string; mensaje: string };
 type Cronograma = { id: number; anio: number; nombre: string; url_archivo: string };
 
 // Accesos de las cajas superiores; se convierten en links a medida que se
 // implementa cada módulo.
-const tareas = ["Iniciar nuevo trámite", "Ver historial de trámites"];
+const tareas = [
+  { label: "Iniciar nuevo trámite", href: "/tramites/nuevo" },
+  { label: "Ver historial de trámites", href: "/tramites" },
+];
 function tramites(plan: string | undefined): { label: string; href?: string }[] {
   return [
     { label: "Inscripción a cursadas", href: "/inscripciones/cursadas" },
@@ -30,7 +33,7 @@ export default async function Inicio() {
   const [{ data: notificaciones }, { data: cronogramas }, cursos, { count: sinLeer }, { data: encuestas }, { legajo }] = await Promise.all([
     sga
       .from("notificacion")
-      .select("id, mensaje")
+      .select("id, tipo, mensaje")
       .eq("persona_id", sesion.persona?.id ?? 0)
       .eq("leida", false)
       .order("fecha", { ascending: false })
@@ -51,6 +54,11 @@ export default async function Inicio() {
   // Docentes: notas de final pendientes de mesas ya tomadas
   const docente = sesion.roles.includes("DOCENTE") || sesion.roles.includes("AYUDANTE");
   const { data: mesas } = docente ? await sga.rpc("mesas_de_final_docente") : { data: [] };
+  // Administración: trámites sin resolver
+  const admin = sesion.roles.includes("ADMINISTRATIVO");
+  const { count: tramitesAbiertos } = admin
+    ? await sga.from("tramite").select("id", { count: "exact", head: true }).in("estado", ["PENDIENTE", "EN_CURSO"])
+    : { count: 0 };
   const notasPendientes = ((mesas ?? []) as { fecha: string; sin_nota: number }[])
     .filter((m) => m.fecha <= hoy()).reduce((total, m) => total + m.sin_nota, 0);
 
@@ -66,7 +74,7 @@ export default async function Inicio() {
       <section className="sga-panel sga-cajas">
         <div className="sga-caja">
           <h3>Notificaciones</h3>
-          {(sinLeer ?? 0) > 0 || encuestasPendientes > 0 || notasPendientes > 0 || (notificaciones && notificaciones.length > 0) ? (
+          {(sinLeer ?? 0) > 0 || encuestasPendientes > 0 || notasPendientes > 0 || (tramitesAbiertos ?? 0) > 0 || (notificaciones && notificaciones.length > 0) ? (
             <ul>
               {(sinLeer ?? 0) > 0 && (
                 <li>
@@ -82,6 +90,13 @@ export default async function Inicio() {
                   </Link>
                 </li>
               )}
+              {(tramitesAbiertos ?? 0) > 0 && (
+                <li>
+                  <Link href="/administracion/tramites">
+                    {tramitesAbiertos === 1 ? "Hay 1 trámite sin resolver" : `Hay ${tramitesAbiertos} trámites sin resolver`}
+                  </Link>
+                </li>
+              )}
               {encuestasPendientes > 0 && (
                 <li>
                   <Link href="/encuestas">
@@ -89,7 +104,9 @@ export default async function Inicio() {
                   </Link>
                 </li>
               )}
-              {(notificaciones ?? []).map((n) => <li key={n.id}>{n.mensaje}</li>)}
+              {(notificaciones ?? []).map((n) => (
+                <li key={n.id}>{n.tipo === "TRAMITE" ? <Link href="/tramites">{n.mensaje}</Link> : n.mensaje}</li>
+              ))}
             </ul>
           ) : (
             <p className="sga-vacio">Sin notificaciones pendientes</p>
@@ -97,7 +114,7 @@ export default async function Inicio() {
         </div>
         <div className="sga-caja">
           <h3>Tareas</h3>
-          <ul>{tareas.map((t) => <li key={t}><span className="sga-proximamente" title="Próximamente">{t}</span></li>)}</ul>
+          <ul>{tareas.map((t) => <li key={t.href}><Link href={t.href}>{t.label}</Link></li>)}</ul>
         </div>
         <div className="sga-caja">
           <h3>Trámites</h3>
