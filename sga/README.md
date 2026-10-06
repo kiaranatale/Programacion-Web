@@ -280,6 +280,15 @@ Actualmente se aplican, en orden:
   (`iniciar_tramite`, `cancelar_tramite`, `comentar_tramite`,
   `cambiar_estado_tramite`). El historial queda en `tramite_movimiento` y
   cada novedad notifica a quien envió el trámite.
+- `20261018000000_intercambios.sql`: Inicio → "Ver intercambio/s".
+  Administración publica convocatorias (`convocatoria_intercambio`) con
+  vacantes, créditos y promedio mínimos y período de postulación. El
+  alumno que cumple se postula con una carta de motivación
+  (`postular_intercambio`) y puede retirarse mientras esté abierta. Al
+  cerrar, Administración marca a los seleccionados
+  (`marcar_postulacion_intercambio`) y publica los resultados
+  (`publicar_resultados_intercambio`), que notifican a cada postulante. El
+  alumno ve el resultado recién cuando se publica.
 
 Datos en el SQL Editor, en este orden (todos se pueden volver a correr):
 
@@ -320,6 +329,9 @@ Datos en el SQL Editor, en este orden (todos se pueden volver a correr):
     validado, uno pendiente y uno rechazado.
 16. `supabase/seed_tramites.sql`: trámites de la alumna demo, uno
     rechazado, uno resuelto y uno pendiente.
+17. `supabase/seed_intercambios.sql`: dos convocatorias abiertas (la
+    alumna demo cumple los requisitos de una) y una cerrada con dos
+    postulantes demo para probar la selección.
 
 Usuarios de prueba: `supabase/seed_usuarios.sql` crea alumno, docente y administrativo; los usuarios de Auth
 se crean en el dashboard con los mismos mails.

@@ -204,7 +204,8 @@ agregar tablas antes de hacer la pantalla.
 
 | # | Menú → Pantalla | Qué muestra | Tablas | Estado |
 |---|---|---|---|---|
-| — | Inicio | Notificaciones, tareas, trámites, cronogramas, cursos en progreso | `notificacion`, `cronograma_academico`, `inscripcion_curso`, `horario_comision` | ✅ Hecho ("Ver intercambio/s" pendiente) |
+| — | Inicio | Notificaciones, tareas, trámites, cronogramas, cursos en progreso | `notificacion`, `cronograma_academico`, `inscripcion_curso`, `horario_comision` | ✅ Hecho |
+| — | Inicio → Trámites → **Ver intercambio/s** / Administración → **Intercambios** | Convocatorias con vacantes, requisitos (créditos, promedio) y período de postulación; postulación con carta de motivación; selección y publicación de resultados | `convocatoria_intercambio`, `postulacion_intercambio`, `notificacion` | ✅ Hecho |
 | — | Inicio → Tareas → **Iniciar nuevo trámite** / **Ver historial de trámites** / Administración → **Trámites** | Título, destino (Secretaría Académica o Administrativa) y descripción; listado con filtros por fecha, título y estado y descarga CSV; Administración toma, responde, resuelve o rechaza | `tramite`, `tramite_movimiento`, `notificacion` | ✅ Hecho |
 | 1 | Legajos → Mi legajo → **General** | Foto y datos personales | `persona`, `legajo` | ✅ Hecho (foto: falta Supabase Storage) |
 | 1 | Mi legajo → **Títulos** | Títulos previos | `titulo_previo` | ✅ Hecho |
@@ -237,7 +238,7 @@ El menú de la app ya replica esta estructura (Encuestas, Académica,
 Legajos, Administración, Usuario); lo no implementado aparece en gris.
 
 Orden de los seeds: `seed.sql` → `seed_plan_a22.sql` → `seed_cursos.sql`
-→ `seed_aulas.sql` → `seed_usuarios.sql` → `seed_legajo_demo.sql` → `seed_hoy.sql` → `seed_mensajes.sql` → `seed_autoridades_encuestas.sql` → `seed_facturas.sql` → `seed_docencia.sql` → `seed_finales.sql` → `seed_cursadas.sql` → `seed_eventos.sql` → `seed_proyectos.sql` → `seed_tramites.sql`. Las materias del A22 que no
+→ `seed_aulas.sql` → `seed_usuarios.sql` → `seed_legajo_demo.sql` → `seed_hoy.sql` → `seed_mensajes.sql` → `seed_autoridades_encuestas.sql` → `seed_facturas.sql` → `seed_docencia.sql` → `seed_finales.sql` → `seed_cursadas.sql` → `seed_eventos.sql` → `seed_proyectos.sql` → `seed_tramites.sql` → `seed_intercambios.sql`. Las materias del A22 que no
 se dictan en el período cargado siguen en el departamento "A confirmar".
 
 #### Cómo bajar la ocupación de aulas del SGA actual

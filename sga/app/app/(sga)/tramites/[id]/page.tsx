@@ -92,7 +92,7 @@ export default async function DetalleTramite({ params, searchParams }: PageProps
         <form action={comentarTramite} className="sga-form-comentario">
           <input name="id" type="hidden" value={t.id} />
           <textarea aria-label="Comentario" maxLength={8000} name="comentario" placeholder="Agregar un comentario" required rows={3} />
-          <button type="submit">Comentar</button>
+          <div className="sga-acciones-form"><button type="submit">Comentar</button></div>
         </form>
       )}
 
