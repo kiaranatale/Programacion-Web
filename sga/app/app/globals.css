@@ -419,3 +419,7 @@ th[aria-sort] { background: #1f5aa6; }
 th a.sga-orden { color: #fff; font-weight: 700; }
 .sga-datos-tramite { margin: 0 0 10px; }
 .sga-datos-tramite div { grid-template-columns: 140px 1fr; }
+
+/* Intercambios */
+.sga-postulacion summary { display: inline-block; margin-top: 6px; padding: 3px 10px; background: var(--azul); color: #fff; font-size: 11px; cursor: pointer; }
+.sga-postulacion[open] summary { margin-bottom: 6px; }

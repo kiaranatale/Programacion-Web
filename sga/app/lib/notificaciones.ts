@@ -3,4 +3,5 @@
 export const destinoNotificacion: Record<string, string> = {
   TRAMITE: "/tramites",
   DOCUMENTACION: "/legajo/alumno/documentacion",
+  INTERCAMBIO: "/intercambios",
 };

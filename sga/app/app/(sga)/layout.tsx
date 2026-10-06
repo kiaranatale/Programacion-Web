@@ -48,6 +48,7 @@ const menus: Menu[] = [
       { label: "Inscripción a cursadas", href: "/administracion/inscripciones", roles: ["ADMINISTRATIVO"] },
       { label: "Turnos de examen", href: "/administracion/finales", roles: ["ADMINISTRATIVO"] },
       { label: "Trámites", href: "/administracion/tramites", roles: ["ADMINISTRATIVO"] },
+      { label: "Intercambios", href: "/administracion/intercambios", roles: ["ADMINISTRATIVO"] },
       { label: "Eventos académicos", href: "/administracion/eventos", roles: ["ADMINISTRATIVO"] },
       { label: "Proyectos de alumnos", href: "/administracion/proyectos", roles: ["ADMINISTRATIVO"] },
     ],

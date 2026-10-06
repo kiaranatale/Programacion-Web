@@ -20,7 +20,7 @@ function tramites(plan: string | undefined): { label: string; href?: string }[] 
     { label: "Inscripción a cursadas", href: "/inscripciones/cursadas" },
     { label: `Inscripción a exámenes finales${plan ? ` (${plan})` : ""}`, href: "/inscripciones/finales" },
     { label: "Inscripción a eventos académicos", href: "/inscripciones/eventos" },
-    { label: "Ver intercambio/s" },
+    { label: "Ver intercambio/s", href: "/intercambios" },
   ];
 }
 
