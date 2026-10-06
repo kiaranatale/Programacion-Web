@@ -258,6 +258,15 @@ Actualmente se aplican, en orden:
   descripción, cupo y cierre de inscripción; inscripción y baja de
   cualquier usuario con sesión (`inscribirse_evento`,
   `desinscribirse_evento`).
+- `20261015000000_inscripcion_cursadas_etapas.sql`: la inscripción a
+  cursadas pasa a tener tres etapas. En la primera inscripción el alumno
+  solicita comisiones (`solicitud_cursada`; el orden de llegada no
+  importa). Al cerrar, Administración asigna las vacantes de cada comisión
+  (`asignar_vacantes_automaticamente`: más créditos aprobados, después
+  mejor rendimiento y después fecha de solicitud; se corrige a mano con
+  `marcar_solicitud_cursada`) y confirma (`confirmar_asignacion_cursadas`).
+  Los asignados quedan inscriptos. En la segunda inscripción cada alumno ve
+  dónde quedó y puede darse de baja o anotarse donde queden vacantes.
 
 Datos en el SQL Editor, en este orden (todos se pueden volver a correr):
 
@@ -287,9 +296,11 @@ Datos en el SQL Editor, en este orden (todos se pueden volver a correr):
 12. `supabase/seed_finales.sql`: turnos Julio 2026, Diciembre 2026
     (inscripción abierta desde el 01/10 para probar) y Febrero 2027, con
     fechas de 71.38 y 71.45.
-13. `supabase/seed_cursadas.sql`: 1.er cuatrimestre 2027 con inscripción
-    abierta desde el 01/10/2026 y comisiones que muestran los distintos
-    casos (disponible, superposición, sin vacantes, correlativa faltante).
+13. `supabase/seed_cursadas.sql`: 1.er cuatrimestre 2027 con primera
+    inscripción del 01/10 al 20/10/2026 y segunda del 02/11 al 06/11/2026,
+    comisiones que muestran los distintos casos (disponible, superposición,
+    correlativa faltante) y solicitudes de alumnos demo en 82.15 A (cupo 2)
+    para probar la asignación.
 14. `supabase/seed_eventos.sql`: charla, taller (con el cupo lleno) y
     feria de empresas con inscripción.
 
