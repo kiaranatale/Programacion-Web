@@ -22,6 +22,7 @@ const menus: Menu[] = [
       { label: "Carreras", href: "/carreras" },
       { label: "Cursos", href: "/cursos" },
       { label: "Hoy en el ITBA", href: "/hoy" },
+      { label: "Eventos académicos", href: "/inscripciones/eventos" },
     ],
   },
   {
@@ -46,6 +47,7 @@ const menus: Menu[] = [
       { label: "Organizaciones estudiantiles", href: "/administracion/organizaciones", roles: ["ADMINISTRATIVO"] },
       { label: "Inscripción a cursadas", href: "/administracion/inscripciones", roles: ["ADMINISTRATIVO"] },
       { label: "Turnos de examen", href: "/administracion/finales", roles: ["ADMINISTRATIVO"] },
+      { label: "Eventos académicos", href: "/administracion/eventos", roles: ["ADMINISTRATIVO"] },
     ],
   },
 ];

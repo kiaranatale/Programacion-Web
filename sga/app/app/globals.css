@@ -370,3 +370,6 @@ a:hover { text-decoration: underline; }
 .sga-fila-materia { scroll-margin-top: 80px; }
 .sga-fila-materia:target td { animation: sga-resaltar 2.5s ease-out; }
 @keyframes sga-resaltar { 0%, 40% { background: #fff3c4; } 100% { background: transparent; } }
+.sga-post-anotado { border-color: #b9dcb0; background: #f8fcf6; }
+.sga-form-publicacion fieldset .sga-check { flex-direction: row; align-items: center; gap: 6px; }
+.sga-form-publicacion fieldset .sga-check input { width: auto; }

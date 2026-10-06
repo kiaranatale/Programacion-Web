@@ -13,7 +13,7 @@ const tareas = ["Iniciar nuevo trámite", "Ver historial de trámites"];
 const tramites: { label: string; href?: string }[] = [
   { label: "Inscripción a cursadas", href: "/inscripciones/cursadas" },
   { label: "Inscripción a exámenes finales", href: "/inscripciones/finales" },
-  { label: "Inscripción a eventos académicos" },
+  { label: "Inscripción a eventos académicos", href: "/inscripciones/eventos" },
 ];
 
 export default async function Inicio() {
