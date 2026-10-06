@@ -254,6 +254,10 @@ Actualmente se aplican, en orden:
   cuatrimestre e inscripción del alumno a una comisión por materia (plan,
   correlativas para cursar, cupo por orden de llegada y sin superposición
   de horarios), con baja mientras el período esté abierto.
+- `20261014000000_eventos_inscripcion.sql`: eventos académicos con
+  descripción, cupo y cierre de inscripción; inscripción y baja de
+  cualquier usuario con sesión (`inscribirse_evento`,
+  `desinscribirse_evento`).
 
 Datos en el SQL Editor, en este orden (todos se pueden volver a correr):
 
@@ -286,6 +290,8 @@ Datos en el SQL Editor, en este orden (todos se pueden volver a correr):
 13. `supabase/seed_cursadas.sql`: 1.er cuatrimestre 2027 con inscripción
     abierta desde el 01/10/2026 y comisiones que muestran los distintos
     casos (disponible, superposición, sin vacantes, correlativa faltante).
+14. `supabase/seed_eventos.sql`: charla, taller (con el cupo lleno) y
+    feria de empresas con inscripción.
 
 Usuarios de prueba: `supabase/seed_usuarios.sql` crea alumno, docente y administrativo; los usuarios de Auth
 se crean en el dashboard con los mismos mails.
