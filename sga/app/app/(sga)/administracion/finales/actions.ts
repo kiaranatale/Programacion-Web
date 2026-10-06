@@ -23,6 +23,18 @@ export async function crearTurno(formData: FormData) {
   volver(error ? (error.code === "23505" ? "Ya existe un turno con ese nombre." : error.message) : null, `Turno ${nombre} creado.`);
 }
 
+// Cambia el período de inscripción de un turno ya creado.
+export async function cambiarInscripcionTurno(formData: FormData) {
+  const id = Number(formData.get("id"));
+  const desde = String(formData.get("desde") ?? "");
+  const hasta = String(formData.get("hasta") ?? "");
+  if (!desde || !hasta) volver("Completá las dos fechas del período de inscripción.", "");
+  if (hasta < desde) volver("El fin de la inscripción no puede ser anterior al inicio.", "");
+  const supabase = await createClient();
+  const { error } = await supabase.schema("sga").from("turno_examen").update({ inscripcion_desde: desde, inscripcion_hasta: hasta }).eq("id", id);
+  volver(error?.message ?? null, "Período de inscripción actualizado.");
+}
+
 export async function agregarFecha(formData: FormData) {
   const turnoId = Number(formData.get("turno_id"));
   const codigo = String(formData.get("codigo") ?? "").trim();

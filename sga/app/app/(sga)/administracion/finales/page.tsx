@@ -1,9 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { diaYHora } from "@/lib/finales";
-import { fecha } from "@/lib/legajo";
 import { hoy } from "@/lib/hoy";
 import { getSesion } from "@/lib/sesion";
-import { agregarFecha, borrarFecha, crearTurno } from "./actions";
+import { agregarFecha, borrarFecha, cambiarInscripcionTurno, crearTurno } from "./actions";
 
 type Turno = {
   id: number;
@@ -63,7 +62,14 @@ export default async function TurnosDeExamen({ searchParams }: PageProps<"/admin
                 {abierto ? "Inscripción abierta" : hoyStr < t.inscripcion_desde ? "Próximamente" : "Inscripción cerrada"}
               </span>
             </h3>
-            <p className="sga-ayuda">Inscripción del {fecha(t.inscripcion_desde)} al {fecha(t.inscripcion_hasta)}.</p>
+            <form action={cambiarInscripcionTurno} className="sga-form-fecha-final sga-form-periodo">
+              <input name="id" type="hidden" value={t.id} />
+              <span className="sga-ayuda">Inscripción del</span>
+              <input aria-label={`Inscripción a ${t.nombre} desde`} defaultValue={t.inscripcion_desde} name="desde" required type="date" />
+              <span className="sga-ayuda">al</span>
+              <input aria-label={`Inscripción a ${t.nombre} hasta`} defaultValue={t.inscripcion_hasta} name="hasta" required type="date" />
+              <button className="sga-boton-secundario" type="submit">Cambiar</button>
+            </form>
             <div className="sga-tabla-scroll">
               <table className="sga-tabla sga-tabla-mensajes">
                 <thead><tr><th>Materia</th><th>Fecha</th><th>Hasta</th><th>Aula</th><th>Anotados</th><th></th></tr></thead>

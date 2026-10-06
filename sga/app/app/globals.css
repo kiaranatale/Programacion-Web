@@ -373,3 +373,5 @@ a:hover { text-decoration: underline; }
 .sga-post-anotado { border-color: #b9dcb0; background: #f8fcf6; }
 .sga-form-publicacion fieldset .sga-check { flex-direction: row; align-items: center; gap: 6px; }
 .sga-form-publicacion fieldset .sga-check input { width: auto; }
+.sga-form-periodo { align-items: center; margin: 4px 0 8px; }
+.sga-form-fecha-final .sga-boton-secundario { border-color: #c8c8c8; background: #fff; color: var(--azul-link); }
