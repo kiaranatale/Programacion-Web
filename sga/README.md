@@ -267,6 +267,12 @@ Actualmente se aplican, en orden:
   `marcar_solicitud_cursada`) y confirma (`confirmar_asignacion_cursadas`).
   Los asignados quedan inscriptos. En la segunda inscripción cada alumno ve
   dónde quedó y puede darse de baja o anotarse donde queden vacantes.
+- `20261016000000_proyectos.sql`: Mi legajo → Proyectos, un registro estilo
+  CV de ayudantías y proyectos hechos para el ITBA. Las ayudantías
+  asignadas en `docente_comision` aparecen solas (`mis_ayudantias`); el
+  resto lo carga el alumno (`proyecto_alumno`, `cargar_proyecto`,
+  `editar_proyecto`, `borrar_proyecto`) y Administración lo valida o lo
+  rechaza con motivo (`revisar_proyecto`).
 
 Datos en el SQL Editor, en este orden (todos se pueden volver a correr):
 
@@ -303,6 +309,8 @@ Datos en el SQL Editor, en este orden (todos se pueden volver a correr):
     para probar la asignación.
 14. `supabase/seed_eventos.sql`: charla, taller (con el cupo lleno) y
     feria de empresas con inscripción.
+15. `supabase/seed_proyectos.sql`: proyectos de la alumna demo, uno
+    validado, uno pendiente y uno rechazado.
 
 Usuarios de prueba: `supabase/seed_usuarios.sql` crea alumno, docente y administrativo; los usuarios de Auth
 se crean en el dashboard con los mismos mails.

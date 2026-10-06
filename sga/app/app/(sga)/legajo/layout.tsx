@@ -7,7 +7,7 @@ const tabs = [
   { label: "Datos del alumno", href: "/legajo/alumno" },
   { label: "Estado de cuenta", href: "/legajo/estado-de-cuenta" },
   { label: "Planes de pago" },
-  { label: "Proyectos" },
+  { label: "Proyectos", href: "/legajo/proyectos" },
 ];
 
 export default async function LegajoLayout({ children }: LayoutProps<"/legajo">) {
