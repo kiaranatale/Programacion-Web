@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getCursosEnProgreso } from "@/lib/cursos";
 import { hoy } from "@/lib/hoy";
+import { getLegajoActual } from "@/lib/legajo";
 import { getSesion } from "@/lib/sesion";
 
 type Notificacion = { id: number; mensaje: string };
@@ -10,11 +11,14 @@ type Cronograma = { id: number; anio: number; nombre: string; url_archivo: strin
 // Accesos de las cajas superiores; se convierten en links a medida que se
 // implementa cada módulo.
 const tareas = ["Iniciar nuevo trámite", "Ver historial de trámites"];
-const tramites: { label: string; href?: string }[] = [
-  { label: "Inscripción a cursadas", href: "/inscripciones/cursadas" },
-  { label: "Inscripción a exámenes finales", href: "/inscripciones/finales" },
-  { label: "Inscripción a eventos académicos", href: "/inscripciones/eventos" },
-];
+function tramites(plan: string | undefined): { label: string; href?: string }[] {
+  return [
+    { label: "Inscripción a cursadas", href: "/inscripciones/cursadas" },
+    { label: `Inscripción a exámenes finales${plan ? ` (${plan})` : ""}`, href: "/inscripciones/finales" },
+    { label: "Inscripción a eventos académicos", href: "/inscripciones/eventos" },
+    { label: "Ver intercambio/s" },
+  ];
+}
 
 export default async function Inicio() {
   const sesion = await getSesion();
@@ -23,7 +27,7 @@ export default async function Inicio() {
   const supabase = await createClient();
   const sga = supabase.schema("sga");
 
-  const [{ data: notificaciones }, { data: cronogramas }, cursos, { count: sinLeer }, { data: encuestas }] = await Promise.all([
+  const [{ data: notificaciones }, { data: cronogramas }, cursos, { count: sinLeer }, { data: encuestas }, { legajo }] = await Promise.all([
     sga
       .from("notificacion")
       .select("id, mensaje")
@@ -40,6 +44,7 @@ export default async function Inicio() {
     getCursosEnProgreso(sesion),
     sga.from("mensaje_recibido").select("id", { count: "exact", head: true }).is("leido_en", null),
     sga.rpc("encuestas_para_mi"),
+    getLegajoActual(),
   ]);
   const encuestasPendientes = ((encuestas ?? []) as { estado: string; respondida: boolean }[])
     .filter((e) => e.estado === "ACTIVA" && !e.respondida).length;
@@ -97,7 +102,7 @@ export default async function Inicio() {
         <div className="sga-caja">
           <h3>Trámites</h3>
           <ul>
-            {tramites.map((t) => (
+            {tramites(legajo?.plan_estudio?.codigo).map((t) => (
               <li key={t.label}>
                 {t.href ? <Link href={t.href}>{t.label}</Link> : <span className="sga-proximamente" title="Próximamente">{t.label}</span>}
               </li>
@@ -127,7 +132,7 @@ export default async function Inicio() {
           <div className="sga-tabla-scroll">
             <table className="sga-tabla">
               <thead>
-                <tr><th>Curso</th><th>Horarios</th><th></th></tr>
+                <tr><th>Curso</th><th>Horarios</th><th>Acciones</th></tr>
               </thead>
               <tbody>
                 {cursos.map((curso) => (

@@ -375,3 +375,17 @@ a:hover { text-decoration: underline; }
 .sga-form-publicacion fieldset .sga-check input { width: auto; }
 .sga-form-periodo { align-items: center; margin: 4px 0 8px; }
 .sga-form-fecha-final .sga-boton-secundario { border-color: #c8c8c8; background: #fff; color: var(--azul-link); }
+
+/* Inscripción a exámenes finales (como el SGA) */
+.sga-alerta { margin: 6px 0; padding: 10px 12px; border: 1px solid #ebccd1; border-radius: 3px; background: #f2dede; color: #a94442; font-size: 10px; }
+.sga-vacio-grande { margin: 8px 0 4px; color: var(--titulo); font-size: 12px; font-weight: 700; }
+
+/* Proyectos (registro estilo CV) */
+.sga-cv { margin: 0 0 12px; padding: 0; list-style: none; }
+.sga-cv li { padding: 8px 10px; border-left: 3px solid var(--azul); border-bottom: 1px solid var(--borde); }
+.sga-cv li + li { margin-top: 6px; }
+.sga-cv-cabecera { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; font-size: 12px; }
+.sga-cv-cabecera span { font-size: 10px; }
+.sga-cv-descripcion { margin: 4px 0 0; font-size: 11px; white-space: pre-line; }
+.sga-cv-editando { background: var(--fondo-tabla); }
+.sga-cv .sga-acciones-doc a { font-size: 10px; }
