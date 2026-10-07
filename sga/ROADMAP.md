@@ -231,6 +231,7 @@ agregar tablas antes de hacer la pantalla.
 | 9 | Usuario → **Cambio de clave** | Cambiar contraseña; "¿Olvidaste tu contraseña?" en el login | Supabase Auth | ✅ Hecho: pide la clave actual salvo al entrar con el link del mail de recuperación |
 | 9 | Usuario → **Mensajes** | Recibidos y enviados, con leído/no leído y respuestas | `mensaje`, `mensaje_destinatario` (vistas `mensaje_recibido`, `mensaje_enviado`) | ✅ Hecho: Administración escribe a todos, a una carrera, a una comisión o a una persona; los docentes a sus comisiones, a sus alumnos y a otros docentes; todos responden lo que reciben. Inicio avisa los no leídos |
 | — | Administración → **Personas** | Búsqueda, alta con roles y legajo, comisiones a cargo de docentes y envío del mail de acceso | `persona`, `persona_rol`, `legajo`, `docente`, `docente_comision`, Supabase Auth | ✅ Hecho |
+| — | Administración → **Oferta de cursos** | Cursos por cuatrimestre, comisiones con cupo y horarios con control de aula ocupada | `curso`, `comision`, `horario_comision`, `aula` | ✅ Hecho |
 | — | Mi legajo → **Planes de pago** | Planes de pago | — | Sin definir (no está claro para qué se usa) |
 | — | Mi legajo → **Proyectos** / Administración → **Proyectos de alumnos** | Registro estilo CV de ayudantías (automáticas desde las comisiones) y proyectos que carga el alumno y valida Administración | `proyecto_alumno`, `docente_comision` | ✅ Hecho |
 | — | Mi legajo → **Información personal** | Datos de Salesforce | — | Fuera de alcance (sistema externo) |

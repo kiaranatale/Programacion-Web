@@ -434,3 +434,12 @@ img.sga-foto { object-fit: cover; }
 .sga-casilla > span { font-weight: 400 !important; }
 .sga-roles-ficha form { margin-right: 16px; }
 .sga-form-fecha-final select { height: 26px; border: 1px solid #c8c8c8; font-size: 11px; }
+
+/* Oferta de cursos */
+.sga-comision-oferta { margin: 10px 0; }
+.sga-comision-oferta .sga-subtitulo { margin: 0; }
+.sga-acciones-doc input[name="cupo"] { width: 80px; height: 22px; padding: 0 5px; border: 1px solid #c8c8c8; font-size: 10px; }
+.sga-horarios-oferta { margin: 8px 0; padding-left: 16px; font-size: 11px; }
+.sga-horarios-oferta li { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 3px 0; }
+.sga-horarios-oferta form button { padding: 1px 6px; border: 1px solid #c0281c; background: #fff; color: #c0281c; font-size: 10px; cursor: pointer; }
+.sga-form-fecha-final input[name="aula"] { width: 110px; }
