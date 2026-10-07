@@ -443,3 +443,5 @@ img.sga-foto { object-fit: cover; }
 .sga-horarios-oferta li { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 3px 0; }
 .sga-horarios-oferta form button { padding: 1px 6px; border: 1px solid #c0281c; background: #fff; color: #c0281c; font-size: 10px; cursor: pointer; }
 .sga-form-fecha-final input[name="aula"] { width: 110px; }
+.sga-historial-valores { margin: 4px 0 12px; font-size: 11px; }
+.sga-historial-valores summary { color: var(--azul-link); cursor: pointer; }
