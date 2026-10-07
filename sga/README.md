@@ -289,6 +289,13 @@ Actualmente se aplican, en orden:
   (`marcar_postulacion_intercambio`) y publica los resultados
   (`publicar_resultados_intercambio`), que notifican a cada postulante. El
   alumno ve el resultado recién cuando se publica.
+- `20261019000000_alta_personas.sql`: Administración → Personas. Búsqueda
+  (`buscar_personas`), alta con roles y legajo en un paso
+  (`crear_persona`), roles (`asignar_rol`, `quitar_rol`), legajo
+  (`crear_legajo`) y comisiones a cargo (`asignar_docente_comision`,
+  `quitar_docente_comision`). La cuenta de acceso la crea la app con
+  `SUPABASE_SERVICE_ROLE_KEY` y manda el mail de "elegir contraseña"; el
+  trigger de `20261002000000` la vincula a la persona por mail.
 
 Datos en el SQL Editor, en este orden (todos se pueden volver a correr):
 

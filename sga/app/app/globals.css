@@ -426,3 +426,11 @@ th a.sga-orden { color: #fff; font-weight: 700; }
 img.sga-foto { object-fit: cover; }
 .sga-foto-vacia { display: flex; align-items: center; gap: 10px; }
 .sga-foto-vacia .sga-ayuda { max-width: 260px; }
+
+/* Personas */
+.sga-roles { display: flex !important; flex-wrap: wrap; gap: 14px !important; }
+.sga-roles label, .sga-casilla { flex-direction: row !important; align-items: center; gap: 6px !important; }
+.sga-roles input, .sga-casilla input { width: auto !important; }
+.sga-casilla > span { font-weight: 400 !important; }
+.sga-roles-ficha form { margin-right: 16px; }
+.sga-form-fecha-final select { height: 26px; border: 1px solid #c8c8c8; font-size: 11px; }
