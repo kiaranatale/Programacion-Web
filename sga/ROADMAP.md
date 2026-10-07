@@ -207,7 +207,7 @@ agregar tablas antes de hacer la pantalla.
 | — | Inicio | Notificaciones, tareas, trámites, cronogramas, cursos en progreso | `notificacion`, `cronograma_academico`, `inscripcion_curso`, `horario_comision` | ✅ Hecho |
 | — | Inicio → Trámites → **Ver intercambio/s** / Administración → **Intercambios** | Convocatorias con vacantes, requisitos (créditos, promedio) y período de postulación; postulación con carta de motivación; selección y publicación de resultados | `convocatoria_intercambio`, `postulacion_intercambio`, `notificacion` | ✅ Hecho |
 | — | Inicio → Tareas → **Iniciar nuevo trámite** / **Ver historial de trámites** / Administración → **Trámites** | Título, destino (Secretaría Académica o Administrativa) y descripción; listado con filtros por fecha, título y estado y descarga CSV; Administración toma, responde, resuelve o rechaza | `tramite`, `tramite_movimiento`, `notificacion` | ✅ Hecho |
-| 1 | Legajos → Mi legajo → **General** | Foto y datos personales | `persona`, `legajo` | ✅ Hecho (foto: falta Supabase Storage) |
+| 1 | Legajos → Mi legajo → **General** | Foto y datos personales | `persona`, `legajo` | ✅ Hecho (la foto es la "Foto 4x4" validada de Documentación) |
 | 1 | Mi legajo → **Títulos** | Títulos previos | `titulo_previo` | ✅ Hecho |
 | 1 | Mi legajo → Datos del alumno → **Roles** | Roles, legajos, carreras en curso, historial de actividades | `persona_rol`, `legajo`, `plan_estudio`, `hito_academico` | ✅ Hecho |
 | 2 | Datos del alumno → **Analítico de notas** | Rendimiento, créditos aprobados / en curso, % de carrera, materias por año con cursada y finales | `legajo`, `plan_materia`, `inscripcion_curso`, `inscripcion_examen_final` | ✅ Hecho |

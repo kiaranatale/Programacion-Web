@@ -1,5 +1,7 @@
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { fecha } from "@/lib/legajo";
+import { BUCKET_DOCUMENTACION } from "@/lib/documentacion";
+import { fecha, getLegajoActual } from "@/lib/legajo";
 import { getSesion } from "@/lib/sesion";
 
 type Persona = {
@@ -20,9 +22,25 @@ type Persona = {
 
 const generos: Record<string, string> = { HOMBRE: "Masculino", MUJER: "Femenino", OTRO: "Otro" };
 
+type Foto = { estado: string; ruta_archivo: string | null; documento: { nombre: string } | null };
+
+// La foto del legajo es la "Foto 4x4" de Documentación, una vez validada
+// (solo imágenes: un PDF no se puede mostrar). Link firmado por una hora.
+async function urlFoto(supabase: Awaited<ReturnType<typeof createClient>>, legajoId: number) {
+  const { data } = await supabase.schema("sga").from("documento_legajo")
+    .select("estado, ruta_archivo, documento:documento_requerido_id!inner(nombre)")
+    .eq("legajo_id", legajoId).eq("documento.nombre", "Foto 4x4")
+    .maybeSingle<Foto>();
+  if (!data?.ruta_archivo) return { url: null, estado: null };
+  if (data.estado !== "VALIDADO" || !/\.(png|jpe?g)$/i.test(data.ruta_archivo)) return { url: null, estado: data.estado };
+  const { data: firmada } = await supabase.storage.from(BUCKET_DOCUMENTACION).createSignedUrl(data.ruta_archivo, 3600);
+  return { url: firmada?.signedUrl ?? null, estado: data.estado };
+}
+
 export default async function LegajoGeneral() {
-  const sesion = await getSesion();
+  const [sesion, { legajo }] = await Promise.all([getSesion(), getLegajoActual()]);
   const supabase = await createClient();
+  const foto = legajo ? await urlFoto(supabase, legajo.id) : { url: null, estado: null };
   const { data: p } = await supabase
     .schema("sga")
     .from("persona")
@@ -51,12 +69,25 @@ export default async function LegajoGeneral() {
   return (
     <>
       <h3 className="sga-subtitulo">Datos personales</h3>
-      <div className="sga-foto" aria-label="Sin foto">
-        <svg viewBox="0 0 64 64" aria-hidden="true">
-          <circle cx="32" cy="24" r="12" />
-          <path d="M10 58c2-13 11-20 22-20s20 7 22 20z" />
-        </svg>
-      </div>
+      {foto.url ? (
+        // Link firmado de Storage: next/image no sirve para URLs que vencen
+        // eslint-disable-next-line @next/next/no-img-element
+        <img alt={`Foto de ${p.nombre} ${p.apellido}`} className="sga-foto" src={foto.url} />
+      ) : (
+        <div className="sga-foto-vacia">
+          <div className="sga-foto" aria-label="Sin foto">
+            <svg viewBox="0 0 64 64" aria-hidden="true">
+              <circle cx="32" cy="24" r="12" />
+              <path d="M10 58c2-13 11-20 22-20s20 7 22 20z" />
+            </svg>
+          </div>
+          <p className="sga-ayuda">
+            {foto.estado === "CARGADO"
+              ? "Tu foto está pendiente de validación."
+              : <>Subí tu &quot;Foto 4x4&quot; en <Link href="/legajo/alumno/documentacion">Documentación</Link>.</>}
+          </p>
+        </div>
+      )}
       <dl className="sga-datos">
         {filas.map(([etiqueta, valor]) => (
           <div key={etiqueta}>

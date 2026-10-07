@@ -423,3 +423,6 @@ th a.sga-orden { color: #fff; font-weight: 700; }
 /* Intercambios */
 .sga-postulacion summary { display: inline-block; margin-top: 6px; padding: 3px 10px; background: var(--azul); color: #fff; font-size: 11px; cursor: pointer; }
 .sga-postulacion[open] summary { margin-bottom: 6px; }
+img.sga-foto { object-fit: cover; }
+.sga-foto-vacia { display: flex; align-items: center; gap: 10px; }
+.sga-foto-vacia .sga-ayuda { max-width: 260px; }
