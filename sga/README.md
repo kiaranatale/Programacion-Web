@@ -303,6 +303,14 @@ Actualmente se aplican, en orden:
   `borrar_horario`). Un horario presencial necesita aula, y el aula no se
   puede ocupar dos veces el mismo día y hora en cursos con fechas
   superpuestas.
+- `20261021000000_facturacion.sql`: facturación automática. Administración
+  solo fija el valor del crédito (`valor_credito`, con fecha de vigencia).
+  Cada mes, a cada alumno que cursa se le factura créditos de sus materias
+  × valor vigente + adicionales − becas/descuentos, con vencimiento el 10
+  (`generar_facturas_mes`, nunca duplica). Corre todos los días con
+  `pg_cron` si la base lo tiene, y además al entrar a Estado de cuenta
+  (`asegurar_mi_factura`) y a Administración → Facturación
+  (`actualizar_facturacion`). Las impagas vencidas pasan a VENCIDA solas.
 
 Datos en el SQL Editor, en este orden (todos se pueden volver a correr):
 

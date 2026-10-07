@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { fecha, getLegajoActual, pesos } from "@/lib/legajo";
+import { getSesion } from "@/lib/sesion";
 
 type Factura = { id: number; periodo: string; monto_total: number; fecha_emision: string; fecha_vencimiento: string; estado: string };
 type Pago = { id: number; monto_total: number; fecha_pago: string | null; estado: string };
@@ -9,14 +10,17 @@ type Movimiento = { key: string; tipo: "Factura" | "Pago"; importe: number; fech
 const estadosFactura: Record<string, string> = { PENDIENTE: "Pendiente", PAGADA: "Pagada", VENCIDA: "Vencida", ANULADA: "Anulada" };
 
 export default async function EstadoDeCuenta() {
-  const { legajo } = await getLegajoActual();
+  const [{ legajo }, sesion] = await Promise.all([getLegajoActual(), getSesion()]);
   const supabase = await createClient();
   const sga = supabase.schema("sga");
+  // La factura del mes se genera sola (por si todavía no corrió la pasada diaria)
+  if (legajo) await sga.rpc("asegurar_mi_factura");
   const [{ data: facturas }, { data: pagos }] = await Promise.all([
     sga.from("factura").select("id, periodo, monto_total, fecha_emision, fecha_vencimiento, estado")
       .eq("legajo_id", legajo?.id ?? 0).neq("estado", "ANULADA").returns<Factura[]>(),
     sga.from("orden_pago").select("id, monto_total, fecha_pago, estado")
       .eq("legajo_id", legajo?.id ?? 0).eq("estado", "PAGADO").returns<Pago[]>(),
+    sga.from("notificacion").update({ leida: true }).eq("persona_id", sesion?.persona?.id ?? 0).eq("tipo", "FACTURA").eq("leida", false),
   ]);
 
   // Factura suma deuda, pago la descuenta (se muestra en negativo)
