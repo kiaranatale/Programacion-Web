@@ -176,7 +176,9 @@ SELECT pg_temp.espera_error(format('SELECT sga.inscribirse_final(%s)', futuro), 
 
 SET LOCAL request.jwt.claims TO '{"sub": "eeeeeeee-0000-0000-0000-000000000002"}';
 SELECT sga.cargar_nota_final(i.inscripcion_id, 9)
-FROM sga.examen_final ef, LATERAL sga.inscriptos_fecha_final(ef.id) i WHERE ef.fecha = sga.hoy() - 2;
+FROM sga.examen_final ef, LATERAL sga.inscriptos_fecha_final(ef.id) i
+-- Solo la fecha de este test (los seeds pueden tener otra el mismo día)
+WHERE ef.fecha = sga.hoy() - 2 AND ef.curso_id = (SELECT curso_id FROM sga.examen_final WHERE id = (SELECT f1_a FROM fin_ids));
 
 RESET ROLE;
 DO $$
