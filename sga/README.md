@@ -296,6 +296,13 @@ Actualmente se aplican, en orden:
   `quitar_docente_comision`). La cuenta de acceso la crea la app con
   `SUPABASE_SERVICE_ROLE_KEY` y manda el mail de "elegir contraseña"; el
   trigger de `20261002000000` la vincula a la persona por mail.
+- `20261020000000_oferta_cursos.sql`: Administración → Oferta de cursos.
+  Cursos por cuatrimestre (`crear_curso`, `borrar_curso` si no hay
+  inscriptos), comisiones con cupo (`crear_comision`,
+  `cambiar_cupo_comision`, `borrar_comision`) y horarios (`agregar_horario`,
+  `borrar_horario`). Un horario presencial necesita aula, y el aula no se
+  puede ocupar dos veces el mismo día y hora en cursos con fechas
+  superpuestas.
 
 Datos en el SQL Editor, en este orden (todos se pueden volver a correr):
 

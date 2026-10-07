@@ -44,6 +44,7 @@ const menus: Menu[] = [
     items: [
       { label: "Ocupación de Aulas", href: "/aulas" },
       { label: "Personas", href: "/administracion/personas", roles: ["ADMINISTRATIVO"] },
+      { label: "Oferta de cursos", href: "/administracion/oferta", roles: ["ADMINISTRATIVO"] },
       { label: "Documentación pendiente", href: "/administracion/documentacion", roles: ["ADMINISTRATIVO"] },
       { label: "Organizaciones estudiantiles", href: "/administracion/organizaciones", roles: ["ADMINISTRATIVO"] },
       { label: "Inscripción a cursadas", href: "/administracion/inscripciones", roles: ["ADMINISTRATIVO"] },

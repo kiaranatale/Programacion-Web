@@ -24,11 +24,11 @@ const COMISION_SELECT = `
   curso:curso_id(id, activo, materia:materia_id(codigo, nombre))
 `;
 
-const dias: Record<string, string> = {
+export const dias: Record<string, string> = {
   LUNES: "Lunes", MARTES: "Martes", MIERCOLES: "Miércoles", JUEVES: "Jueves",
   VIERNES: "Viernes", SABADO: "Sábado", DOMINGO: "Domingo",
 };
-const modalidades: Record<string, string> = {
+export const modalidades: Record<string, string> = {
   PRESENCIAL: "Presencial",
   VIRTUAL_SINCRONICO: "Virtual sincrónica",
   VIRTUAL_ASINCRONICO: "Virtual asincrónica",
