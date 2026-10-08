@@ -208,7 +208,7 @@ CROSS JOIN (VALUES
     ('2026-07', DATE '2026-07-01', DATE '2026-07-10'),
     ('2026-08', DATE '2026-08-03', DATE '2026-08-12')
 ) AS x (periodo, emision, vence)
-ON CONFLICT (legajo_id, periodo) DO NOTHING;
+ON CONFLICT (legajo_id, periodo, plan_pago_id) DO NOTHING;
 
 INSERT INTO sga.orden_pago (legajo_id, monto_total, fecha_creacion)
 SELECT f.legajo_id, f.monto_total, f.fecha_emision

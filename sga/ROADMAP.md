@@ -234,7 +234,7 @@ agregar tablas antes de hacer la pantalla.
 | — | Administración → **Oferta de cursos** | Cursos por cuatrimestre, comisiones con cupo y horarios con control de aula ocupada | `curso`, `comision`, `horario_comision`, `aula` | ✅ Hecho |
 | — | Administración → **Facturación** | Valor del crédito con vigencia; facturas mensuales automáticas (créditos × valor + adicionales − becas, vencen el 10) y consulta por mes y estado | `valor_credito`, `factura`, `factura_detalle`, `item_facturable_legajo`, `beca_descuento_legajo` | ✅ Hecho |
 | — | Docencia → **Ausencias** / Administración → **Ausencias docentes** | El docente informa ausencias por comisión; avisos y clases suspendidas en el calendario del alumno; Administración justifica o no | `ausencia_docente`, `ausencia_docente_comision`, `notificacion` | ✅ Hecho |
-| — | Mi legajo → **Planes de pago** | Planes de pago | — | Sin definir (no está claro para qué se usa) |
+| — | Mi legajo → **Planes de pago** / Administración → **Planes de pago** | Pedido de cuotas por las facturas vencidas; Administración aprueba (las cuotas se pagan con Mercado Pago) o rechaza | `plan_pago`, `plan_pago_factura`, `factura` | ✅ Hecho |
 | — | Mi legajo → **Proyectos** / Administración → **Proyectos de alumnos** | Registro estilo CV de ayudantías (automáticas desde las comisiones) y proyectos que carga el alumno y valida Administración | `proyecto_alumno`, `docente_comision` | ✅ Hecho |
 | — | Mi legajo → **Información personal** | Datos de Salesforce | — | Fuera de alcance (sistema externo) |
 

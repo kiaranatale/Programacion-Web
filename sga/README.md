@@ -317,6 +317,13 @@ Actualmente se aplican, en orden:
   calendario semanal (`clases_suspendidas_para_mi`). Puede cancelarla antes
   de que empiece (`cancelar_ausencia`, también avisa) y Administración la
   justifica o no (`revisar_ausencia`).
+- `20261023000000_planes_de_pago.sql`: el alumno con facturas vencidas
+  pide pagarlas en 2 a 6 cuotas (`solicitar_plan_pago`); Administración
+  aprueba o rechaza (`resolver_plan_pago`). Al aprobar, las vencidas quedan
+  ANULADA ("Incluida en el plan de pago N.º X") y se crean las cuotas como
+  facturas (`plan_pago_id`, `cuota_numero`) que vencen el 10 de los meses
+  siguientes y se pagan con Mercado Pago. La clave única de factura pasa a
+  ser (legajo, período, plan) con NULLS NOT DISTINCT.
 
 Datos en el SQL Editor, en este orden (todos se pueden volver a correr):
 
