@@ -48,7 +48,6 @@ export default async function DetallePlan({ params }: PageProps<"/carreras/[codi
           {plan.vigenciaHasta ? ` hasta ${periodoDeFecha(plan.vigenciaHasta)}` : ""}
         </p>
 
-        {plan.bloques.length === 0 && <p className="sga-vacio">El plan no tiene materias cargadas.</p>}
         {plan.bloques.map((b) => (
           <div className="sga-bloque-plan" key={b.id ?? "sin-bloque"}>
             <p className="sga-bloque-plan-titulo">{b.nombre} - Requisito: {requisitoBloque(b)}</p>

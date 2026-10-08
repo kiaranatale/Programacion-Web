@@ -241,7 +241,7 @@ agregar tablas antes de hacer la pantalla.
 El menú de la app ya replica esta estructura (Encuestas, Académica,
 Legajos, Administración, Usuario); lo no implementado aparece en gris.
 
-Orden de los seeds: `seed.sql` → `seed_plan_a22.sql` → `seed_plan_bio22.sql` → `seed_cursos.sql`
+Orden de los seeds: `seed.sql` → `seed_plan_a22.sql` → `seed_plan_bio22.sql` → `seed_plan_aer25.sql` → `seed_cursos.sql`
 → `seed_aulas.sql` → `seed_usuarios.sql` → `seed_legajo_demo.sql` → `seed_hoy.sql` → `seed_mensajes.sql` → `seed_autoridades_encuestas.sql` → `seed_facturas.sql` → `seed_docencia.sql` → `seed_finales.sql` → `seed_cursadas.sql` → `seed_eventos.sql` → `seed_proyectos.sql` → `seed_tramites.sql` → `seed_intercambios.sql`. Las materias del A22 que no
 se dictan en el período cargado siguen en el departamento "A confirmar".
 
