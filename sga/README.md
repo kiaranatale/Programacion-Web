@@ -334,6 +334,8 @@ Datos en el SQL Editor, en este orden (todos se pueden volver a correr):
    materias, electivas y correlativas), en el mismo paso.
    `supabase/seed_plan_aer25.sql`: plan AER 25 de Aeroespacial (sin
    materias todavía, solo el título), en el mismo paso.
+   `supabase/seed_plan_c23.sql`: plan C23 de Ingeniería Civil (86
+   materias, electivas y correlativas), en el mismo paso.
 3. `supabase/seed_cursos.sql`: 492 cursos reales del segundo cuatrimestre
    2026 con su departamento (generado con `scripts/csv_a_seed_cursos.py`;
    ver "Cómo bajar el listado de cursos" en ROADMAP.md).
