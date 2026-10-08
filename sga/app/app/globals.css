@@ -445,3 +445,4 @@ img.sga-foto { object-fit: cover; }
 .sga-form-fecha-final input[name="aula"] { width: 110px; }
 .sga-historial-valores { margin: 4px 0 12px; font-size: 11px; }
 .sga-historial-valores summary { color: var(--azul-link); cursor: pointer; }
+.sga-suspendidas ul { margin: 4px 0 0; padding-left: 18px; }

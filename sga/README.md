@@ -311,6 +311,12 @@ Actualmente se aplican, en orden:
   `pg_cron` si la base lo tiene, y además al entrar a Estado de cuenta
   (`asegurar_mi_factura`) y a Administración → Facturación
   (`actualizar_facturacion`). Las impagas vencidas pasan a VENCIDA solas.
+- `20261022000000_ausencias_docentes.sql`: el docente informa una ausencia
+  (`informar_ausencia`: tipo, fechas, motivo y comisiones propias); a los
+  alumnos que cursan esas comisiones les llega el aviso y la ven en su
+  calendario semanal (`clases_suspendidas_para_mi`). Puede cancelarla antes
+  de que empiece (`cancelar_ausencia`, también avisa) y Administración la
+  justifica o no (`revisar_ausencia`).
 
 Datos en el SQL Editor, en este orden (todos se pueden volver a correr):
 

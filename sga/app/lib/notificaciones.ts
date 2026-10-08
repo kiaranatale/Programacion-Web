@@ -5,4 +5,5 @@ export const destinoNotificacion: Record<string, string> = {
   DOCUMENTACION: "/legajo/alumno/documentacion",
   INTERCAMBIO: "/intercambios",
   FACTURA: "/legajo/estado-de-cuenta",
+  AUSENCIA: "/legajo/alumno/calendario",
 };

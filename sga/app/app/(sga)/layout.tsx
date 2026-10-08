@@ -37,7 +37,11 @@ const menus: Menu[] = [
   {
     label: "Docencia",
     roles: ["DOCENTE", "AYUDANTE"],
-    items: [{ label: "Mis comisiones", href: "/docencia" }, { label: "Carga de notas", href: "/docencia/notas" }],
+    items: [
+      { label: "Mis comisiones", href: "/docencia" },
+      { label: "Carga de notas", href: "/docencia/notas" },
+      { label: "Ausencias", href: "/docencia/ausencias" },
+    ],
   },
   {
     label: "Administración",
@@ -51,6 +55,7 @@ const menus: Menu[] = [
       { label: "Inscripción a cursadas", href: "/administracion/inscripciones", roles: ["ADMINISTRATIVO"] },
       { label: "Turnos de examen", href: "/administracion/finales", roles: ["ADMINISTRATIVO"] },
       { label: "Trámites", href: "/administracion/tramites", roles: ["ADMINISTRATIVO"] },
+      { label: "Ausencias docentes", href: "/administracion/ausencias", roles: ["ADMINISTRATIVO"] },
       { label: "Intercambios", href: "/administracion/intercambios", roles: ["ADMINISTRATIVO"] },
       { label: "Eventos académicos", href: "/administracion/eventos", roles: ["ADMINISTRATIVO"] },
       { label: "Proyectos de alumnos", href: "/administracion/proyectos", roles: ["ADMINISTRATIVO"] },
