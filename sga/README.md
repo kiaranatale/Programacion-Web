@@ -343,6 +343,9 @@ Datos en el SQL Editor, en este orden (todos se pueden volver a correr):
    `supabase/seed_plan_b25.sql`: plan B 25 de Ingeniería en Biotecnología
    (ciclos básico y profesional; electivas todavía sin materias), en el
    mismo paso.
+   `supabase/seed_plan_s10.sql`: plan S10-Rev23 de Ingeniería en
+   Informática (163 materias, título intermedio de Analista), en el
+   mismo paso.
 3. `supabase/seed_cursos.sql`: 492 cursos reales del segundo cuatrimestre
    2026 con su departamento (generado con `scripts/csv_a_seed_cursos.py`;
    ver "Cómo bajar el listado de cursos" en ROADMAP.md).
