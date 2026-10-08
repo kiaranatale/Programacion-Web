@@ -1,5 +1,9 @@
 import { getCursadas } from "@/lib/cursadas";
-import { getLegajoActual, periodo } from "@/lib/legajo";
+import { fecha, getLegajoActual, periodo } from "@/lib/legajo";
+import { createClient } from "@/lib/supabase/server";
+import { getSesion } from "@/lib/sesion";
+
+type Suspendida = { codigo: string; materia: string; comision: string; fecha_inicio: string; fecha_fin: string; docente: string };
 
 const dias = [
   ["DOMINGO", "Domingo"], ["LUNES", "Lunes"], ["MARTES", "Martes"], ["MIERCOLES", "Miércoles"],
@@ -14,7 +18,17 @@ export default async function CalendarioSemanal() {
   const { legajo } = await getLegajoActual();
   if (!legajo) return null;
 
-  const cursando = (await getCursadas(legajo.id)).filter((c) => c.estado === "CURSANDO");
+  const supabase = await createClient();
+  const sga = supabase.schema("sga");
+  const sesion = await getSesion();
+  const [cursadas, { data: suspendidasData }] = await Promise.all([
+    getCursadas(legajo.id),
+    sga.rpc("clases_suspendidas_para_mi"),
+    // Al ver el calendario, los avisos de clases suspendidas quedan leídos
+    sga.from("notificacion").update({ leida: true }).eq("persona_id", sesion?.persona?.id ?? 0).eq("tipo", "AUSENCIA").eq("leida", false),
+  ]);
+  const suspendidas = (suspendidasData ?? []) as Suspendida[];
+  const cursando = cursadas.filter((c) => c.estado === "CURSANDO");
   const bloques = cursando.flatMap((c, i) =>
     (c.comision?.horario_comision ?? []).map((h) => ({
       dia: h.dia_semana,
@@ -36,6 +50,19 @@ export default async function CalendarioSemanal() {
       <p className="sga-texto">
         Calendario actual: <strong>{actual ? periodo(actual.anio, actual.periodo) : "sin cursadas en curso"}</strong>
       </p>
+      {suspendidas.length > 0 && (
+        <div className="sga-alerta sga-suspendidas">
+          <strong>Clases suspendidas</strong>
+          <ul>
+            {suspendidas.map((c, i) => (
+              <li key={i}>
+                {c.codigo} {c.materia} · comisión {c.comision} ·{" "}
+                {c.fecha_inicio === c.fecha_fin ? `el ${fecha(c.fecha_inicio)}` : `del ${fecha(c.fecha_inicio)} al ${fecha(c.fecha_fin)}`} (ausencia de {c.docente})
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
       <div className="sga-tabla-scroll">
         <table className="sga-calendario">
           <thead>
