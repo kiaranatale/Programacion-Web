@@ -378,6 +378,29 @@ Datos de demo para todas las solapas de Mi legajo:
 `supabase/seed_legajo_demo.sql` (después de `seed.sql` y
 `seed_usuarios.sql`).
 
+#### Cómo bajar un plan de estudios del SGA actual
+
+Los `seed_plan_*.sql` salen del **Detalle de Planes de estudio** del SGA
+actual (Académica → Carreras → lupa del plan):
+
+1. En el SGA, abrir el detalle del plan.
+2. F12 → Console, pegar el contenido de `sga/scripts/plan_a_csv.js` y
+   Enter. Descarga `<plan>.csv` (una fila por materia, hueco de electivas
+   y título) y en Chrome/Edge además lo copia al portapapeles. En la
+   consola avisa cuántas materias, huecos y títulos leyó.
+3. Anotar "Activo desde" y "Activo hasta" del listado de planes de la
+   carrera: primer cuatrimestre = marzo, segundo = agosto, verano =
+   febrero.
+4. `python3 sga/scripts/csv_a_seed_plan.py BIO_22.csv --carrera BIO --desde 2023-03-01 --hasta 2024-02-01 > sga/supabase/seed_plan_bio22.sql`
+5. Sumar el seed a `scripts/probar_base.sh` y correrlo en el SQL Editor.
+   El SELECT del final muestra materias, créditos y correlativas para
+   compararlos con el SGA. Las correlativas a materias que no están en el
+   catálogo quedan afuera.
+
+El script de consola lee el texto de la página (encabezados de bloque,
+"Año X - Cuatrimestre Y" y las tablas), no el HTML del SGA, así que
+sirve igual para la copia de esta app.
+
 ### Paso 3 — Primeros CRUD reales (temas: Server Components, formularios, Route Handlers)
 Orden sugerido, de lo más simple a lo más complejo:
 1. **Mi legajo** (alumno): pantallas 1–3 de la tabla de arriba. Son
