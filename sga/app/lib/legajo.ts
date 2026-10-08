@@ -61,8 +61,10 @@ export function periodo(anio: number, codigo: string): string {
   return `${periodos[codigo] ?? codigo} ${anio}`;
 }
 
-// Cuatrimestre al que pertenece una fecha (agosto en adelante: segundo).
+// Período al que pertenece una fecha: enero y febrero son el verano,
+// de agosto en adelante el segundo cuatrimestre.
 export function periodoDeFecha(valor: string): string {
   const [anio, mes] = valor.slice(0, 10).split("-").map(Number);
+  if (mes <= 2) return `Verano ${anio}`;
   return periodo(anio, mes >= 8 ? "2C" : "1C");
 }
