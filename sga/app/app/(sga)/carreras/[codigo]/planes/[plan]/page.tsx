@@ -37,6 +37,10 @@ export default async function DetallePlan({ params }: PageProps<"/carreras/[codi
   const plan = await getPlanDetalle({ carrera, codigo: decodeURIComponent(planCodigo) });
   if (!plan) notFound();
   const enPlan = new Set(plan.bloques.flatMap((b) => b.materias.map((m) => m.codigo)));
+  // Título intermedio de un ciclo ("Aprobar Ciclo Básico y sumar ..."), que
+  // el SGA muestra en el encabezado del bloque.
+  const tituloDelBloque = (bloque: string) =>
+    plan.titulos.find((t) => t.tipo !== "Principal" && t.requisito?.startsWith(`Aprobar ${bloque} `))?.nombre;
 
   return (
     <>
@@ -50,7 +54,11 @@ export default async function DetallePlan({ params }: PageProps<"/carreras/[codi
 
         {plan.bloques.map((b) => (
           <div className="sga-bloque-plan" key={b.id ?? "sin-bloque"}>
-            <p className="sga-bloque-plan-titulo">{b.nombre} - Requisito: {requisitoBloque(b)}</p>
+            <p className="sga-bloque-plan-titulo">
+              {b.nombre}
+              {tituloDelBloque(b.nombre) && <span className="sga-bloque-plan-otorga"> ( Título otorgado: {tituloDelBloque(b.nombre)} )</span>}
+              {" "}- Requisito: {requisitoBloque(b)}
+            </p>
             {b.requisito === "APROBAR_TODOS" ? (
               grilla(b).map((g) => (
                 <div className="sga-bloque-plan-grupo" key={g.titulo}>
