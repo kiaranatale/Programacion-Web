@@ -63,7 +63,24 @@ export default async function CalendarioSemanal() {
           </ul>
         </div>
       )}
-      <div className="sga-tabla-scroll">
+      {/* En el celular: lista por día en vez de la grilla */}
+      <div className="sga-calendario-lista">
+        {[...dias.slice(1), dias[0]].map(([dia, nombre]) => {
+          const delDia = bloques.filter((b) => b.dia === dia).sort((a, b) => a.desde - b.desde);
+          return delDia.length === 0 ? null : (
+            <div key={dia}>
+              <h4>{nombre}</h4>
+              <ul>
+                {delDia.map((b, i) => (
+                  <li key={i} style={{ borderColor: b.color }}>{aHora(b.desde)} a {aHora(b.hasta)} · {b.texto}</li>
+                ))}
+              </ul>
+            </div>
+          );
+        })}
+        {bloques.length === 0 && <p className="sga-vacio">No tenés clases esta semana.</p>}
+      </div>
+      <div className="sga-tabla-scroll sga-calendario-tabla">
         <table className="sga-calendario">
           <thead>
             <tr><th></th>{dias.map(([, nombre]) => <th key={nombre}>{nombre}</th>)}</tr>
