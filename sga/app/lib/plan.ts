@@ -105,7 +105,18 @@ export async function getPlanDetalle(filtro: { id: number } | { carrera: string;
   const bloquesOrdenados = [...plan.plan_bloque].sort((a, b) => a.orden - b.orden || a.nombre.localeCompare(b.nombre));
   const huecos: Hueco[] = bloquesOrdenados.flatMap((b) =>
     b.plan_hueco_electiva.map((h) => ({ bloque: b.nombre, anio: h.anio_sugerido, cuatrimestre: h.cuatrimestre_sugerido, creditos: h.creditos })));
-  const primerObligatorio = bloquesOrdenados.find((b) => b.requisito === "APROBAR_TODOS");
+  // Cada hueco va a la grilla del bloque obligatorio que cubre ese año y
+  // cuatrimestre (p. ej. Ciclo Básico / Ciclo Profesional): el último que
+  // empieza antes o en ese cuatrimestre; si ninguno, el primero.
+  const obligatorios = bloquesOrdenados
+    .filter((b) => b.requisito === "APROBAR_TODOS")
+    .map((b) => ({
+      id: b.id,
+      inicio: Math.min(...materias.filter((m) => m.bloqueId === b.id && m.materia.anio)
+        .map((m) => m.materia.anio! * 10 + (m.materia.cuatrimestre ?? 0))),
+    }));
+  const bloqueDelHueco = (h: Hueco) =>
+    obligatorios.filter((b) => b.inicio <= h.anio * 10 + h.cuatrimestre).at(-1)?.id ?? obligatorios[0]?.id;
 
   const bloques: Bloque[] = bloquesOrdenados.map((b) => ({
     id: b.id,
@@ -113,7 +124,7 @@ export async function getPlanDetalle(filtro: { id: number } | { carrera: string;
     requisito: b.requisito,
     creditos: b.creditos,
     materias: materias.filter((m) => m.bloqueId === b.id).map((m) => m.materia).sort(ordenGrilla),
-    huecos: b.id === primerObligatorio?.id ? huecos : [],
+    huecos: huecos.filter((h) => bloqueDelHueco(h) === b.id),
   }));
 
   const sinBloque = materias.filter((m) => m.bloqueId === null).map((m) => m.materia).sort(ordenGrilla);
