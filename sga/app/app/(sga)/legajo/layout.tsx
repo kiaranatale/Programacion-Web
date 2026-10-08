@@ -6,7 +6,7 @@ const tabs = [
   { label: "Títulos", href: "/legajo/titulos" },
   { label: "Datos del alumno", href: "/legajo/alumno" },
   { label: "Estado de cuenta", href: "/legajo/estado-de-cuenta" },
-  { label: "Planes de pago" },
+  { label: "Planes de pago", href: "/legajo/planes-de-pago" },
   { label: "Proyectos", href: "/legajo/proyectos" },
 ];
 

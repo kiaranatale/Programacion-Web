@@ -20,7 +20,7 @@ CROSS JOIN (VALUES
     ('2026-10', DATE '2026-10-01', DATE '2026-10-12', 'PENDIENTE')
 ) AS x (periodo, emision, vence, estado)
 WHERE l.numero_legajo = 'DEMO-001'
-ON CONFLICT (legajo_id, periodo) DO NOTHING;
+ON CONFLICT (legajo_id, periodo, plan_pago_id) DO NOTHING;
 
 INSERT INTO sga.factura_detalle (factura_id, tipo, referencia_item_facturable_id, descripcion, monto)
 SELECT f.id, x.tipo, i.id, x.descripcion, x.monto

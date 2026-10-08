@@ -3,7 +3,10 @@ import { createClient } from "@/lib/supabase/server";
 import { fecha, getLegajoActual, pesos } from "@/lib/legajo";
 import { getSesion } from "@/lib/sesion";
 
-type Factura = { id: number; periodo: string; monto_total: number; fecha_emision: string; fecha_vencimiento: string; estado: string };
+type Factura = {
+  id: number; periodo: string; monto_total: number; fecha_emision: string; fecha_vencimiento: string; estado: string;
+  plan_pago_id: number | null; cuota_numero: number | null;
+};
 type Pago = { id: number; monto_total: number; fecha_pago: string | null; estado: string };
 type Movimiento = { key: string; tipo: "Factura" | "Pago"; importe: number; fecha: string; detalle: string; facturaId?: number; aPagar?: boolean };
 
@@ -16,7 +19,7 @@ export default async function EstadoDeCuenta() {
   // La factura del mes se genera sola (por si todavía no corrió la pasada diaria)
   if (legajo) await sga.rpc("asegurar_mi_factura");
   const [{ data: facturas }, { data: pagos }] = await Promise.all([
-    sga.from("factura").select("id, periodo, monto_total, fecha_emision, fecha_vencimiento, estado")
+    sga.from("factura").select("id, periodo, monto_total, fecha_emision, fecha_vencimiento, estado, plan_pago_id, cuota_numero")
       .eq("legajo_id", legajo?.id ?? 0).neq("estado", "ANULADA").returns<Factura[]>(),
     sga.from("orden_pago").select("id, monto_total, fecha_pago, estado")
       .eq("legajo_id", legajo?.id ?? 0).eq("estado", "PAGADO").returns<Pago[]>(),
@@ -27,7 +30,7 @@ export default async function EstadoDeCuenta() {
   const movimientos: Movimiento[] = [
     ...(facturas ?? []).map((f) => ({
       key: `f${f.id}`, tipo: "Factura" as const, importe: Number(f.monto_total), fecha: f.fecha_emision,
-      detalle: `Período ${f.periodo} · Vence ${fecha(f.fecha_vencimiento)} · ${estadosFactura[f.estado] ?? f.estado}`,
+      detalle: `${f.plan_pago_id ? `Plan de pago N.º ${f.plan_pago_id} · cuota ${f.cuota_numero}` : `Período ${f.periodo}`} · Vence ${fecha(f.fecha_vencimiento)} · ${estadosFactura[f.estado] ?? f.estado}`,
       facturaId: f.id, aPagar: f.estado === "PENDIENTE" || f.estado === "VENCIDA",
     })),
     ...(pagos ?? []).map((p) => ({
