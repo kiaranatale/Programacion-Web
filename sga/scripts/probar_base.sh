@@ -23,7 +23,7 @@ for f in supabase/migrations/*.sql; do
 done
 
 # Mismo orden que en el README
-SEEDS=(seed seed_plan_a22 seed_plan_bio22 seed_plan_aer25 seed_plan_c23 seed_plan_e11 seed_cursos seed_aulas seed_usuarios seed_legajo_demo seed_hoy seed_mensajes
+SEEDS=(seed seed_plan_a22 seed_plan_bio22 seed_plan_aer25 seed_plan_c23 seed_plan_e11 seed_plan_k22 seed_cursos seed_aulas seed_usuarios seed_legajo_demo seed_hoy seed_mensajes
        seed_autoridades_encuestas seed_facturas seed_docencia seed_finales seed_cursadas seed_eventos seed_proyectos seed_tramites seed_intercambios)
 for vuelta in 1 2; do
   echo "== Seeds (vuelta $vuelta)"

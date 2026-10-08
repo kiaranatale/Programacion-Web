@@ -338,6 +338,8 @@ Datos en el SQL Editor, en este orden (todos se pueden volver a correr):
    materias, electivas y correlativas), en el mismo paso.
    `supabase/seed_plan_e11.sql`: plan E 11 de Ingeniería Electricista
    (ciclos básico y profesional, electivas), en el mismo paso.
+   `supabase/seed_plan_k22.sql`: plan K22 de Ingeniería Electrónica (121
+   materias, electivas y correlativas), en el mismo paso.
 3. `supabase/seed_cursos.sql`: 492 cursos reales del segundo cuatrimestre
    2026 con su departamento (generado con `scripts/csv_a_seed_cursos.py`;
    ver "Cómo bajar el listado de cursos" en ROADMAP.md).
