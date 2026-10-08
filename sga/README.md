@@ -330,6 +330,8 @@ Datos en el SQL Editor, en este orden (todos se pueden volver a correr):
 1. `supabase/seed.sql`: carreras reales, aulas, cursos y comisiones.
 2. `supabase/seed_plan_a22.sql`: plan A22 completo de LAES (119 materias,
    bloques de electivas, correlativas).
+   `supabase/seed_plan_bio22.sql`: plan BIO 22 de Bioingeniería (145
+   materias, electivas y correlativas), en el mismo paso.
 3. `supabase/seed_cursos.sql`: 492 cursos reales del segundo cuatrimestre
    2026 con su departamento (generado con `scripts/csv_a_seed_cursos.py`;
    ver "Cómo bajar el listado de cursos" en ROADMAP.md).
