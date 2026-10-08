@@ -126,6 +126,12 @@ a:hover { text-decoration: underline; }
 .sga-datos div { display: grid; grid-template-columns: 200px 1fr; font-size: 11px; }
 .sga-datos dt { color: #222; font-weight: 700; }
 .sga-datos dd { margin: 0; color: #444; }
+.sga-autoridades { margin: 4px 0 0; display: grid; gap: 12px; }
+.sga-autoridades div { display: grid; grid-template-columns: 140px 1fr; gap: 6px; font-size: 11px; line-height: 1.5; }
+.sga-autoridades dt { color: #444; }
+.sga-autoridades dd { margin: 0; display: flex; flex-wrap: wrap; align-items: flex-start; gap: 4px 10px; color: #111; }
+.sga-autoridades form { display: inline; }
+.sga-autoridades .sga-boton-peligro { padding: 1px 8px; border: 1px solid #c0281c; background: #fff; color: #c0281c; font-size: 10px; cursor: pointer; }
 
 .sga-tabla-compacta { width: auto; min-width: 360px; margin-bottom: 8px; }
 .sga-historial { margin: 0; padding-left: 18px; font-size: 11px; line-height: 1.8; }
@@ -163,6 +169,7 @@ a:hover { text-decoration: underline; }
 
 @media (max-width: 640px) {
   .sga-datos div { grid-template-columns: 1fr; gap: 2px; }
+  .sga-autoridades div { grid-template-columns: 1fr; gap: 2px; }
   .sga-tabla-compacta { width: 100%; min-width: 0; }
   .sga-tabs { padding: 6px 6px 0; }
   .sga-tab-content { padding: 10px 8px; }
