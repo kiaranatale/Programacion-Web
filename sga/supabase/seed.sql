@@ -9,9 +9,14 @@
 
 BEGIN;
 
-INSERT INTO sga.escuela (nombre) VALUES
-    ('Escuela de Gestión y Tecnología')
-ON CONFLICT (nombre) DO NOTHING;
+-- Escuelas en el orden en que las lista Autoridades en el SGA.
+INSERT INTO sga.escuela (nombre, orden) VALUES
+    ('Escuela de Gestión y Tecnología', 1),
+    ('Escuela de Ingeniería y Gestión', 2),
+    ('Escuela de Admisión', 3),
+    ('Escuela de Ingeniería y Tecnología', 4),
+    ('Escuela de Posgrado', 5)
+ON CONFLICT (nombre) DO UPDATE SET orden = EXCLUDED.orden;
 
 INSERT INTO sga.departamento (nombre) VALUES
     ('Ciencias Exactas y Naturales'),
@@ -19,15 +24,11 @@ INSERT INTO sga.departamento (nombre) VALUES
 ON CONFLICT (nombre) DO NOTHING;
 
 -- Bases cargadas con una versión anterior de este seed: Informática tenía
--- el código inventado 'INF' y una escuela inexistente.
+-- el código inventado 'INF' en otra escuela.
 UPDATE sga.carrera c
 SET codigo = 'S', escuela_id = e.id
 FROM sga.escuela e
 WHERE c.codigo = 'INF' AND e.nombre = 'Escuela de Gestión y Tecnología';
-
-DELETE FROM sga.escuela e
-WHERE e.nombre = 'Escuela de Ingeniería y Tecnología'
-  AND NOT EXISTS (SELECT 1 FROM sga.carrera c WHERE c.escuela_id = e.id);
 
 -- Carreras de grado del SGA actual (Académica → Carreras)
 INSERT INTO sga.carrera (codigo, nombre_oficial, escuela_id, nivel, nivel_informatico)

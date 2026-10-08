@@ -9,48 +9,29 @@ type Autoridad = {
   cargo: string;
   apellido: string;
   nombre: string;
-  mail_institucional: string;
   escuela: string | null;
   fecha_desde: string;
   fecha_hasta: string | null;
   vigente: boolean;
+  cargo_orden: number;
+  escuela_orden: number | null;
 };
 
-function Tabla({ autoridades, admin, historico }: { autoridades: Autoridad[]; admin: boolean; historico?: boolean }) {
-  return (
-    <div className="sga-tabla-scroll">
-      <table className="sga-tabla sga-tabla-mensajes">
-        <thead>
-          <tr>
-            <th>Cargo</th><th>Nombre</th><th>Mail</th><th>{historico ? "Período" : "Desde"}</th>
-            {admin && !historico && <th>Acciones</th>}
-          </tr>
-        </thead>
-        <tbody>
-          {autoridades.map((a) => (
-            <tr key={a.id}>
-              <td><strong>{a.cargo}</strong></td>
-              <td>{a.apellido}, {a.nombre}</td>
-              <td><a href={`mailto:${a.mail_institucional}`}>{a.mail_institucional}</a></td>
-              <td className="sga-col-cupo">{historico ? `${fecha(a.fecha_desde)} – ${fecha(a.fecha_hasta)}` : fecha(a.fecha_desde)}</td>
-              {admin && !historico && (
-                <td className="sga-acciones-doc">
-                  <form action={darDeBaja}>
-                    <input name="id" type="hidden" value={a.id} />
-                    <button className="sga-boton-peligro" type="submit">Dar de baja</button>
-                  </form>
-                </td>
-              )}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
+// "Director/a" + "Escuela de Posgrado" → "Director/a de Escuela de Posgrado"
+const cargoCompleto = (a: Autoridad) => (a.escuela ? `${a.cargo} de ${a.escuela}` : a.cargo);
+
+// Primero las institucionales y después cada escuela, en orden jerárquico.
+function comparar(a: Autoridad, b: Autoridad) {
+  return (a.escuela ? 1 : 0) - (b.escuela ? 1 : 0)
+    || (a.escuela_orden ?? 0) - (b.escuela_orden ?? 0)
+    || (a.escuela ?? "").localeCompare(b.escuela ?? "")
+    || a.cargo_orden - b.cargo_orden
+    || a.cargo.localeCompare(b.cargo)
+    || a.apellido.localeCompare(b.apellido);
 }
 
-// Autoridades vigentes: las institucionales y las de cada escuela.
-// Administración designa y da de baja.
+// Autoridades vigentes como en el SGA: cargo y nombre, las institucionales
+// primero y después cada escuela. Administración designa y da de baja.
 export default async function Autoridades({ searchParams }: PageProps<"/autoridades">) {
   const sesion = await getSesion();
   const admin = !!sesion?.roles.includes("ADMINISTRATIVO");
@@ -59,19 +40,12 @@ export default async function Autoridades({ searchParams }: PageProps<"/autorida
   const supabase = await createClient();
   const sga = supabase.schema("sga");
   const [{ data }, { data: cargos }, { data: escuelas }] = await Promise.all([
-    sga.from("autoridad_listado").select("*").order("cargo").order("apellido").returns<Autoridad[]>(),
-    admin ? sga.from("cargo_institucional").select("id, nombre").order("nombre").returns<{ id: number; nombre: string }[]>() : Promise.resolve({ data: [] }),
-    admin ? sga.from("escuela").select("id, nombre").order("nombre").returns<{ id: number; nombre: string }[]>() : Promise.resolve({ data: [] }),
+    sga.from("autoridad_listado").select("*").returns<Autoridad[]>(),
+    admin ? sga.from("cargo_institucional").select("id, nombre").order("orden").order("nombre").returns<{ id: number; nombre: string }[]>() : Promise.resolve({ data: [] }),
+    admin ? sga.from("escuela").select("id, nombre").order("orden").order("nombre").returns<{ id: number; nombre: string }[]>() : Promise.resolve({ data: [] }),
   ]);
-  const autoridades = data ?? [];
+  const autoridades = [...(data ?? [])].sort(comparar);
   const vigentes = autoridades.filter((a) => a.vigente);
-  const grupos = new Map<string, Autoridad[]>();
-  for (const a of vigentes) {
-    const grupo = a.escuela ?? "Autoridades institucionales";
-    grupos.set(grupo, [...(grupos.get(grupo) ?? []), a]);
-  }
-  const orden = [...grupos.keys()].sort((a, b) =>
-    a === "Autoridades institucionales" ? -1 : b === "Autoridades institucionales" ? 1 : a.localeCompare(b));
   const anteriores = autoridades.filter((a) => !a.vigente);
 
   return (
@@ -80,17 +54,44 @@ export default async function Autoridades({ searchParams }: PageProps<"/autorida
       {typeof ok === "string" && <p className="sga-mensaje-ok" role="status">{ok}</p>}
       {typeof error === "string" && <p className="sga-mensaje-error" role="alert">{error}</p>}
 
-      {orden.length > 0 ? orden.map((g) => (
-        <div key={g}>
-          <h3 className="sga-subtitulo">{g}</h3>
-          <Tabla admin={admin} autoridades={grupos.get(g)!} />
-        </div>
-      )) : <p className="sga-vacio">Todavía no hay autoridades cargadas.</p>}
+      {vigentes.length > 0 ? (
+        <dl className="sga-autoridades">
+          {vigentes.map((a) => (
+            <div key={a.id}>
+              <dt>{cargoCompleto(a)}</dt>
+              <dd>
+                <strong>{a.apellido}, {a.nombre}</strong>
+                {admin && (
+                  <form action={darDeBaja}>
+                    <input name="id" type="hidden" value={a.id} />
+                    <button className="sga-boton-peligro" type="submit">Dar de baja</button>
+                  </form>
+                )}
+              </dd>
+            </div>
+          ))}
+        </dl>
+      ) : <p className="sga-vacio">Todavía no hay autoridades cargadas.</p>}
 
       {admin && anteriores.length > 0 && (
         <details className="sga-detalles">
           <summary>Autoridades anteriores ({anteriores.length})</summary>
-          <Tabla admin historico autoridades={anteriores} />
+          <div className="sga-tabla-scroll">
+            <table className="sga-tabla">
+              <thead>
+                <tr><th>Cargo</th><th>Nombre</th><th>Período</th></tr>
+              </thead>
+              <tbody>
+                {anteriores.map((a) => (
+                  <tr key={a.id}>
+                    <td>{cargoCompleto(a)}</td>
+                    <td>{a.apellido}, {a.nombre}</td>
+                    <td className="sga-col-cupo">{fecha(a.fecha_desde)} – {fecha(a.fecha_hasta)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </details>
       )}
 
