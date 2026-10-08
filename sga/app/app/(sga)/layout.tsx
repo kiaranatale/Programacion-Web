@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import LogoSga from "@/components/logo-sga";
+import TablasResponsivas from "@/components/tablas-responsivas";
 import { logout } from "@/app/auth/actions";
 import { getSesion, type Rol } from "@/lib/sesion";
 
@@ -125,6 +126,7 @@ export default async function SgaLayout({ children }: LayoutProps<"/">) {
       </nav>
 
       <main className="sga-main">{children}</main>
+      <TablasResponsivas />
     </div>
   );
 }

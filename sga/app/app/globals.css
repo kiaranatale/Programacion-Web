@@ -96,7 +96,7 @@ a:hover { text-decoration: underline; }
 @media (max-width: 640px) {
   .sga-header { padding: 10px 14px; }
   .sga-header-divider, .sga-header-title { display: none; }
-  .sga-nav { margin: 0; padding: 0 4px; overflow-x: auto; flex-wrap: nowrap; }
+  .sga-nav { margin: 0; padding: 0 4px; }
   .sga-nav-menu ul { position: fixed; top: auto; left: 8px; }
   .sga-main { padding: 8px; }
   .sga-cajas { padding: 8px; }
@@ -164,7 +164,7 @@ a:hover { text-decoration: underline; }
 @media (max-width: 640px) {
   .sga-datos div { grid-template-columns: 1fr; gap: 2px; }
   .sga-tabla-compacta { width: 100%; min-width: 0; }
-  .sga-tabs { flex-wrap: nowrap; overflow-x: auto; }
+  .sga-tabs { padding: 6px 6px 0; }
   .sga-tab-content { padding: 10px 8px; }
 }
 
@@ -446,3 +446,32 @@ img.sga-foto { object-fit: cover; }
 .sga-historial-valores { margin: 4px 0 12px; font-size: 11px; }
 .sga-historial-valores summary { color: var(--azul-link); cursor: pointer; }
 .sga-suspendidas ul { margin: 4px 0 0; padding-left: 18px; }
+
+/* ---------- Celular: tablas como tarjetas (ver components/tablas-responsivas) ---------- */
+.sga-calendario-lista { display: none; }
+@media (max-width: 640px) {
+  table.sga-tarjetas, .sga-tarjetas tbody, .sga-tarjetas tr { display: block; width: auto; }
+  table.sga-tarjetas { border: 0; }
+  .sga-tarjetas thead tr:not(.sga-fila-filtros) { display: none; }
+  .sga-tarjetas thead { display: block; margin-bottom: 8px; }
+  .sga-tarjetas tbody tr { margin-bottom: 8px; border: 1px solid var(--borde-tabla); background: #fff; }
+  .sga-tarjetas td, .sga-tarjetas .sga-fila-filtros th {
+    position: relative; display: block; width: auto; min-height: 16px; padding: 6px 8px 6px calc(34% + 8px);
+    border: 0; border-bottom: 1px solid #eef1f5; text-align: left; white-space: normal;
+  }
+  .sga-tarjetas td::before, .sga-tarjetas .sga-fila-filtros th::before {
+    content: attr(data-label); position: absolute; top: 6px; left: 8px; width: calc(34% - 8px);
+    color: #555; font-size: 10px; font-weight: 700;
+  }
+  .sga-tarjetas td[data-label=""], .sga-tarjetas .sga-fila-filtros th[data-label=""] { padding-left: 8px; }
+  .sga-tarjetas td[data-label=""]::before, .sga-tarjetas .sga-fila-filtros th[data-label=""]::before { content: none; }
+  .sga-tarjetas .sga-fila-filtros th:empty { display: none; }
+  .sga-tarjetas td:last-child { border-bottom: 0; }
+  .sga-tarjetas .sga-col-lupa, .sga-tarjetas .sga-col-cupo, .sga-tarjetas .sga-importe { width: auto; text-align: left; }
+  .sga-tarjetas .sga-acciones-doc form { justify-content: flex-start; }
+  .sga-calendario-tabla { display: none; }
+  .sga-calendario-lista { display: block; }
+}
+.sga-calendario-lista h4 { margin: 10px 0 4px; color: var(--titulo); font-size: 12px; }
+.sga-calendario-lista li { margin: 3px 0; padding: 5px 8px; border-left: 4px solid; font-size: 11px; list-style: none; }
+.sga-calendario-lista ul { margin: 0; padding: 0; }
