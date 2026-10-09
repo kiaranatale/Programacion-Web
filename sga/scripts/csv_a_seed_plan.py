@@ -19,8 +19,8 @@ import re
 import sys
 
 RE_TITULO_BLOQUE = re.compile(r"\s*\(\s*Título otorgado:.*?\)\s*")
-RE_TODOS = re.compile(r"Aprobar todos los ítems \(suma (\d+) créditos\)")
-RE_JUNTAR = re.compile(r"Juntar (\d+) créditos")
+RE_TODOS = re.compile(r"Aprobar todos los [ií]tems \(suma (\d+) cr[ée]ditos\)")
+RE_JUNTAR = re.compile(r"Juntar (\d+) cr[ée]ditos")
 
 
 def sql(texto: str) -> str:
