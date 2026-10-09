@@ -19,10 +19,20 @@
   let plan = "", bloque = "", requisito = "", anio = "", cuatri = "";
   const filas = [["plan", "tipo", "bloque", "requisito_bloque", "anio", "cuatrimestre", "codigo", "nombre", "creditos", "creditos_requeridos", "correlativas"]];
 
+  // Tablas de materias o de títulos (el SGA además usa tablas para el
+  // diseño de la página: esas se recorren como cualquier otro elemento).
+  const columnas = (tabla) => {
+    const encabezado = tabla.rows[0] ? [...tabla.rows[0].cells].map(texto) : [];
+    return (nombre) => encabezado.findIndex((h) => h.toLowerCase() === nombre.toLowerCase());
+  };
+  const esDeDatos = (tabla) => {
+    const col = columnas(tabla);
+    return (col("Materia") >= 0 && col("Créditos") >= 0) || (col("Tipo") >= 0 && col("Título") >= 0);
+  };
+
   for (const el of document.querySelectorAll("body *")) {
-    if (el.tagName === "TABLE") {
-      const encabezado = el.rows[0] ? [...el.rows[0].cells].map(texto) : [];
-      const col = (nombre) => encabezado.findIndex((h) => h.toLowerCase() === nombre.toLowerCase());
+    if (el.tagName === "TABLE" && esDeDatos(el)) {
+      const col = columnas(el);
       if (col("Materia") >= 0 && col("Créditos") >= 0) {
         for (const tr of [...el.rows].slice(1)) {
           const c = [...tr.cells].map(texto);
@@ -41,7 +51,8 @@
       }
       continue;
     }
-    if (el.closest("table")) continue;
+    const tabla = el.closest("table");
+    if (tabla && esDeDatos(tabla)) continue;
     if (marca(el, RE_PLAN)) plan = texto(el).match(RE_PLAN)[1];
     else if (marca(el, RE_BLOQUE)) {
       const m = texto(el).match(RE_BLOQUE);
@@ -50,6 +61,8 @@
     else if (marca(el, RE_CONTENIDO)) { anio = ""; cuatri = ""; }
   }
 
+  if (!filas.some((f) => f[2] && f[1] !== "TITULO"))
+    console.warn("No se encontraron los encabezados de bloque (\"... - Requisito: ...\"): el CSV sale sin bloque ni año.");
   const csv = filas.map((f) => f.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(",")).join("\n");
   const a = document.createElement("a");
   a.href = URL.createObjectURL(new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" }));
