@@ -351,6 +351,9 @@ Datos en el SQL Editor, en este orden (todos se pueden volver a correr):
    `supabase/seed_plan_i22.sql`: plan I22 de Ingeniería Industrial (146
    materias, siete bloques de electivas), generado con
    `scripts/csv_a_seed_plan.py`, en el mismo paso.
+   `supabase/seed_plan_m22.sql`: plan M22 de Ingeniería Mecánica (141
+   materias; "Materias electivas" agrupa las áreas Complementaria y
+   Tecnológica), en el mismo paso.
 3. `supabase/seed_cursos.sql`: 492 cursos reales del segundo cuatrimestre
    2026 con su departamento (generado con `scripts/csv_a_seed_cursos.py`;
    ver "Cómo bajar el listado de cursos" en ROADMAP.md).
