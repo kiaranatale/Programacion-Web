@@ -10,7 +10,9 @@ export type MateriaPlan = {
   cuatrimestre: number | null;
   correlativas: string[];
 };
-export type Hueco = { bloque: string; anio: number | null; cuatrimestre: number | null; creditos: number };
+// contenedor: bloque donde se muestra (un bloque de electivas que agrupa a
+// otros); null = la grilla del bloque obligatorio.
+export type Hueco = { bloque: string; anio: number | null; cuatrimestre: number | null; creditos: number; contenedor: number | null };
 export type Bloque = {
   id: number | null; // null = materias sin bloque (planes cargados antes de los bloques)
   nombre: string;
@@ -18,7 +20,7 @@ export type Bloque = {
   creditos: number;
   items: number | null; // APROBAR_ITEMS: cuántas materias de la lista
   materias: MateriaPlan[];
-  huecos: Hueco[]; // solo en bloques APROBAR_TODOS
+  huecos: Hueco[];
 };
 export type PlanDetalle = {
   id: number;
@@ -42,7 +44,7 @@ type PlanRow = {
   carrera: { codigo: string; nombre: string } | null;
   plan_bloque: {
     id: number; nombre: string; requisito: Bloque["requisito"]; creditos: number; items: number | null; orden: number;
-    plan_hueco_electiva: { anio_sugerido: number | null; cuatrimestre_sugerido: number | null; creditos: number }[];
+    plan_hueco_electiva: { anio_sugerido: number | null; cuatrimestre_sugerido: number | null; creditos: number; contenedor_bloque_id: number | null }[];
   }[];
   plan_materia: {
     bloque_id: number | null;
@@ -67,7 +69,7 @@ export async function getPlanDetalle(filtro: { id: number } | { carrera: string;
   let consulta = sga.from("plan_estudio").select(`id, codigo, version, creditos_totales, vigencia_desde, vigencia_hasta,
     carrera:carrera_id!inner(codigo, nombre),
     plan_bloque(id, nombre, requisito, creditos, items, orden,
-      plan_hueco_electiva(anio_sugerido, cuatrimestre_sugerido, creditos)),
+      plan_hueco_electiva!bloque_id(anio_sugerido, cuatrimestre_sugerido, creditos, contenedor_bloque_id)),
     plan_materia(bloque_id, anio_sugerido, cuatrimestre_sugerido, creditos_requeridos,
       materia:materia_id(id, codigo, nombre, creditos)),
     plan_titulo(tipo, nombre, requisito)`);
@@ -105,7 +107,9 @@ export async function getPlanDetalle(filtro: { id: number } | { carrera: string;
 
   const bloquesOrdenados = [...plan.plan_bloque].sort((a, b) => a.orden - b.orden || a.nombre.localeCompare(b.nombre));
   const huecos: Hueco[] = bloquesOrdenados.flatMap((b) =>
-    b.plan_hueco_electiva.map((h) => ({ bloque: b.nombre, anio: h.anio_sugerido, cuatrimestre: h.cuatrimestre_sugerido, creditos: h.creditos })));
+    b.plan_hueco_electiva.map((h) => ({
+      bloque: b.nombre, anio: h.anio_sugerido, cuatrimestre: h.cuatrimestre_sugerido, creditos: h.creditos, contenedor: h.contenedor_bloque_id,
+    })));
   // Cada hueco va a la grilla del bloque obligatorio que cubre ese año y
   // cuatrimestre (p. ej. Ciclo Básico / Ciclo Profesional): el último que
   // empieza antes o en ese cuatrimestre; si ninguno (o el hueco no tiene
@@ -128,7 +132,7 @@ export async function getPlanDetalle(filtro: { id: number } | { carrera: string;
     creditos: b.creditos,
     items: b.items,
     materias: materias.filter((m) => m.bloqueId === b.id).map((m) => m.materia).sort(ordenGrilla),
-    huecos: huecos.filter((h) => bloqueDelHueco(h) === b.id),
+    huecos: huecos.filter((h) => (h.contenedor ?? bloqueDelHueco(h)) === b.id),
   }));
 
   const sinBloque = materias.filter((m) => m.bloqueId === null).map((m) => m.materia).sort(ordenGrilla);

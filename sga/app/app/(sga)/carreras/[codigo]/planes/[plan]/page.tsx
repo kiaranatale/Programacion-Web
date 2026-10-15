@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { periodoDeFecha } from "@/lib/legajo";
-import { getPlanDetalle, grilla, requisitoBloque, type MateriaPlan } from "@/lib/plan";
+import { getPlanDetalle, grilla, requisitoBloque, type Hueco, type MateriaPlan } from "@/lib/plan";
 
 const idMateria = (codigo: string) => `materia-${codigo}`;
 
@@ -24,9 +24,30 @@ function FilaMateria({ m, enPlan }: { m: MateriaPlan; enPlan: Set<string> }) {
   );
 }
 
-const encabezado = (
-  <thead><tr><th>Materia</th><th>Créditos</th><th>Créditos requeridos</th><th>Correlativas</th></tr></thead>
-);
+// Materias y huecos de electivas de un grupo. Si solo hay huecos, el SGA
+// usa la tabla corta (Materia, Créditos, Correlativas).
+function TablaGrupo({ materias, huecos, enPlan }: { materias: MateriaPlan[]; huecos: Hueco[]; enPlan: Set<string> }) {
+  const soloHuecos = materias.length === 0 && huecos.length > 0;
+  return (
+    <div className="sga-tabla-scroll">
+      <table className="sga-tabla sga-tabla-plan">
+        <thead>
+          {soloHuecos
+            ? <tr><th>Materia</th><th>Créditos</th><th>Correlativas</th></tr>
+            : <tr><th>Materia</th><th>Créditos</th><th>Créditos requeridos</th><th>Correlativas</th></tr>}
+        </thead>
+        <tbody>
+          {materias.map((m) => <FilaMateria enPlan={enPlan} key={m.id} m={m} />)}
+          {huecos.map((h) => (
+            <tr className="sga-fila-hueco" key={h.bloque}>
+              <td>{h.bloque}</td><td>{h.creditos}</td>{!soloHuecos && <td>{h.creditos}</td>}<td></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
 
 // "Detalle de Planes de estudio" como en el SGA actual: un recuadro por
 // bloque; el obligatorio en grilla año/cuatrimestre con los huecos de
@@ -63,30 +84,13 @@ export default async function DetallePlan({ params }: PageProps<"/carreras/[codi
               grilla(b).map((g) => (
                 <div className="sga-bloque-plan-grupo" key={g.titulo}>
                   <h4 className="sga-subtitulo">{g.titulo}</h4>
-                  <div className="sga-tabla-scroll">
-                    <table className="sga-tabla sga-tabla-plan">
-                      {encabezado}
-                      <tbody>
-                        {g.materias.map((m) => <FilaMateria enPlan={enPlan} key={m.id} m={m} />)}
-                        {g.huecos.map((h) => (
-                          <tr className="sga-fila-hueco" key={h.bloque}>
-                            <td>{h.bloque}</td><td>{h.creditos}</td><td>{h.creditos}</td><td></td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                  <TablaGrupo enPlan={enPlan} huecos={g.huecos} materias={g.materias} />
                 </div>
               ))
             ) : (
               <div className="sga-bloque-plan-grupo">
                 <h4 className="sga-subtitulo">Contenido:</h4>
-                <div className="sga-tabla-scroll">
-                  <table className="sga-tabla sga-tabla-plan">
-                    {encabezado}
-                    <tbody>{b.materias.map((m) => <FilaMateria enPlan={enPlan} key={m.id} m={m} />)}</tbody>
-                  </table>
-                </div>
+                <TablaGrupo enPlan={enPlan} huecos={b.huecos} materias={b.materias} />
               </div>
             )}
           </div>
