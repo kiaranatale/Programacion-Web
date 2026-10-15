@@ -35,7 +35,7 @@ for (const [rol, menu] of Object.entries(menus) as [keyof typeof menus, (typeof 
 
 test("salir cierra la sesión", async ({ page }) => {
   await entrar(page, "alumno");
-  await page.getByRole("button", { name: "[Salir]" }).click();
+  await page.getByRole("button", { name: "Salir" }).click();
   await expect(page).toHaveURL(/\/login/);
   await page.goto("/legajo");
   await expect(page).toHaveURL(/\/login/);
