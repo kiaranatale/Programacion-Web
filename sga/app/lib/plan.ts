@@ -10,12 +10,13 @@ export type MateriaPlan = {
   cuatrimestre: number | null;
   correlativas: string[];
 };
-export type Hueco = { bloque: string; anio: number; cuatrimestre: number; creditos: number };
+export type Hueco = { bloque: string; anio: number | null; cuatrimestre: number | null; creditos: number };
 export type Bloque = {
   id: number | null; // null = materias sin bloque (planes cargados antes de los bloques)
   nombre: string;
-  requisito: "APROBAR_TODOS" | "JUNTAR_CREDITOS";
+  requisito: "APROBAR_TODOS" | "JUNTAR_CREDITOS" | "APROBAR_ITEMS";
   creditos: number;
+  items: number | null; // APROBAR_ITEMS: cuántas materias de la lista
   materias: MateriaPlan[];
   huecos: Hueco[]; // solo en bloques APROBAR_TODOS
 };
@@ -40,8 +41,8 @@ type PlanRow = {
   vigencia_hasta: string | null;
   carrera: { codigo: string; nombre: string } | null;
   plan_bloque: {
-    id: number; nombre: string; requisito: Bloque["requisito"]; creditos: number; orden: number;
-    plan_hueco_electiva: { anio_sugerido: number; cuatrimestre_sugerido: number; creditos: number }[];
+    id: number; nombre: string; requisito: Bloque["requisito"]; creditos: number; items: number | null; orden: number;
+    plan_hueco_electiva: { anio_sugerido: number | null; cuatrimestre_sugerido: number | null; creditos: number }[];
   }[];
   plan_materia: {
     bloque_id: number | null;
@@ -65,7 +66,7 @@ export async function getPlanDetalle(filtro: { id: number } | { carrera: string;
 
   let consulta = sga.from("plan_estudio").select(`id, codigo, version, creditos_totales, vigencia_desde, vigencia_hasta,
     carrera:carrera_id!inner(codigo, nombre),
-    plan_bloque(id, nombre, requisito, creditos, orden,
+    plan_bloque(id, nombre, requisito, creditos, items, orden,
       plan_hueco_electiva(anio_sugerido, cuatrimestre_sugerido, creditos)),
     plan_materia(bloque_id, anio_sugerido, cuatrimestre_sugerido, creditos_requeridos,
       materia:materia_id(id, codigo, nombre, creditos)),
@@ -107,7 +108,8 @@ export async function getPlanDetalle(filtro: { id: number } | { carrera: string;
     b.plan_hueco_electiva.map((h) => ({ bloque: b.nombre, anio: h.anio_sugerido, cuatrimestre: h.cuatrimestre_sugerido, creditos: h.creditos })));
   // Cada hueco va a la grilla del bloque obligatorio que cubre ese año y
   // cuatrimestre (p. ej. Ciclo Básico / Ciclo Profesional): el último que
-  // empieza antes o en ese cuatrimestre; si ninguno, el primero.
+  // empieza antes o en ese cuatrimestre; si ninguno (o el hueco no tiene
+  // año sugerido), el primero.
   const obligatorios = bloquesOrdenados
     .filter((b) => b.requisito === "APROBAR_TODOS")
     .map((b) => ({
@@ -116,13 +118,15 @@ export async function getPlanDetalle(filtro: { id: number } | { carrera: string;
         .map((m) => m.materia.anio! * 10 + (m.materia.cuatrimestre ?? 0))),
     }));
   const bloqueDelHueco = (h: Hueco) =>
-    obligatorios.filter((b) => b.inicio <= h.anio * 10 + h.cuatrimestre).at(-1)?.id ?? obligatorios[0]?.id;
+    (h.anio === null ? undefined : obligatorios.filter((b) => b.inicio <= h.anio! * 10 + (h.cuatrimestre ?? 0)).at(-1)?.id)
+      ?? obligatorios[0]?.id;
 
   const bloques: Bloque[] = bloquesOrdenados.map((b) => ({
     id: b.id,
     nombre: b.nombre,
     requisito: b.requisito,
     creditos: b.creditos,
+    items: b.items,
     materias: materias.filter((m) => m.bloqueId === b.id).map((m) => m.materia).sort(ordenGrilla),
     huecos: huecos.filter((h) => bloqueDelHueco(h) === b.id),
   }));
@@ -130,7 +134,7 @@ export async function getPlanDetalle(filtro: { id: number } | { carrera: string;
   const sinBloque = materias.filter((m) => m.bloqueId === null).map((m) => m.materia).sort(ordenGrilla);
   if (sinBloque.length > 0) {
     bloques.unshift({
-      id: null, nombre: "Materias", requisito: "APROBAR_TODOS",
+      id: null, nombre: "Materias", requisito: "APROBAR_TODOS", items: null,
       creditos: sinBloque.reduce((s, m) => s + m.creditos, 0), materias: sinBloque, huecos: [],
     });
   }
@@ -149,9 +153,9 @@ export async function getPlanDetalle(filtro: { id: number } | { carrera: string;
 }
 
 export function requisitoBloque(b: Bloque): string {
-  return b.requisito === "APROBAR_TODOS"
-    ? `Aprobar todos los ítems (suma ${b.creditos} créditos)`
-    : `Juntar ${b.creditos} créditos`;
+  if (b.requisito === "APROBAR_TODOS") return `Aprobar todos los ítems (suma ${b.creditos} créditos)`;
+  if (b.requisito === "APROBAR_ITEMS") return `Aprobar ${b.items ?? 1} item(s) (suma ${b.creditos} créditos)`;
+  return `Juntar ${b.creditos} créditos`;
 }
 
 // Agrupa materias y huecos por "Año X - Cuatrimestre Y".
@@ -161,7 +165,8 @@ export function grilla(b: Bloque): { titulo: string; materias: MateriaPlan[]; hu
     const clave = `${anio ?? 99}-${cuatri ?? 99}`;
     if (!grupos.has(clave)) {
       grupos.set(clave, {
-        titulo: anio ? `Año ${anio} - Cuatrimestre ${cuatri ?? "—"}` : "Sin ubicación en el plan",
+        // Sin año sugerido: el SGA los lista aparte bajo "Contenido:"
+        titulo: anio ? `Año ${anio} - Cuatrimestre ${cuatri ?? "—"}` : "Contenido:",
         orden: (anio ?? 99) * 10 + (cuatri ?? 9),
         materias: [],
         huecos: [],

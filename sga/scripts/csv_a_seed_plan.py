@@ -21,6 +21,7 @@ import sys
 RE_TITULO_BLOQUE = re.compile(r"\s*\(\s*Título otorgado:.*?\)\s*")
 RE_TODOS = re.compile(r"Aprobar todos los [ií]tems \(suma (\d+) cr[ée]ditos\)")
 RE_JUNTAR = re.compile(r"Juntar (\d+) cr[ée]ditos")
+RE_ITEMS = re.compile(r"Aprobar (\d+) [ií]tem\(s\) \(suma (\d+) cr[ée]ditos\)")
 
 
 def sql(texto: str) -> str:
@@ -45,8 +46,8 @@ def main() -> None:
         sys.exit("El CSV está vacío.")
     plan = filas[0]["plan"]
 
-    # Bloques en el orden del SGA, con su requisito
-    bloques: dict[str, tuple[str, int]] = {}
+    # Bloques en el orden del SGA, con su requisito (tipo, créditos, ítems)
+    bloques: dict[str, tuple[str, int, int | None]] = {}
     for f in filas:
         if f["tipo"] == "TITULO":
             continue
@@ -55,9 +56,11 @@ def main() -> None:
         if nombre in bloques:
             continue
         if m := RE_TODOS.search(f["requisito_bloque"]):
-            bloques[nombre] = ("APROBAR_TODOS", int(m.group(1)))
+            bloques[nombre] = ("APROBAR_TODOS", int(m.group(1)), None)
         elif m := RE_JUNTAR.search(f["requisito_bloque"]):
-            bloques[nombre] = ("JUNTAR_CREDITOS", int(m.group(1)))
+            bloques[nombre] = ("JUNTAR_CREDITOS", int(m.group(1)), None)
+        elif m := RE_ITEMS.search(f["requisito_bloque"]):
+            bloques[nombre] = ("APROBAR_ITEMS", int(m.group(2)), int(m.group(1)))
         else:
             sys.exit(f"Requisito desconocido en el bloque {nombre}: {f['requisito_bloque']}")
 
@@ -67,7 +70,7 @@ def main() -> None:
     for h in huecos:
         if h["nombre"] not in bloques:
             sys.exit(f"El hueco {h['nombre']} no coincide con ningún bloque de electivas.")
-    total = sum(c for r, c in bloques.values() if r == "APROBAR_TODOS")
+    total = sum(c for r, c, _ in bloques.values() if r == "APROBAR_TODOS")
     hasta = f"DATE '{a.hasta}'" if a.hasta else "NULL"
 
     out = []
@@ -98,12 +101,12 @@ def main() -> None:
     w("JOIN sga.carrera c ON c.id = p.carrera_id")
     w(f"WHERE c.codigo = {sql(a.carrera)} AND p.codigo = {sql(plan)};")
     w("")
-    w("INSERT INTO sga.plan_bloque (plan_id, nombre, requisito, creditos, orden)")
-    w("SELECT p.id, b.nombre, b.requisito::sga.requisito_bloque, b.creditos, b.orden")
+    w("INSERT INTO sga.plan_bloque (plan_id, nombre, requisito, creditos, items, orden)")
+    w("SELECT p.id, b.nombre, b.requisito::sga.requisito_bloque, b.creditos, b.items, b.orden")
     w("FROM nuevo_plan p")
     w("CROSS JOIN (VALUES")
-    w(",\n".join(f"    ({sql(n)}, '{r}', {c}, {i})" for i, (n, (r, c)) in enumerate(bloques.items(), 1)))
-    w(") AS b (nombre, requisito, creditos, orden)")
+    w(",\n".join(f"    ({sql(n)}, '{r}', {c}, {it if it else 'NULL::INTEGER'}, {i})" for i, (n, (r, c, it)) in enumerate(bloques.items(), 1)))
+    w(") AS b (nombre, requisito, creditos, items, orden)")
     w("ON CONFLICT (plan_id, nombre) DO NOTHING;")
     w("")
     w("-- bloque, código, nombre, créditos, créditos requeridos, año, cuatrimestre,")
@@ -146,7 +149,7 @@ def main() -> None:
         w("FROM nuevo_plan p")
         w("JOIN sga.plan_bloque b ON b.plan_id = p.id")
         w("JOIN (VALUES")
-        w(",\n".join(f"    ({sql(h['nombre'])}, {h['anio']}, {h['cuatrimestre']}, {entero(h['creditos'])})" for h in huecos))
+        w(",\n".join(f"    ({sql(h['nombre'])}, {h['anio'] or 'NULL::SMALLINT'}, {h['cuatrimestre'] or 'NULL::SMALLINT'}, {entero(h['creditos'])})" for h in huecos))
         w(") AS h (bloque, anio, cuatri, creditos) ON h.bloque = b.nombre")
         w("ON CONFLICT (bloque_id, anio_sugerido, cuatrimestre_sugerido) DO NOTHING;")
     w("")
