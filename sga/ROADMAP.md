@@ -1,22 +1,35 @@
 # Ruta de trabajo del SGA
 
-Revisión del estado del proyecto al 01/10/2026 y pasos sugeridos para seguir.
+Estado del proyecto al 15/10/2026 y lo que queda. Las secciones 2 a 4 son
+la revisión inicial del 01/10/2026 y la guía para levantarlo.
 
 ## 1. Qué hay hoy (y qué se probó)
 
 | Pieza | Estado | Verificado |
 |---|---|---|
-| Schema `sga` (49 tablas, enums, índices) | Listo | Las 3 migraciones aplican sin errores |
-| Triggers de negocio (11 reglas) | Listos | `tests/sql/smoke_test.sql` pasa |
-| Políticas RLS por rol | Escritas | `tests/sql/rls_test.sql` **falla** (ver problema 1) |
-| App Next.js 16 + clientes Supabase (`lib/supabase/`, `proxy.ts`) | Lista | `npm ci`, `npm run lint` y `npm run build` pasan |
-| Pantalla de inicio (`/`) | Demo con datos de muestra | — |
-| Pantalla `/aulas` | Lee `sga.aula` en vivo | No va a mostrar datos todavía (ver problemas 1 y 3) |
-| Login / registro | No existe | — |
-| Route Handlers (`app/api/`) | No existen | — |
-| Mercado Pago, Playwright, CI/CD | No existen | — |
+| Schema `sga` (37 migraciones), triggers y políticas RLS por rol | Listo | 22 tests SQL en CI (`scripts/probar_base.sh`) |
+| Pantallas del SGA actual | Todas las relevadas (ver la tabla del Paso 2) | Probadas a mano y con Playwright |
+| Login, sesiones y menú por rol | Listo | Tests E2E (`app/e2e/sesion.spec.ts`) |
+| Mercado Pago (Checkout Pro + webhook) | Listo | Probado con la cuenta de prueba en Vercel |
+| Planes de estudio | A22, BIO 22, AER 25, C23, E 11, K22, B 25, S10-Rev23, P22, I22, M22 | Control de materias, créditos y correlativas en cada seed |
+| CI (GitHub Actions) | Lint y build, base de datos y E2E | En cada push y PR |
+| Deploy | Vercel (`itbasga.vercel.app`) + Supabase | — |
 
-## 2. Problemas encontrados
+**Qué queda:**
+- Planes de estudio de Ingeniería Naval, Ingeniería Química, Intercambio,
+  Lic. en Administración y Sistemas, Lic. en Ciencias Aplicadas, Lic. en
+  Ciencias del Comportamiento y Lic. en Gestión de Negocios, y los planes
+  anteriores de cada carrera (Bio-13, E 11A, K07, P05, M09, etc.). Ver
+  "Cómo bajar un plan de estudios del SGA actual".
+- Departamento de las materias nuevas de los planes (hoy "A confirmar").
+- Guion de la demo (Paso 7).
+- Opcional: aplicar las migraciones al mergear y un proyecto de Supabase
+  aparte para producción (Paso 6).
+- Borrar `src/sql/` (problema 5 de abajo).
+
+## 2. Problemas encontrados (revisión del 01/10/2026)
+
+Resueltos en los pasos 0 y 1, salvo el 5 (`src/sql/` sigue estando).
 
 1. **Faltan los `GRANT` sobre el schema `sga` (bloqueante).** Supabase solo
    da permisos automáticos sobre `public`. Para un schema propio hay que
@@ -181,7 +194,7 @@ que pasan también con el seed cargado. Lo que sigue es el detalle original:
   porque la vinculación es automática por mail: los usuarios se crean
   solo desde el dashboard.
 
-### Paso 2 — Layout y navegación por rol (tema: App Router, layouts) — en curso
+### Paso 2 — Layout, navegación por rol y pantallas ✅ hecho (tema: App Router, layouts)
 
 Hecho:
 - Estética basada en el SGA actual (banda azul, menú gris, cajas y tablas).
@@ -191,10 +204,9 @@ Hecho:
   progreso" (alumno: lo que cursa; docente: lo que dicta; administrativo:
   todas las comisiones), en `lib/cursos.ts`.
 
-Falta:
-- Una ruta por módulo (`/cursos`, `/examenes`, `/legajo`, etc.): hoy
-  aparecen en gris en el menú.
-- **Probar:** cada rol ve un menú y unos cursos distintos.
+- Una ruta por cada pantalla del SGA actual (tabla de abajo); el menú ya
+  no tiene ítems en gris.
+- **Probado:** cada rol ve su menú (tests E2E de `app/e2e/sesion.spec.ts`).
 
 ### Pantallas del SGA actual (según `Estructuracion_SGA.pdf`)
 
@@ -214,7 +226,7 @@ agregar tablas antes de hacer la pantalla.
 | 2 | Datos del alumno → **Historia académica** | Materias por cuatrimestre con nota de cursada y final | `inscripcion_curso`, `inscripcion_examen_final`, `curso` | ✅ Hecho |
 | 3 | Datos del alumno → **Calendario semanal** | Grilla lunes–sábado con los horarios de cada materia | `inscripcion_curso`, `horario_comision` | ✅ Hecho |
 | 4 | Administración → **Ocupación de Aulas** | Grilla aula × hora: cursos, eventos, exámenes, capacidad excedida | `aula`, `horario_comision`, `evento_academico`, `examen_final`, `aula_ocupacion_referencia` (función `ocupacion_aulas`) | ✅ Hecho: grilla aula × media hora con filtros de fecha, aula y edificio; 227 aulas reales y la ocupación semanal del SGA actual como referencia |
-| 5 | Académica → **Carreras** | Listado con filtros (código, escuela, nivel, activa); detalle con planes y materias de cada plan | `carrera`, `escuela`, `plan_estudio`, `plan_materia` | ✅ Hecho (18 carreras reales; plan A22 de LAES completo, faltan los demás planes) |
+| 5 | Académica → **Carreras** | Listado con filtros (código, escuela, nivel, activa); detalle con planes y materias de cada plan | `carrera`, `escuela`, `plan_estudio`, `plan_materia` | ✅ Hecho (18 carreras reales; planes A22, BIO 22, AER 25, C23, E 11, K22, B 25, S10-Rev23, P22, I22 y M22; faltan los de N, Q, X, L, LCA, LCC, LN y los planes anteriores) |
 | 5 | Académica → **Cursos** | Listado con filtros (materia, depto., período, año, alumnos) y detalle con Plantel Docente, Comisiones, Contenidos mínimos e Información de la materia | `curso_listado` y `curso_plantel` (vistas), `comision`, `horario_comision`, `plan_materia` | ✅ Hecho (492 cursos reales del 2C 2026) |
 | 5 | Académica → **Autoridades** | Cargo, nombre y mail, institucionales y por escuela | `autoridad`, `cargo_institucional` (vista `autoridad_listado`) | ✅ Hecho: Administración designa y da de baja (historial de anteriores) |
 | 5 | Académica → **Hoy en el ITBA** | Foro de las organizaciones estudiantiles: eventos (fecha, hora, lugar) y novedades, con comentarios y próximos eventos | `organizacion`, `organizacion_miembro`, `publicacion`, `publicacion_comentario` (vistas `publicacion_listado`, `comentario_listado`) | ✅ Hecho: publican los miembros de cada organización, que editan cualquier publicación de ella y moderan sus comentarios; Administración da de alta organizaciones y miembros en Administración → Organizaciones estudiantiles y modera |
@@ -238,10 +250,10 @@ agregar tablas antes de hacer la pantalla.
 | — | Mi legajo → **Proyectos** / Administración → **Proyectos de alumnos** | Registro estilo CV de ayudantías (automáticas desde las comisiones) y proyectos que carga el alumno y valida Administración | `proyecto_alumno`, `docente_comision` | ✅ Hecho |
 | — | Mi legajo → **Información personal** | Datos de Salesforce | — | Fuera de alcance (sistema externo) |
 
-El menú de la app ya replica esta estructura (Encuestas, Académica,
-Legajos, Administración, Usuario); lo no implementado aparece en gris.
+El menú de la app replica esta estructura (Encuestas, Académica,
+Legajos, Docencia, Administración, Usuario) y muestra a cada rol lo suyo.
 
-Orden de los seeds: `seed.sql` → `seed_plan_a22.sql` → `seed_plan_bio22.sql` → `seed_plan_aer25.sql` → `seed_plan_c23.sql` → `seed_plan_e11.sql` → `seed_plan_k22.sql` → `seed_plan_b25.sql` → `seed_plan_s10.sql` → `seed_plan_p22.sql` → `seed_plan_i22.sql` → `seed_plan_m22.sql` → `seed_cursos.sql`
+Orden de los seeds (la lista está en `scripts/seeds.sh`): `seed.sql` → `seed_plan_a22.sql` → `seed_plan_bio22.sql` → `seed_plan_aer25.sql` → `seed_plan_c23.sql` → `seed_plan_e11.sql` → `seed_plan_k22.sql` → `seed_plan_b25.sql` → `seed_plan_s10.sql` → `seed_plan_p22.sql` → `seed_plan_i22.sql` → `seed_plan_m22.sql` → `seed_cursos.sql`
 → `seed_aulas.sql` → `seed_usuarios.sql` → `seed_legajo_demo.sql` → `seed_hoy.sql` → `seed_mensajes.sql` → `seed_autoridades_encuestas.sql` → `seed_facturas.sql` → `seed_docencia.sql` → `seed_finales.sql` → `seed_cursadas.sql` → `seed_eventos.sql` → `seed_proyectos.sql` → `seed_tramites.sql` → `seed_intercambios.sql`. Las materias del A22 que no
 se dictan en el período cargado siguen en el departamento "A confirmar".
 
@@ -401,7 +413,11 @@ El script de consola lee el texto de la página (encabezados de bloque,
 "Año X - Cuatrimestre Y" y las tablas), no el HTML del SGA, así que
 sirve igual para la copia de esta app.
 
-### Paso 3 — Primeros CRUD reales (temas: Server Components, formularios, Route Handlers)
+### Paso 3 — Primeros CRUD reales ✅ hecho (temas: Server Components, formularios, Route Handlers)
+
+Hecho con Server Actions y funciones `SECURITY DEFINER` con errores claros
+(ver la tabla del Paso 2). Lo que sigue es el plan original:
+
 Orden sugerido, de lo más simple a lo más complejo:
 1. **Mi legajo** (alumno): pantallas 1–3 de la tabla de arriba. Son
    lecturas (RLS ya filtra al legajo propio) y es lo que más se usa.
@@ -420,7 +436,11 @@ claras, o Server Actions si es un formulario de la propia app.
 - **Probar:** a mano en el navegador, y verificar en Studio que los
   triggers hicieron lo esperado (ej. `rendimiento_academico`).
 
-### Paso 4 — Facturación + Mercado Pago (tema: Mercado Pago)
+### Paso 4 — Facturación + Mercado Pago ✅ hecho (tema: Mercado Pago)
+
+Hecho: Checkout Pro, confirmación al volver y por webhook, facturación
+mensual automática y planes de pago. Lo que sigue es el plan original:
+
 - Pantalla "Mis facturas" para el alumno.
 - Botón "Pagar" → Route Handler que crea una preferencia de Checkout Pro
   con `MERCADO_PAGO_ACCESS_TOKEN` (sandbox) y una `orden_pago` `PENDIENTE`.
@@ -433,12 +453,39 @@ claras, o Server Actions si es un formulario de la propia app.
 - **Probar:** pagar con tarjeta de prueba de Mercado Pago y ver la factura
   pagada.
 
-### Paso 5 — Tests E2E (tema: Playwright)
-- `npm init playwright@latest` dentro de `sga/app`.
-- Flujos mínimos: login por rol, inscripción a cursada, carga de nota,
-  alumno no ve datos de otro alumno.
+### Paso 5 — Tests E2E ✅ hecho (tema: Playwright)
 
-### Paso 6 — CI/CD y deploy (tema: DevOps)
+`app/e2e/` con `@playwright/test`, contra una Supabase local
+(`supabase start`, que aplica las migraciones) con los seeds y los
+usuarios demo:
+- `sesion.spec.ts`: login, clave equivocada, menú de cada rol y salir.
+- `permisos.spec.ts`: un alumno no entra a Administración; RLS probado
+  contra la API (un alumno solo ve su persona, un docente no ve facturas).
+- `legajo.spec.ts`: Mi legajo y el analítico de la alumna.
+- `planes.spec.ts`: detalle de A22, S10-Rev23, I22 y M22 (bloques, huecos
+  y títulos intermedios).
+- `flujos.spec.ts`: un trámite que inicia la alumna y toma Administración,
+  y un mensaje de Administración que recibe la alumna.
+
+Correrlos localmente (hace falta Docker):
+
+```bash
+cd sga
+npx supabase start -x studio,imgproxy,mailpit,edge-runtime,logflare,vector,supavisor,realtime,postgres-meta,storage-api
+bash scripts/e2e_preparar.sh   # seeds, usuarios demo y app/.env.e2e
+cd app && npm run e2e          # arma la app con esa Supabase y corre los tests
+```
+
+En CI corre el job "E2E (Playwright)"; si falla, el reporte queda como
+artefacto `playwright-report`. El pago con Mercado Pago no está en los
+tests porque necesita la cuenta de prueba de Mercado Pago.
+
+### Paso 6 — CI/CD y deploy (tema: DevOps) — hecho salvo lo opcional
+
+Hecho: CI con lint y build, base de datos (migraciones, seeds y tests SQL)
+y E2E; deploy en Vercel. Falta lo opcional: `supabase db push` al mergear
+y un proyecto de Supabase aparte para producción.
+
 - GitHub Actions: en cada PR, `npm ci`, `npm run lint`, `npm run build`.
   Opcional: un job que haga `supabase db push` al mergear a `main`
   (usando `SUPABASE_ACCESS_TOKEN` y la contraseña de la base como secrets
@@ -448,6 +495,6 @@ claras, o Server Actions si es un formulario de la propia app.
   `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`,
   `SUPABASE_SERVICE_ROLE_KEY` y las de Mercado Pago.
 
-### Paso 7 — Presentación
+### Paso 7 — Presentación — falta
 - Guion de demo: admin carga un curso → alumno se inscribe → docente pone
   nota → alumno ve la nota y paga una factura.
