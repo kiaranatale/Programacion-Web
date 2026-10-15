@@ -15,7 +15,7 @@ INSERT INTO sga.departamento (nombre) VALUES ('A confirmar')
 ON CONFLICT (nombre) DO NOTHING;
 
 INSERT INTO sga.plan_estudio (carrera_id, codigo, version, creditos_totales, vigencia_desde, vigencia_hasta)
-SELECT id, 'M22', 1, 240, DATE '2023-03-01', NULL
+SELECT id, 'M22', 1, 240, DATE '2022-08-01', DATE '2024-08-01'
 FROM sga.carrera WHERE codigo = 'M'
 ON CONFLICT (carrera_id, codigo) DO NOTHING;
 
