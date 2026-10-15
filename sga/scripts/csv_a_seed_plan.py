@@ -143,14 +143,19 @@ def main() -> None:
     w("    creditos_requeridos = EXCLUDED.creditos_requeridos;")
     if huecos:
         w("")
-        w("-- Huecos de electivas en la grilla del plan")
-        w("INSERT INTO sga.plan_hueco_electiva (bloque_id, anio_sugerido, cuatrimestre_sugerido, creditos)")
-        w("SELECT b.id, h.anio, h.cuatri, h.creditos")
+        w("-- Huecos de electivas: en la grilla del bloque obligatorio, o dentro")
+        w("-- de un bloque de electivas que agrupa a otros (contenedor)")
+        w("INSERT INTO sga.plan_hueco_electiva (bloque_id, anio_sugerido, cuatrimestre_sugerido, creditos, contenedor_bloque_id)")
+        w("SELECT b.id, h.anio, h.cuatri, h.creditos, c.id")
         w("FROM nuevo_plan p")
         w("JOIN sga.plan_bloque b ON b.plan_id = p.id")
         w("JOIN (VALUES")
-        w(",\n".join(f"    ({sql(h['nombre'])}, {h['anio'] or 'NULL::SMALLINT'}, {h['cuatrimestre'] or 'NULL::SMALLINT'}, {entero(h['creditos'])})" for h in huecos))
-        w(") AS h (bloque, anio, cuatri, creditos) ON h.bloque = b.nombre")
+        w(",\n".join(
+            f"    ({sql(h['nombre'])}, {h['anio'] or 'NULL::SMALLINT'}, {h['cuatrimestre'] or 'NULL::SMALLINT'}, {entero(h['creditos'])}, "
+            f"{sql(h['bloque']) if bloques[h['bloque']][0] != 'APROBAR_TODOS' else 'NULL'})"
+            for h in huecos))
+        w(") AS h (bloque, anio, cuatri, creditos, contenedor) ON h.bloque = b.nombre")
+        w("LEFT JOIN sga.plan_bloque c ON c.plan_id = p.id AND c.nombre = h.contenedor")
         w("ON CONFLICT (bloque_id, anio_sugerido, cuatrimestre_sugerido) DO NOTHING;")
     w("")
     w("-- Correlativas del plan (para cursar, con la correlativa regular)")
@@ -187,7 +192,7 @@ def main() -> None:
     w("    + (SELECT coalesce(sum(h.creditos), 0) FROM sga.plan_hueco_electiva h")
     w("        JOIN sga.plan_bloque b ON b.id = h.bloque_id")
     w("        JOIN sga.plan_estudio p ON p.id = b.plan_id")
-    w(f"        WHERE p.codigo = {sql(plan)}) AS creditos_plan,")
+    w(f"        WHERE p.codigo = {sql(plan)} AND h.contenedor_bloque_id IS NULL) AS creditos_plan,")
     w(f"    (SELECT count(*) FROM sga.correlativa c JOIN sga.plan_estudio p ON p.id = c.plan_id WHERE p.codigo = {sql(plan)}) AS correlativas;")
     print("\n".join(out))
 
