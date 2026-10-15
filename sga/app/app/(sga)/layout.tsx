@@ -1,8 +1,6 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
-import LogoSga from "@/components/logo-sga";
+import Navegacion from "@/components/navegacion";
 import TablasResponsivas from "@/components/tablas-responsivas";
-import { logout } from "@/app/auth/actions";
 import { getSesion, type Rol } from "@/lib/sesion";
 
 type ItemMenu = { label: string; href?: string; roles?: Rol[] };
@@ -79,52 +77,7 @@ export default async function SgaLayout({ children }: LayoutProps<"/">) {
 
   return (
     <div className="sga-shell">
-      <header className="sga-header">
-        <Link className="sga-header-brand" href="/">
-          <LogoSga size={58} />
-          <span className="sga-header-divider" aria-hidden="true" />
-          <span className="sga-header-title">Sistema de<br />Gestión Académica</span>
-        </Link>
-        <div className="sga-header-user">
-          <strong>{nombre}</strong>
-          <form action={logout}>
-            <button type="submit">[Salir]</button>
-          </form>
-        </div>
-      </header>
-
-      <nav className="sga-nav" aria-label="Menú principal">
-        <Link href="/">Inicio</Link>
-        {visibles.map((menu) => (
-          <div className="sga-nav-menu" key={menu.label}>
-            <button type="button">{menu.label}<span aria-hidden="true">▾</span></button>
-            <ul>
-              {menu.items.map((item) => (
-                <li key={item.label}>
-                  {item.href ? (
-                    <Link href={item.href}>{item.label}</Link>
-                  ) : (
-                    <span title="Próximamente">{item.label}</span>
-                  )}
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
-        <div className="sga-nav-menu">
-          <button type="button">Usuario<span aria-hidden="true">▾</span></button>
-          <ul>
-            <li><Link href="/usuario/clave">Cambio de clave</Link></li>
-            <li><Link href="/usuario/mensajes">Mensajes</Link></li>
-            <li>
-              <form action={logout}>
-                <button type="submit">Cerrar sesión</button>
-              </form>
-            </li>
-          </ul>
-        </div>
-      </nav>
-
+      <Navegacion grupos={visibles} nombre={nombre} roles={sesion.roles} />
       <main className="sga-main">{children}</main>
       <TablasResponsivas />
     </div>

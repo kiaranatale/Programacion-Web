@@ -17,6 +17,8 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
       <LogoSga className="login-logo" size={190} />
 
       <form action={login} className="login-form">
+        <h1>Ingresá al SGA</h1>
+        <p>Sistema de Gestión Académica del ITBA</p>
         {mensaje && <p className="login-error" role="alert">{mensaje}</p>}
         <label>
           <span>Mail institucional:</span>
