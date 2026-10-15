@@ -390,6 +390,19 @@ Datos de demo para todas las solapas de Mi legajo:
 `supabase/seed_legajo_demo.sql` (después de `seed.sql` y
 `seed_usuarios.sql`).
 
+#### Cómo bajar las comisiones y horarios del SGA actual
+
+Para el armador de horarios hacen falta las comisiones reales de todos los
+cursos del cuatrimestre, con sus horarios:
+
+1. En el SGA, abrir Académica → Cursos filtrando el cuatrimestre (por
+   ejemplo Período 2C, Año 2026).
+2. F12 → Console, pegar `sga/scripts/comisiones_a_csv.js` y Enter. Recorre
+   todas las páginas, entra a la solapa "Comisiones" de cada curso (de a 4
+   a la vez) y descarga `comisiones_sga.csv`. Tarda unos minutos; el avance
+   se ve en la consola.
+3. Con ese CSV se genera el seed de comisiones y horarios.
+
 #### Cómo bajar un plan de estudios del SGA actual
 
 Los `seed_plan_*.sql` salen del **Detalle de Planes de estudio** del SGA
