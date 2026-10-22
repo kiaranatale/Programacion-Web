@@ -40,3 +40,16 @@ test("salir cierra la sesión", async ({ page }) => {
   await page.goto("/legajo");
   await expect(page).toHaveURL(/\/login/);
 });
+
+test("el menú lateral se pliega, se recuerda al recargar y se despliega desde un grupo", async ({ page }) => {
+  await entrar(page, "alumno");
+  const menu = page.locator(".sga-sidebar");
+  await page.getByRole("button", { name: "Plegar el menú lateral" }).click();
+  await expect(menu).toHaveClass(/is-plegado/);
+  await page.reload();
+  await expect(menu).toHaveClass(/is-plegado/);
+  // Tocar un grupo plegado despliega el menú con ese grupo abierto
+  await page.locator(".sga-nav").getByRole("button", { name: "Legajos" }).click();
+  await expect(menu).not.toHaveClass(/is-plegado/);
+  await expect(page.locator('.sga-nav-menu a[href="/legajo"]')).toBeVisible();
+});

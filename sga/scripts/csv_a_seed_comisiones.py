@@ -85,6 +85,7 @@ def main(ruta: str) -> None:
         filas = list(csv.DictReader(f))
 
     comisiones = {}  # (codigo, anio, periodo, inicio, nombre) → datos; la última fila gana
+    nombres_materia = {}
     salteadas = []
     for f in filas:
         nombres = [n.strip() for n in f["encabezado"].split("|")]
@@ -98,6 +99,7 @@ def main(ruta: str) -> None:
             continue
         periodo = PERIODOS[f["periodo"].strip()]
         anio = int(f["anio"])
+        nombres_materia.setdefault(f["codigo"].strip(), f["materia"].strip())
         inicio, fin = fecha(f.get("comienzo", "")), fecha(f.get("fin", ""))
         inscriptos, maximo = cupo(fila.get("Cupo", ""))
         comisiones[(f["codigo"].strip(), anio, periodo, inicio, nombre)] = {
@@ -139,6 +141,15 @@ def main(ruta: str) -> None:
     ]
     if bloques:
         out("INSERT INTO csv_horario VALUES\n" + ",\n".join(bloques) + ";\n\n")
+
+    out("-- Materias que no están en seed_cursos.sql (cursos nuevos): departamento\n")
+    out("-- a confirmar y créditos desconocidos, como las de los planes.\n")
+    out("INSERT INTO sga.departamento (nombre) VALUES ('A confirmar') ON CONFLICT (nombre) DO NOTHING;\n")
+    out("INSERT INTO sga.materia (codigo, nombre, departamento_id, creditos)\n")
+    out("SELECT x.codigo, x.nombre, d.id, NULL\nFROM (VALUES\n")
+    out(",\n".join(f"    ({sql(c)}, {sql(n)})" for c, n in sorted(nombres_materia.items())))
+    out("\n) AS x (codigo, nombre)\nJOIN sga.departamento d ON d.nombre = 'A confirmar'\n")
+    out("ON CONFLICT (codigo) DO NOTHING;\n\n")
 
     out("""-- Curso de cada comisión: el de esa fecha de inicio o, sin fecha, el
 -- primero del período. Los que no existen se crean (sin fechas en el CSV:

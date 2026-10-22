@@ -1,3 +1,4 @@
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import Navegacion from "@/components/navegacion";
 import TablasResponsivas from "@/components/tablas-responsivas";
@@ -78,7 +79,12 @@ export default async function SgaLayout({ children }: LayoutProps<"/">) {
 
   return (
     <div className="sga-shell">
-      <Navegacion grupos={visibles} nombre={nombre} roles={sesion.roles} />
+      <Navegacion
+        grupos={visibles}
+        nombre={nombre}
+        plegadoInicial={(await cookies()).get("sga-menu")?.value === "plegado"}
+        roles={sesion.roles}
+      />
       <main className="sga-main">{children}</main>
       <TablasResponsivas />
     </div>

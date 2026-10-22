@@ -17,9 +17,9 @@ la revisión inicial del 01/10/2026 y la guía para levantarlo.
 | Deploy | Vercel (`itbasga.vercel.app`) + Supabase | — |
 
 **Qué queda:**
-- Comisiones reales de todos los cursos: `seed_comisiones.sql` tiene por
-  ahora una primera página (34 comisiones del 2C 2026). Ver "Cómo bajar
-  las comisiones y horarios del SGA actual".
+- Bajar las comisiones del próximo cuatrimestre cuando el SGA publique la
+  oferta (`seed_comisiones.sql` tiene las 781 del 2C 2026). Ver "Cómo
+  bajar las comisiones y horarios del SGA actual".
 - Planes de estudio de Ingeniería Naval, Ingeniería Química, Intercambio,
   Lic. en Administración y Sistemas, Lic. en Ciencias Aplicadas, Lic. en
   Ciencias del Comportamiento y Lic. en Gestión de Negocios, y los planes
