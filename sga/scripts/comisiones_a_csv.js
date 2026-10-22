@@ -5,7 +5,7 @@
 // comisiones_sga.csv con el texto de cada fila (comisión, cupo, horarios).
 // Los horarios se interpretan después con scripts/csv_a_seed_comisiones.py.
 // No usa la estructura HTML del SGA: busca las tablas por sus encabezados.
-await (async () => {
+(async () => {
   const limpio = (s) => (s || "").replace(/\s+/g, " ").trim();
   const texto = (el) => limpio(el.textContent);
   const pedir = async (url) => {
@@ -72,9 +72,9 @@ await (async () => {
 
   const csv = filas.map((f) => f.map((v) => `"${String(v ?? "").replace(/"/g, '""')}"`).join(",")).join("\n");
   const a = document.createElement("a");
-  a.href = URL.createObjectURL(new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" }));
+  a.href = URL.createObjectURL(new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" }));
   a.download = "comisiones_sga.csv";
   a.click();
   if (sinComisiones.length) console.warn(`Sin comisiones (${sinComisiones.length}): ${sinComisiones.slice(0, 30).join(", ")}`);
   return `Listo: ${cursos.size} cursos, ${filas.length - 1} filas de comisiones`;
-})();
+})().then((r) => console.log(r), (e) => console.error(e));
