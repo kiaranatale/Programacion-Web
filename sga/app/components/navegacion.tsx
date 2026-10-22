@@ -35,13 +35,22 @@ const nombresRol: Record<string, string> = {
   ADMINISTRATIVO: "Administración",
 };
 
+// La cookie la lee el layout para armar la página ya plegada
+function recordarPlegado(plegado: boolean) {
+  document.cookie = `sga-menu=${plegado ? "plegado" : "abierto"}; path=/; max-age=31536000; samesite=lax`;
+}
+
 const activo = (pathname: string, href: string) =>
   href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`);
 
 // Menú lateral: grupos desplegables (abierto el de la pantalla actual) y,
-// abajo, el usuario con el botón para salir. En el celular es un cajón que
-// se abre desde la barra superior.
-export default function Navegacion({ grupos, nombre, roles }: { grupos: GrupoNav[]; nombre: string; roles: string[] }) {
+// abajo, el usuario con el botón para salir. En la compu se puede plegar a
+// una columna de íconos (se recuerda en una cookie, así la página ya se
+// arma plegada); en el celular es un cajón que se abre desde la barra
+// superior.
+export default function Navegacion({ grupos, nombre, roles, plegadoInicial }: {
+  grupos: GrupoNav[]; nombre: string; roles: string[]; plegadoInicial: boolean;
+}) {
   const pathname = usePathname();
   const todos = [...grupos, { label: "Usuario", items: [{ label: "Cambio de clave", href: "/usuario/clave" }, { label: "Mensajes", href: "/usuario/mensajes" }] }];
   const grupoActual = todos.find((g) => g.items.some((i) => i.href && activo(pathname, i.href)))?.label;
@@ -49,6 +58,11 @@ export default function Navegacion({ grupos, nombre, roles }: { grupos: GrupoNav
   // defecto (abierto solo el grupo de la pantalla actual).
   const [alternados, setAlternados] = useState<Set<string>>(() => new Set());
   const [cajon, setCajon] = useState(false);
+  const [plegado, setPlegado] = useState(plegadoInicial);
+  const plegar = (valor: boolean) => {
+    setPlegado(valor);
+    recordarPlegado(valor);
+  };
   const abierto = (label: string) => (label === grupoActual) !== alternados.has(label);
   const alternar = (label: string) =>
     setAlternados((a) => {
@@ -56,6 +70,17 @@ export default function Navegacion({ grupos, nombre, roles }: { grupos: GrupoNav
       if (!nuevo.delete(label)) nuevo.add(label);
       return nuevo;
     });
+  // Plegado, tocar un grupo despliega el menú con ese grupo abierto
+  const tocarGrupo = (label: string) => {
+    if (!plegado) return alternar(label);
+    plegar(false);
+    setAlternados((a) => {
+      const nuevo = new Set(a);
+      if (label === grupoActual) nuevo.delete(label);
+      else nuevo.add(label);
+      return nuevo;
+    });
+  };
   // Al elegir una pantalla en el celular se cierra el cajón
   const cerrarSiEsLink = (e: MouseEvent) => {
     if ((e.target as HTMLElement).closest("a")) setCajon(false);
@@ -77,25 +102,37 @@ export default function Navegacion({ grupos, nombre, roles }: { grupos: GrupoNav
 
       {cajon && <div aria-hidden="true" className="sga-sidebar-fondo" onClick={() => setCajon(false)} />}
 
-      <aside className={`sga-sidebar ${cajon ? "is-abierto" : ""}`} onClick={cerrarSiEsLink}>
+      <aside className={`sga-sidebar ${cajon ? "is-abierto" : ""} ${plegado ? "is-plegado" : ""}`} onClick={cerrarSiEsLink}>
         <div className="sga-sidebar-marca">
-          <Link href="/">
+          <Link href="/" title={plegado ? "Inicio" : undefined}>
             <LogoSga size={40} />
             <span>Sistema de<br />Gestión Académica</span>
           </Link>
           <button aria-label="Cerrar menú" className="sga-sidebar-cerrar" onClick={() => setCajon(false)} type="button">×</button>
+          <button
+            aria-expanded={!plegado}
+            aria-label={plegado ? "Desplegar el menú lateral" : "Plegar el menú lateral"}
+            className="sga-sidebar-plegar"
+            onClick={() => plegar(!plegado)}
+            title={plegado ? "Desplegar el menú" : "Plegar el menú"}
+            type="button"
+          >
+            <svg aria-hidden="true" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24">
+              <path d={plegado ? "m13 6 6 6-6 6M5 6l6 6-6 6" : "m11 6-6 6 6 6M19 6l-6 6 6 6"} />
+            </svg>
+          </button>
         </div>
 
         <nav aria-label="Menú principal" className="sga-nav">
-          <Link aria-current={pathname === "/" ? "page" : undefined} className="sga-nav-link" href="/">
-            <Icono nombre="Inicio" />Inicio
+          <Link aria-current={pathname === "/" ? "page" : undefined} className="sga-nav-link" href="/" title={plegado ? "Inicio" : undefined}>
+            <Icono nombre="Inicio" /><span className="sga-nav-texto">Inicio</span>
           </Link>
           {todos.map((grupo) => {
             return (
               <div className={`sga-nav-menu ${abierto(grupo.label) ? "is-abierto" : ""} ${grupo.label === grupoActual ? "is-actual" : ""}`} key={grupo.label}>
-                <button aria-expanded={abierto(grupo.label)} onClick={() => alternar(grupo.label)} type="button">
+                <button aria-expanded={!plegado && abierto(grupo.label)} onClick={() => tocarGrupo(grupo.label)} title={plegado ? grupo.label : undefined} type="button">
                   <Icono nombre={grupo.label} />
-                  {grupo.label}
+                  <span className="sga-nav-texto">{grupo.label}</span>
                   <svg aria-hidden="true" className="sga-nav-flecha" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6" /></svg>
                 </button>
                 <ul>
@@ -115,13 +152,16 @@ export default function Navegacion({ grupos, nombre, roles }: { grupos: GrupoNav
         </nav>
 
         <div className="sga-sidebar-usuario">
-          <span aria-hidden="true" className="sga-avatar">{iniciales || "?"}</span>
+          <span aria-hidden="true" className="sga-avatar" title={plegado ? nombre : undefined}>{iniciales || "?"}</span>
           <div>
             <strong>{nombre}</strong>
             <small>{roles.map((r) => nombresRol[r] ?? r).join(" · ")}</small>
           </div>
           <form action={logout}>
-            <button className="sga-salir" title="Cerrar sesión" type="submit">Salir</button>
+            <button className="sga-salir" title="Cerrar sesión" type="submit">
+              <svg aria-hidden="true" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24"><path d="M15 4h4v16h-4M10 8l-4 4 4 4M6 12h10" /></svg>
+              <span className="sga-nav-texto">Salir</span>
+            </button>
           </form>
         </div>
       </aside>
