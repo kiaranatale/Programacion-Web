@@ -19,3 +19,13 @@ test("armador: entiende el pedido y arma una opción sin clases el viernes", asy
     expect(desde && Number(desde[1]) * 60 + Number(desde[2])).toBeGreaterThanOrEqual(600);
   }
 });
+
+test("armador: la lista arranca con lo que falta cursar, en el orden del plan", async ({ page }) => {
+  await entrar(page, "alumno");
+  await page.goto("/armador");
+  const lista = page.locator(".sga-armador-materias");
+  await expect(lista.locator("h4").first()).toHaveText(/1\.º año · 1\.º cuatrimestre/i);
+  const antes = await lista.locator("li").count();
+  await page.getByLabel("Mostrar también las que ya aprobé o estoy cursando").check();
+  await expect.poll(() => lista.locator("li").count()).toBeGreaterThan(antes);
+});

@@ -18,6 +18,7 @@ const ESTADOS: Record<MateriaArmador["estado"], string> = {
   DISPONIBLE: "", CORRELATIVAS: "Faltan correlativas", CURSANDO: "Cursando", CURSADA: "Cursada aprobada", APROBADA: "Aprobada",
 };
 const MAX_SIN_ELEGIR = 6;
+const YA_CURSADA: MateriaArmador["estado"][] = ["APROBADA", "CURSADA", "CURSANDO"];
 
 const cursable = (m: MateriaArmador) => m.estado === "DISPONIBLE" && m.comisiones.length > 0;
 const textoBloque = (b: Bloque) =>
@@ -123,12 +124,14 @@ export default function Armador({ materias, conLegajo, inscripcionAbierta }: {
     }
   };
 
+  // Por defecto, las que faltan cursar (también las que no se dictan o
+  // tienen correlativas pendientes, en gris), en el orden del plan
   const grupos = new Map<string, MateriaArmador[]>();
   const f = filtro.trim().toLowerCase();
   for (const m of materias) {
-    if (!todas && (m.estado !== "DISPONIBLE" || m.comisiones.length === 0) && !seleccion.has(m.codigo)) continue;
+    if (!todas && YA_CURSADA.includes(m.estado) && !seleccion.has(m.codigo)) continue;
     if (f && !`${m.codigo} ${m.nombre}`.toLowerCase().includes(f)) continue;
-    const g = m.anio ? `${m.anio}.º año` : "Electivas y otras";
+    const g = m.anio ? `${m.anio}.º año${m.cuatrimestre ? ` · ${m.cuatrimestre}.º cuatrimestre` : ""}` : "Electivas y otras";
     grupos.set(g, [...(grupos.get(g) ?? []), m]);
   }
 
@@ -214,16 +217,20 @@ export default function Armador({ materias, conLegajo, inscripcionAbierta }: {
             {seleccion.size > 0 && <button onClick={() => setSeleccion(new Set())} type="button">Ninguna</button>}
           </div>
           <input aria-label="Buscar materia" onChange={(e) => setFiltro(e.target.value)} placeholder="Buscar por código o nombre" value={filtro} />
-          <label className="sga-armador-todas">
-            <input checked={todas} onChange={(e) => setTodas(e.target.checked)} type="checkbox" />
-            {conLegajo ? " Mostrar también las que no se dictan, ya cursé o no puedo cursar" : " Mostrar también las que no se dictan"}
-          </label>
+          {conLegajo && (
+            <label className="sga-armador-todas">
+              <input checked={todas} onChange={(e) => setTodas(e.target.checked)} type="checkbox" /> Mostrar también las que ya aprobé o estoy cursando
+            </label>
+          )}
+          {ofrecidas.length === 0 && <p className="sga-ayuda">Ninguna materia de este plan tiene comisiones cargadas en este cuatrimestre.</p>}
           {[...grupos.entries()].map(([grupo, lista]) => (
             <div key={grupo}>
               <h4>{grupo}</h4>
               <ul>
                 {lista.map((m) => {
-                  const deshabilitada = m.comisiones.length === 0 || (!todas && m.estado !== "DISPONIBLE");
+                  // Las de correlativas pendientes se pueden elegir igual (para planear
+                  // contando con lo que está cursando); se ven con el aviso
+                  const deshabilitada = m.comisiones.length === 0 || YA_CURSADA.includes(m.estado);
                   return (
                     <li className={deshabilitada ? "is-deshabilitada" : undefined} key={m.codigo}>
                       <label>
@@ -240,7 +247,7 @@ export default function Armador({ materias, conLegajo, inscripcionAbierta }: {
               </ul>
             </div>
           ))}
-          {ofrecidas.length === 0 && <p className="sga-vacio">Ninguna materia de este plan tiene comisiones cargadas en este cuatrimestre.</p>}
+          {grupos.size === 0 && <p className="sga-vacio">{f ? "Ninguna materia coincide con la búsqueda." : "No te quedan materias por cursar en este plan."}</p>}
         </div>
       </div>
 
