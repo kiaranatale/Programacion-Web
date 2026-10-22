@@ -17,6 +17,7 @@ const menus: Menu[] = [
   {
     label: "Académica",
     items: [
+      { label: "Armador de horarios", href: "/armador" },
       { label: "Autoridades", href: "/autoridades" },
       { label: "Carreras", href: "/carreras" },
       { label: "Cursos", href: "/cursos" },

@@ -2,18 +2,20 @@
 // Académica → Cursos del SGA, con los filtros del cuatrimestre que se
 // quiere (por ejemplo Período 2C, Año 2026). Recorre todas las páginas
 // del listado, entra a cada curso y a su solapa "Comisiones", y descarga
-// comisiones_sga.csv con el texto de cada fila (comisión, cupo, horarios).
+// comisiones_sga.csv con el texto de cada fila (comisión, horarios, cupo).
+// La columna de profesores no se baja (son datos de personas reales).
 // Los horarios se interpretan después con scripts/csv_a_seed_comisiones.py.
 // No usa la estructura HTML del SGA: busca las tablas por sus encabezados.
 (async () => {
   const limpio = (s) => (s || "").replace(/\s+/g, " ").trim();
   const texto = (el) => limpio(el.textContent);
+  const esperar = (ms) => new Promise((r) => setTimeout(r, ms));
   const pedir = async (url) => {
     const resp = await fetch(url, { credentials: "include" });
     return { url: resp.url, doc: new DOMParser().parseFromString(await resp.text(), "text/html") };
   };
 
-  // 1. Cursos del listado (todas las páginas), con el link a su detalle
+  // Filas del listado de cursos, con el link a su detalle
   const filasCursos = (doc, base) => {
     const tabla = [...doc.querySelectorAll("table")].filter((t) => /Cód\./.test(t.textContent)).pop();
     return [...(tabla?.querySelectorAll("tr") ?? [])]
@@ -24,30 +26,22 @@
       })
       .filter((f) => f.celdas.length >= 8 && /^\d+\.\d+/.test(f.celdas[0]));
   };
-  const siguienteDe = (doc) => [...doc.querySelectorAll("a")].find((a) => texto(a) === ">");
-  const cursos = new Map();
-  let doc = document, base = location.href, link = siguienteDe(doc);
-  filasCursos(doc, base).forEach((f) => cursos.set(f.celdas.slice(0, 8).join("|"), f));
-  for (let pagina = 2; link && pagina <= 200; pagina++) {
-    const antes = cursos.size;
-    ({ url: base, doc } = await pedir(new URL(link.getAttribute("href"), base)));
-    filasCursos(doc, base).forEach((f) => cursos.set(f.celdas.slice(0, 8).join("|"), f));
-    console.warn(`Listado, página ${pagina}: ${cursos.size} cursos`);
-    if (cursos.size === antes) break;
-    link = siguienteDe(doc);
-  }
+  const siguienteDe = (doc) => [...doc.querySelectorAll("a")].find((a) => /^(>|›|Siguiente)$/i.test(texto(a)));
 
-  // 2. Comisiones de cada curso: la solapa "Comisiones" del detalle
+  // Comisiones de un curso: la solapa "Comisiones" de su detalle
   const tablasComisiones = (d) => [...d.querySelectorAll("table")].filter((t) => {
     const enc = t.rows[0] ? [...t.rows[0].cells].map(texto).join(" | ") : "";
     return /Comisi[oó]n/i.test(enc) && !t.querySelector("table");
   });
-  const filas = [["codigo", "materia", "periodo", "anio", "encabezado", "celdas"]];
+  const filas = [["codigo", "materia", "periodo", "anio", "comienzo", "fin", "encabezado", "celdas"]];
   const sinComisiones = [];
-  const lista = [...cursos.values()];
+  const vistos = new Set();
   let hechos = 0;
   const trabajar = async (curso) => {
     const [codigo, materia, , , periodo, anio] = curso.celdas;
+    // Comienzo y fin: las dos primeras fechas de la fila (distinguen los
+    // cursos de una misma materia en el mismo período, como los bimestrales)
+    const [comienzo = "", fin = ""] = curso.celdas.filter((c) => /^\d{2}\/\d{2}\/\d{4}$/.test(c));
     try {
       if (!curso.url) throw new Error("sin link al detalle");
       let { url, doc: det } = await pedir(curso.url);
@@ -56,25 +50,73 @@
       const tablas = tablasComisiones(det);
       if (tablas.length === 0) sinComisiones.push(codigo);
       for (const t of tablas) {
-        const encabezado = [...t.rows[0].cells].map(texto).join(" | ");
+        const nombres = [...t.rows[0].cells].map(texto);
+        const quedan = nombres.map((n, i) => (/Profesor|Docente/i.test(n) ? -1 : i)).filter((i) => i >= 0);
+        const encabezado = quedan.map((i) => nombres[i]).join(" | ");
         for (const tr of [...t.rows].slice(1)) {
           const celdas = [...tr.cells].map(texto);
-          if (celdas.some(Boolean)) filas.push([codigo, materia, periodo, anio, encabezado, celdas.join(" | ")]);
+          if (celdas.some(Boolean)) filas.push([codigo, materia, periodo, anio, comienzo, fin, encabezado, quedan.map((i) => celdas[i] ?? "").join(" | ")]);
         }
       }
     } catch (e) {
       sinComisiones.push(`${codigo} (${e.message})`);
     }
-    if (++hechos % 20 === 0) console.warn(`Comisiones: ${hechos}/${lista.length} cursos`);
+    hechos++;
   };
-  // De a 4 cursos a la vez, para no cargar al SGA
-  for (let i = 0; i < lista.length; i += 4) await Promise.all(lista.slice(i, i + 4).map(trabajar));
+  // Los cursos nuevos de cada página se procesan enseguida, de a 4 a la
+  // vez para no cargar al SGA (los links del listado pueden vencer).
+  const procesar = async (doc, base) => {
+    const nuevos = filasCursos(doc, base).filter((f) => {
+      const clave = f.celdas.slice(0, 8).join("|");
+      return !vistos.has(clave) && vistos.add(clave);
+    });
+    for (let i = 0; i < nuevos.length; i += 4) await Promise.all(nuevos.slice(i, i + 4).map(trabajar));
+    return nuevos.length > 0;
+  };
+
+  // Recorre las páginas. Primero pide la siguiente por su link; si así no
+  // aparecen cursos nuevos (el paginador actualiza la tabla sin recargar),
+  // hace clic en ">" y espera a que cambie la tabla.
+  const primeraFila = () => filasCursos(document, location.href)[0]?.celdas.join("|");
+  await procesar(document, location.href);
+  console.warn(`Página 1: ${hechos} cursos`);
+  let modoClic = false, doc = document, base = location.href;
+  for (let pagina = 2; pagina <= 200; pagina++) {
+    let nuevos = false;
+    if (!modoClic) {
+      const link = siguienteDe(doc);
+      if (!link) break;
+      const href = link.getAttribute("href");
+      if (href && !/^(javascript|#)/i.test(href)) {
+        try {
+          ({ url: base, doc } = await pedir(new URL(href, base)));
+          nuevos = await procesar(doc, base);
+        } catch { /* se prueba con clic */ }
+      }
+      if (!nuevos) modoClic = true;
+    }
+    if (modoClic) {
+      const link = siguienteDe(document);
+      if (!link) break;
+      const antes = primeraFila();
+      link.click();
+      for (let i = 0; i < 100 && primeraFila() === antes; i++) await esperar(150);
+      if (primeraFila() === antes) {
+        console.warn("La tabla no cambió al hacer clic en \">\". Link:", link.outerHTML);
+        break;
+      }
+      await esperar(300);
+      nuevos = await procesar(document, location.href);
+    }
+    if (!nuevos) break;
+    console.warn(`Página ${pagina}: ${hechos} cursos`);
+  }
 
   const csv = filas.map((f) => f.map((v) => `"${String(v ?? "").replace(/"/g, '""')}"`).join(",")).join("\n");
   const a = document.createElement("a");
-  a.href = URL.createObjectURL(new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" }));
+  a.href = URL.createObjectURL(new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" }));
   a.download = "comisiones_sga.csv";
   a.click();
   if (sinComisiones.length) console.warn(`Sin comisiones (${sinComisiones.length}): ${sinComisiones.slice(0, 30).join(", ")}`);
-  return `Listo: ${cursos.size} cursos, ${filas.length - 1} filas de comisiones`;
+  return `Listo: ${hechos} cursos, ${filas.length - 1} filas de comisiones`;
 })().then((r) => console.log(r), (e) => console.error(e));

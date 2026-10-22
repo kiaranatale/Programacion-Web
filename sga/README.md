@@ -360,6 +360,9 @@ Datos en el SQL Editor, en este orden (todos se pueden volver a correr):
 4. `supabase/seed_aulas.sql`: 227 aulas reales con su capacidad y la
    ocupación de referencia de la semana del 21/09/2026 (generado con
    `scripts/csv_a_seed_aulas.py`).
+   `supabase/seed_comisiones.sql`: comisiones reales con cupo, inscriptos
+   y horarios para el armador de horarios (generado con
+   `scripts/csv_a_seed_comisiones.py`), en el mismo paso.
 5. `supabase/seed_usuarios.sql`: personas de prueba.
 6. `supabase/seed_legajo_demo.sql`: legajo completo de la alumna.
 7. `supabase/seed_hoy.sql`: organizaciones estudiantiles y publicaciones

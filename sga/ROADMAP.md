@@ -1,6 +1,6 @@
 # Ruta de trabajo del SGA
 
-Estado del proyecto al 15/10/2026 y lo que queda. Las secciones 2 a 4 son
+Estado del proyecto al 22/10/2026 y lo que queda. Las secciones 2 a 4 son
 la revisión inicial del 01/10/2026 y la guía para levantarlo.
 
 ## 1. Qué hay hoy (y qué se probó)
@@ -12,10 +12,14 @@ la revisión inicial del 01/10/2026 y la guía para levantarlo.
 | Login, sesiones y menú por rol | Listo | Tests E2E (`app/e2e/sesion.spec.ts`) |
 | Mercado Pago (Checkout Pro + webhook) | Listo | Probado con la cuenta de prueba en Vercel |
 | Planes de estudio | A22, BIO 22, AER 25, C23, E 11, K22, B 25, S10-Rev23, P22, I22, M22 | Control de materias, créditos y correlativas en cada seed |
+| Armador de horarios (Académica) | Listo: pedido en castellano, días libres, horarios, sin superposiciones | Test E2E (`app/e2e/armador.spec.ts`) |
 | CI (GitHub Actions) | Lint y build, base de datos y E2E | En cada push y PR |
 | Deploy | Vercel (`itbasga.vercel.app`) + Supabase | — |
 
 **Qué queda:**
+- Comisiones reales de todos los cursos: `seed_comisiones.sql` tiene por
+  ahora una primera página (34 comisiones del 2C 2026). Ver "Cómo bajar
+  las comisiones y horarios del SGA actual".
 - Planes de estudio de Ingeniería Naval, Ingeniería Química, Intercambio,
   Lic. en Administración y Sistemas, Lic. en Ciencias Aplicadas, Lic. en
   Ciencias del Comportamiento y Lic. en Gestión de Negocios, y los planes
@@ -254,7 +258,7 @@ El menú de la app replica esta estructura (Encuestas, Académica,
 Legajos, Docencia, Administración, Usuario) y muestra a cada rol lo suyo.
 
 Orden de los seeds (la lista está en `scripts/seeds.sh`): `seed.sql` → `seed_plan_a22.sql` → `seed_plan_bio22.sql` → `seed_plan_aer25.sql` → `seed_plan_c23.sql` → `seed_plan_e11.sql` → `seed_plan_k22.sql` → `seed_plan_b25.sql` → `seed_plan_s10.sql` → `seed_plan_p22.sql` → `seed_plan_i22.sql` → `seed_plan_m22.sql` → `seed_cursos.sql`
-→ `seed_aulas.sql` → `seed_usuarios.sql` → `seed_legajo_demo.sql` → `seed_hoy.sql` → `seed_mensajes.sql` → `seed_autoridades_encuestas.sql` → `seed_facturas.sql` → `seed_docencia.sql` → `seed_finales.sql` → `seed_cursadas.sql` → `seed_eventos.sql` → `seed_proyectos.sql` → `seed_tramites.sql` → `seed_intercambios.sql`. Las materias del A22 que no
+→ `seed_aulas.sql` → `seed_comisiones.sql` → `seed_usuarios.sql` → `seed_legajo_demo.sql` → `seed_hoy.sql` → `seed_mensajes.sql` → `seed_autoridades_encuestas.sql` → `seed_facturas.sql` → `seed_docencia.sql` → `seed_finales.sql` → `seed_cursadas.sql` → `seed_eventos.sql` → `seed_proyectos.sql` → `seed_tramites.sql` → `seed_intercambios.sql`. Las materias del A22 que no
 se dictan en el período cargado siguen en el departamento "A confirmar".
 
 #### Cómo bajar la ocupación de aulas del SGA actual
@@ -401,7 +405,21 @@ cursos del cuatrimestre, con sus horarios:
    todas las páginas, entra a la solapa "Comisiones" de cada curso (de a 4
    a la vez) y descarga `comisiones_sga.csv`. Tarda unos minutos; el avance
    se ve en la consola.
-3. Con ese CSV se genera el seed de comisiones y horarios.
+   Si el paginador del SGA no recarga la página, el script hace clic en
+   ">" y espera a que cambie la tabla. No baja la columna de profesores.
+3. `python3 sga/scripts/csv_a_seed_comisiones.py comisiones_sga.csv > sga/supabase/seed_comisiones.sql`
+   y correr el seed después de `seed_cursos.sql` y `seed_aulas.sql`. Se
+   puede volver a correr: actualiza cupos e inscriptos y reemplaza los
+   horarios de esas comisiones.
+
+El armador (`/armador`, `lib/armador.ts` y `lib/armador-texto.ts`) corre
+en el navegador: un intérprete de reglas fijas traduce el pedido ("viernes
+libre, no antes de las 10, sin huecos, quiero Álgebra Lineal") a
+preferencias, y una búsqueda con poda arma las combinaciones sin
+superposiciones, ordenadas por materias que entran, días y huecos. No usa
+servicios externos; `interpretar()` tiene la firma para cambiarlo por un
+modelo de lenguaje si algún día se quiere (con la clave solo en el
+servidor).
 
 #### Cómo bajar un plan de estudios del SGA actual
 

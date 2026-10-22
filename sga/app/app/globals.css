@@ -606,6 +606,8 @@ img.sga-foto { object-fit: cover; }
 @media (max-width: 1100px) { .sga-hoy { grid-template-columns: minmax(0, 1fr); } }
 .sga-hoy-filtros { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 14px; font-size: 13px; }
 .sga-hoy-filtros input { min-width: 240px; }
+.sga-hoy-filtros label { min-width: 0; max-width: 100%; }
+.sga-hoy-filtros select { max-width: 100%; }
 .sga-post { margin-bottom: 14px; padding: 16px 18px; border: 1px solid var(--borde); border-radius: var(--radio); background: var(--superficie); }
 .sga-post-anotado { border-color: var(--exito-borde); background: var(--exito-suave); }
 .sga-post header { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 12px; }
@@ -693,3 +695,103 @@ img.sga-foto { object-fit: cover; }
   .sga-calendario-tabla { display: none; }
   .sga-calendario-lista { display: block; }
 }
+
+/* ==========================================================================
+   Armador de horarios
+   ========================================================================== */
+:root {
+  --c0: #2563eb; --c0-suave: #dbeafe; --c1: #059669; --c1-suave: #d1fae5;
+  --c2: #d97706; --c2-suave: #fef3c7; --c3: #db2777; --c3-suave: #fce7f3;
+  --c4: #7c3aed; --c4-suave: #ede9fe; --c5: #0891b2; --c5-suave: #cffafe;
+  --c6: #dc2626; --c6-suave: #fee2e2; --c7: #4d7c0f; --c7-suave: #ecfccb;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --c0: #60a5fa; --c0-suave: rgb(96 165 250 / 18%); --c1: #34d399; --c1-suave: rgb(52 211 153 / 16%);
+    --c2: #fbbf24; --c2-suave: rgb(251 191 36 / 16%); --c3: #f472b6; --c3-suave: rgb(244 114 182 / 16%);
+    --c4: #a78bfa; --c4-suave: rgb(167 139 250 / 18%); --c5: #22d3ee; --c5-suave: rgb(34 211 238 / 15%);
+    --c6: #f87171; --c6-suave: rgb(248 113 113 / 16%); --c7: #a3e635; --c7-suave: rgb(163 230 53 / 14%);
+  }
+}
+.sga-color-0 { --c: var(--c0); --c-suave: var(--c0-suave); }
+.sga-color-1 { --c: var(--c1); --c-suave: var(--c1-suave); }
+.sga-color-2 { --c: var(--c2); --c-suave: var(--c2-suave); }
+.sga-color-3 { --c: var(--c3); --c-suave: var(--c3-suave); }
+.sga-color-4 { --c: var(--c4); --c-suave: var(--c4-suave); }
+.sga-color-5 { --c: var(--c5); --c-suave: var(--c5-suave); }
+.sga-color-6 { --c: var(--c6); --c-suave: var(--c6-suave); }
+.sga-color-7 { --c: var(--c7); --c-suave: var(--c7-suave); }
+
+.sga-armador { display: grid; grid-template-columns: minmax(300px, 360px) minmax(0, 1fr); gap: 20px; align-items: start; margin-top: 8px; }
+/* En pantallas angostas: el pedido, después el resultado, después ajustes y materias */
+@media (max-width: 1100px) {
+  .sga-armador { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+  .sga-armador-panel { display: contents; }
+  .sga-armador-pedido { order: 1; }
+  .sga-armador-resultado { order: 2; }
+  .sga-armador-ajustes { order: 3; }
+  .sga-armador-materias { order: 4; }
+}
+.sga-armador-panel { display: grid; gap: 14px; }
+.sga-armador-pedido, .sga-armador-ajustes, .sga-armador-materias {
+  display: grid; gap: 10px; padding: 16px; border: 1px solid var(--borde); border-radius: var(--radio); background: var(--superficie-2);
+}
+.sga-armador-pedido > label { font-size: 14px; font-weight: 600; }
+.sga-armador-pedido textarea { width: 100%; resize: vertical; }
+.sga-armador-ejemplos { display: flex; flex-wrap: wrap; gap: 6px; }
+.sga-main .sga-armador-ejemplos button { min-height: 0; padding: 4px 10px; border-radius: 999px; color: var(--texto-2); font-size: 12px; font-weight: 400; text-align: left; }
+.sga-armador-entendido { margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; list-style: none; }
+.sga-armador-entendido li { padding: 4px 10px; border-radius: 999px; background: var(--primario-suave); color: var(--primario-texto); font-size: 12px; font-weight: 500; }
+.sga-armador-entendido li::before { content: "✓ "; }
+.sga-armador-ajustes summary { font-size: 14px; font-weight: 600; cursor: pointer; }
+.sga-armador-ajustes fieldset { margin: 0; padding: 0; border: 0; }
+.sga-armador-ajustes legend { margin-bottom: 6px; color: var(--texto-2); font-size: 12px; font-weight: 500; }
+.sga-armador-dias { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; }
+.sga-main .sga-armador-dias button { padding: 6px 0; }
+.sga-main .sga-armador-dias button[aria-pressed="true"] { border-color: var(--primario); background: var(--primario); color: var(--sobre-primario); }
+.sga-armador-horas { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.sga-armador-horas label { display: grid; gap: 4px; color: var(--texto-2); font-size: 12px; font-weight: 500; }
+.sga-armador-casillas { display: grid; gap: 6px; font-size: 13px; }
+.sga-armador-casillas label, .sga-armador-todas { display: flex; align-items: center; gap: 8px; }
+.sga-armador-todas { font-size: 12px; color: var(--texto-2); }
+.sga-main .sga-armador-limpiar { justify-self: start; min-height: 0; padding: 0; border: 0; background: none; color: var(--primario-texto); font-size: 12px; }
+.sga-main .sga-armador-limpiar:hover { background: none; text-decoration: underline; }
+.sga-armador-materias { max-height: 640px; overflow-y: auto; }
+.sga-armador-materias-encabezado { display: flex; align-items: center; justify-content: space-between; }
+.sga-armador-materias h3 { margin: 0; font-size: 14px; }
+.sga-main .sga-armador-materias-encabezado button { min-height: 0; padding: 2px 8px; font-size: 12px; }
+.sga-armador-materias h4 { margin: 8px 0 4px; color: var(--texto-3); font-size: 11px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; }
+.sga-armador-materias ul { margin: 0; padding: 0; list-style: none; }
+.sga-armador-materias li { padding: 6px 0; border-bottom: 1px solid var(--borde); }
+.sga-armador-materias li:last-child { border-bottom: 0; }
+.sga-armador-materias li label { display: flex; align-items: flex-start; gap: 8px; font-size: 13px; cursor: pointer; }
+.sga-armador-materias li input { flex: none; margin-top: 2px; }
+.sga-armador-materias li small { display: block; padding-left: 24px; color: var(--texto-3); font-size: 11px; }
+.sga-armador-materias li.is-deshabilitada label { color: var(--texto-3); cursor: default; }
+
+.sga-armador-resultado { display: grid; gap: 14px; min-width: 0; }
+.sga-armador-navegacion { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.sga-main .sga-armador-navegacion > button { width: 34px; padding: 0; font-size: 18px; }
+.sga-armador-resumen { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 0 auto; padding: 0; list-style: none; }
+.sga-armador-resumen li { padding: 3px 10px; border-radius: 999px; background: var(--superficie-3); color: var(--texto-2); font-size: 12px; font-weight: 500; }
+.sga-armador-resumen li.is-alerta { background: var(--peligro-suave); color: var(--peligro); }
+.sga-armador-color { display: inline-block; width: 10px; height: 10px; margin-right: 8px; border-radius: 3px; background: var(--c); }
+.sga-armador-descartadas { margin: 8px 0 0; padding-left: 18px; color: var(--texto-2); line-height: 1.6; }
+
+.sga-semana-scroll { overflow-x: auto; border: 1px solid var(--borde); border-radius: var(--radio); background: var(--superficie); }
+.sga-semana { position: relative; display: grid; padding-bottom: 12px; grid-template-columns: 52px repeat(var(--dias), minmax(110px, 1fr)); min-width: calc(52px + var(--dias) * 110px); }
+.sga-semana-horas { position: relative; height: var(--alto); margin-top: 38px; }
+.sga-semana-horas span { position: absolute; right: 8px; transform: translateY(-50%); color: var(--texto-3); font-size: 11px; font-variant-numeric: tabular-nums; }
+.sga-semana-dia { border-left: 1px solid var(--borde); }
+.sga-semana-nombre { height: 38px; display: grid; place-items: center; border-bottom: 1px solid var(--borde); color: var(--texto-2); font-size: 12px; font-weight: 600; }
+.sga-semana-cuerpo {
+  position: relative; height: var(--alto);
+  background-image: repeating-linear-gradient(to bottom, var(--borde) 0 1px, transparent 1px var(--hora));
+}
+.sga-semana-bloque {
+  position: absolute; left: 4px; right: 4px; display: flex; flex-direction: column; gap: 1px; overflow: hidden; padding: 5px 7px;
+  border-left: 3px solid var(--c); border-radius: 6px; background: var(--c-suave); color: var(--texto); font-size: 11px; line-height: 1.25;
+}
+.sga-semana-bloque strong { color: var(--c); font-size: 12px; }
+.sga-semana-bloque span { overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.sga-semana-bloque small { color: var(--texto-2); font-size: 10px; }
