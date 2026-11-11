@@ -1,4 +1,6 @@
-import { getCursadas } from "@/lib/cursadas";
+import Link from "next/link";
+import { clavePeriodo, getCursadas } from "@/lib/cursadas";
+import { hoy } from "@/lib/hoy";
 import { fecha, getLegajoActual, periodo } from "@/lib/legajo";
 import { createClient } from "@/lib/supabase/server";
 import { getSesion } from "@/lib/sesion";
@@ -14,7 +16,8 @@ const colores = ["#f26b6b", "#9fc8f5", "#c9ef9f", "#a9a2f2", "#5fd6e8", "#f5c26b
 const aMinutos = (h: string) => Number(h.slice(0, 2)) * 60 + Number(h.slice(3, 5));
 const aHora = (m: number) => `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
 
-export default async function CalendarioSemanal() {
+export default async function CalendarioSemanal({ searchParams }: PageProps<"/legajo/alumno/calendario">) {
+  const pedido = (await searchParams).periodo;
   const { legajo } = await getLegajoActual();
   if (!legajo) return null;
 
@@ -28,7 +31,16 @@ export default async function CalendarioSemanal() {
     sga.from("notificacion").update({ leida: true }).eq("persona_id", sesion?.persona?.id ?? 0).eq("tipo", "AUSENCIA").eq("leida", false),
   ]);
   const suspendidas = (suspendidasData ?? []) as Suspendida[];
-  const cursando = cursadas.filter((c) => c.estado === "CURSANDO");
+  // Un cuatrimestre por vez: el actual (o, si no cursa nada en él, el más
+  // cercano), con links a los otros en los que tiene cursadas
+  const todasCursando = cursadas.filter((c) => c.estado === "CURSANDO");
+  const periodos = [...new Set(todasCursando.map(clavePeriodo))].sort();
+  const [anioHoy, mesHoy] = hoy().split("-").map(Number);
+  const actualHoy = `${anioHoy}-${mesHoy >= 8 ? "2C" : "1C"}`;
+  const elegido = typeof pedido === "string" && periodos.includes(pedido) ? pedido
+    : periodos.includes(actualHoy) ? actualHoy
+    : periodos.find((p) => p > actualHoy) ?? periodos.at(-1);
+  const cursando = todasCursando.filter((c) => clavePeriodo(c) === elegido);
   const bloques = cursando.flatMap((c, i) =>
     (c.comision?.horario_comision ?? []).map((h) => ({
       dia: h.dia_semana,
@@ -49,6 +61,10 @@ export default async function CalendarioSemanal() {
     <>
       <p className="sga-texto">
         Calendario actual: <strong>{actual ? periodo(actual.anio, actual.periodo) : "sin cursadas en curso"}</strong>
+        {periodos.filter((p) => p !== elegido).map((p) => {
+          const [anio, per] = p.split("-");
+          return <span key={p}> · <Link href={`?periodo=${p}`}>Ver {periodo(Number(anio), per)}</Link></span>;
+        })}
       </p>
       {suspendidas.length > 0 && (
         <div className="sga-alerta sga-suspendidas">

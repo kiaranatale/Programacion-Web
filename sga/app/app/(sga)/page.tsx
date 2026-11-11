@@ -1,13 +1,61 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { getCursosEnProgreso } from "@/lib/cursos";
+import Semana, { type BloqueSemana } from "@/components/semana";
+import { DIA_DE, minutos } from "@/lib/armador";
+import { getCursosEnProgreso, type CursoEnProgreso } from "@/lib/cursos";
 import { hoy } from "@/lib/hoy";
-import { getLegajoActual } from "@/lib/legajo";
+import { getLegajoActual, periodo } from "@/lib/legajo";
 import { destinoNotificacion } from "@/lib/notificaciones";
 import { getSesion } from "@/lib/sesion";
 
 type Notificacion = { id: number; tipo: string; mensaje: string };
 type Cronograma = { id: number; anio: number; nombre: string; url_archivo: string };
+
+// Bloques de la grilla semanal: un color por curso
+function bloquesDe(cursos: CursoEnProgreso[]): BloqueSemana[] {
+  return cursos.flatMap((c, color) => c.comisiones.flatMap((co) => co.bloques.map((h) => ({
+    dia: DIA_DE[h.dia_semana] ?? 0,
+    desde: minutos(h.hora_inicio),
+    hasta: minutos(h.hora_fin),
+    modalidad: h.modalidad as BloqueSemana["modalidad"],
+    codigo: c.codigo,
+    materia: c.nombre,
+    comision: co.nombre,
+    detalle: h.aula ? `Aula ${h.aula.codigo}${h.aula.edificio ? ` · ${h.aula.edificio.nombre}` : ""}` : "",
+    color,
+  }))));
+}
+
+// Tabla de cursos con sus comisiones y horarios
+function TablaCursos({ cursos }: { cursos: CursoEnProgreso[] }) {
+  return (
+    <div className="sga-tabla-scroll">
+      <table className="sga-tabla">
+        <thead>
+          <tr><th>Curso</th><th>Horarios</th><th>Acciones</th></tr>
+        </thead>
+        <tbody>
+          {cursos.map((curso) => (
+            <tr key={curso.id}>
+              <td className="sga-curso">{curso.codigo} - {curso.nombre}</td>
+              <td className="sga-horarios">
+                {curso.comisiones.map((comision) => (
+                  <div key={comision.nombre}>
+                    <strong>{comision.nombre}</strong>{" "}
+                    {comision.horarios.length > 0 ? comision.horarios.join(" | ") : "Sin horarios cargados"}
+                  </div>
+                ))}
+              </td>
+              <td className="sga-col-lupa">
+                <Link aria-label={`Ver detalles de ${curso.nombre}`} href={`/cursos/${curso.id}`}>🔍</Link>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
 
 // Accesos de las cajas superiores; se convierten en links a medida que se
 // implementa cada módulo.
@@ -50,6 +98,24 @@ export default async function Inicio() {
     sga.rpc("encuestas_para_mi"),
     getLegajoActual(),
   ]);
+  // Solicitudes de cursada que esperan la asignación de vacantes (el
+  // alumno queda inscripto recién cuando Administración la confirma)
+  const [{ data: solicitudes }, { data: periodosInscripcion }] = legajo
+    ? await Promise.all([
+        sga.from("solicitud_cursada").select("curso:curso_id(anio, periodo)")
+          .eq("legajo_id", legajo.id).in("estado", ["PENDIENTE", "ASIGNADA"])
+          .returns<{ curso: { anio: number; periodo: string } | null }[]>(),
+        sga.from("periodo_inscripcion_cursada").select("anio, periodo")
+          .eq("asignacion_confirmada", false).returns<{ anio: number; periodo: string }[]>(),
+      ])
+    : [{ data: [] }, { data: [] }];
+  const sinConfirmar = new Set((periodosInscripcion ?? []).map((p) => `${p.anio}-${p.periodo}`));
+  const solicitudesEnEspera = (solicitudes ?? []).filter((s) => s.curso && sinConfirmar.has(`${s.curso.anio}-${s.curso.periodo}`)).length;
+  // En curso (ya empezaron) y del próximo cuatrimestre (todavía no)
+  const hoyStr = hoy();
+  const enCurso = cursos.filter((c) => c.fechaInicio <= hoyStr);
+  const proximos = cursos.filter((c) => c.fechaInicio > hoyStr);
+  const conGrilla = !sesion.roles.includes("ADMINISTRATIVO");
   const encuestasPendientes = ((encuestas ?? []) as { estado: string; respondida: boolean }[])
     .filter((e) => e.estado === "ACTIVA" && !e.respondida).length;
   // Docentes: notas de final pendientes de mesas ya tomadas
@@ -75,12 +141,21 @@ export default async function Inicio() {
       <section className="sga-panel sga-cajas">
         <div className="sga-caja">
           <h3>Notificaciones</h3>
-          {(sinLeer ?? 0) > 0 || encuestasPendientes > 0 || notasPendientes > 0 || (tramitesAbiertos ?? 0) > 0 || (notificaciones && notificaciones.length > 0) ? (
+          {(sinLeer ?? 0) > 0 || solicitudesEnEspera > 0 || encuestasPendientes > 0 || notasPendientes > 0 || (tramitesAbiertos ?? 0) > 0 || (notificaciones && notificaciones.length > 0) ? (
             <ul>
               {(sinLeer ?? 0) > 0 && (
                 <li>
                   <Link href="/usuario/mensajes">
                     {sinLeer === 1 ? "Tenés 1 mensaje sin leer" : `Tenés ${sinLeer} mensajes sin leer`}
+                  </Link>
+                </li>
+              )}
+              {solicitudesEnEspera > 0 && (
+                <li>
+                  <Link href="/inscripciones/cursadas">
+                    {solicitudesEnEspera === 1
+                      ? "Tenés 1 solicitud de cursada esperando la asignación de vacantes"
+                      : `Tenés ${solicitudesEnEspera} solicitudes de cursada esperando la asignación de vacantes`}
                   </Link>
                 </li>
               )}
@@ -131,9 +206,10 @@ export default async function Inicio() {
         </div>
       </section>
 
-      <section className="sga-panel">
-        <h2 className="sga-titulo">Cronogramas Académicos</h2>
-        {cronogramas && cronogramas.length > 0 ? (
+      {/* Calendarios académicos en PDF: solo si hay alguno cargado */}
+      {cronogramas && cronogramas.length > 0 && (
+        <section className="sga-panel">
+          <h2 className="sga-titulo">Cronogramas Académicos</h2>
           <ul className="sga-cronogramas">
             {cronogramas.map((c) => (
               <li key={c.id}>
@@ -141,43 +217,28 @@ export default async function Inicio() {
               </li>
             ))}
           </ul>
-        ) : (
-          <p className="sga-vacio">No hay cronogramas cargados.</p>
-        )}
-      </section>
+        </section>
+      )}
 
       <section className="sga-panel">
         <h2 className="sga-titulo">Cursos en progreso</h2>
-        {cursos.length > 0 ? (
-          <div className="sga-tabla-scroll">
-            <table className="sga-tabla">
-              <thead>
-                <tr><th>Curso</th><th>Horarios</th><th>Acciones</th></tr>
-              </thead>
-              <tbody>
-                {cursos.map((curso) => (
-                  <tr key={curso.id}>
-                    <td className="sga-curso">{curso.codigo} - {curso.nombre}</td>
-                    <td className="sga-horarios">
-                      {curso.comisiones.map((comision) => (
-                        <div key={comision.nombre}>
-                          <strong>{comision.nombre}</strong>{" "}
-                          {comision.horarios.length > 0 ? comision.horarios.join(" | ") : "Sin horarios cargados"}
-                        </div>
-                      ))}
-                    </td>
-                    <td className="sga-col-lupa">
-                      <Link aria-label={`Ver detalles de ${curso.nombre}`} href={`/cursos/${curso.id}`}>🔍</Link>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+        {enCurso.length > 0 ? (
+          <>
+            {conGrilla && <Semana bloques={bloquesDe(enCurso)} />}
+            <TablaCursos cursos={enCurso} />
+          </>
         ) : (
           <p className="sga-vacio">No tenés cursos en progreso.</p>
         )}
       </section>
+
+      {proximos.length > 0 && (
+        <section className="sga-panel">
+          <h2 className="sga-titulo">Próximo cuatrimestre · {periodo(proximos[0].anio, proximos[0].periodo)}</h2>
+          {conGrilla && <Semana bloques={bloquesDe(proximos)} />}
+          <TablaCursos cursos={proximos} />
+        </section>
+      )}
     </>
   );
 }

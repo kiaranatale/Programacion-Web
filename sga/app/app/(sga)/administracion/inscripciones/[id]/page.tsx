@@ -92,19 +92,27 @@ export default async function AsignacionDeVacantes({ params, searchParams }: Pag
       ) : !editable ? (
         <p className="sga-ayuda">La asignación se hace cuando termina la primera inscripción (el {fecha(p.hasta)}).</p>
       ) : (
-        <div className="sga-form-fecha-final">
-          <form action={asignarAutomaticamente}>
-            <input name="periodo_id" type="hidden" value={p.id} />
-            <button type="submit">Asignar automáticamente</button>
-          </form>
-          <form action={confirmarAsignacion}>
-            <input name="periodo_id" type="hidden" value={p.id} />
-            <button className="sga-boton-secundario" type="submit">Confirmar asignación</button>
-          </form>
-          <span className="sga-ayuda">
-            {asignadas} asignadas · {pendientes} pendientes. Al confirmar, las pendientes quedan como no asignadas.
-          </span>
-        </div>
+        <>
+          {asignadas > 0 && (
+            <p className="sga-panel sga-aviso" role="status">
+              {asignadas === 1 ? "Hay 1 solicitud asignada" : `Hay ${asignadas} solicitudes asignadas`} que los alumnos todavía
+              no ven: quedan inscriptos recién cuando confirmes la asignación.
+            </p>
+          )}
+          <div className="sga-form-fecha-final">
+            <form action={asignarAutomaticamente}>
+              <input name="periodo_id" type="hidden" value={p.id} />
+              <button className="sga-boton-secundario" type="submit">Asignar automáticamente</button>
+            </form>
+            <form action={confirmarAsignacion}>
+              <input name="periodo_id" type="hidden" value={p.id} />
+              <button type="submit">Confirmar asignación</button>
+            </form>
+            <span className="sga-ayuda">
+              {asignadas} asignadas · {pendientes} pendientes. Al confirmar, las asignadas quedan inscriptas y las pendientes, como no asignadas.
+            </span>
+          </div>
+        </>
       )}
 
       {comisiones.size === 0 && <p className="sga-vacio">Nadie hizo solicitudes en este cuatrimestre.</p>}
