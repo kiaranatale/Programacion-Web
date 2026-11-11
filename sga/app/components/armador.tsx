@@ -113,7 +113,8 @@ export default function Armador({ materias, conLegajo, inscripcionAbierta }: {
   const entender = (texto: string) => {
     const r = interpretar(texto, ofrecidas);
     setEntendido(r.entendido);
-    setPref((p) => ({ ...p, ...r.preferencias }));
+    // Cada pedido arranca de cero: lo que no menciona vuelve a "cualquiera"
+    setPref({ ...preferenciasVacias, ...r.preferencias });
     if (r.preferencias.incluir?.length || r.preferencias.excluir?.length) {
       setSeleccion((s) => {
         const nueva = new Set(s);

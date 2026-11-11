@@ -29,3 +29,21 @@ test("armador: la lista arranca con lo que falta cursar, en el orden del plan", 
   await page.getByLabel("Mostrar también las que ya aprobé o estoy cursando").check();
   await expect.poll(() => lista.locator("li").count()).toBeGreaterThan(antes);
 });
+
+test("armador: cada pedido arranca de cero y lee bien las negaciones de horario", async ({ page }) => {
+  await entrar(page, "alumno");
+  await page.goto("/armador");
+  // Un pedido anterior con "sin huecos" no tiene que quedar marcado
+  await page.getByRole("button", { name: "Solo puedo de lunes a jueves, sin huecos entre clases" }).click();
+  await expect(page.getByLabel("Sin huecos entre clases")).toBeChecked();
+
+  await page.fill("#pedido", "Quiero los viernes libres y no quiero salir despues de las 19");
+  await page.getByRole("button", { name: "Armar horarios" }).click();
+  const entendido = page.getByRole("list", { name: "Lo que entendí" });
+  await expect(entendido).toContainText("Día libre: viernes");
+  await expect(entendido).toContainText("Salir a más tardar a las 19:00");
+  await expect(entendido).not.toContainText("Entrar");
+  await expect(page.getByLabel("Entrar desde")).toHaveValue("");
+  await expect(page.getByLabel("Salir hasta")).toHaveValue(String(19 * 60));
+  await expect(page.getByLabel("Sin huecos entre clases")).not.toBeChecked();
+});
