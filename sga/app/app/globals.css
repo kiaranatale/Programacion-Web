@@ -824,3 +824,4 @@ img.sga-foto { object-fit: cover; }
 .sga-semana-bloque strong { color: var(--c); font-size: 12px; }
 .sga-semana-bloque span { overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
 .sga-semana-bloque small { color: var(--texto-2); font-size: 10px; }
+.sga-panel > .sga-semana-scroll { margin-bottom: 14px; }

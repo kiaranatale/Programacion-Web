@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState, type CSSProperties } from "react";
+import { useMemo, useState } from "react";
+import Semana, { type BloqueSemana } from "@/components/semana";
 import {
   armar, DIAS, hora, llena, preferenciasVacias,
   type Bloque, type MateriaArmador, type Opcion, type Preferencias,
@@ -26,51 +27,11 @@ const textoBloque = (b: Bloque) =>
 
 // Grilla semanal de una opción: un color por materia
 function Grilla({ opcion }: { opcion: Opcion }) {
-  const bloques = opcion.elecciones.flatMap((e, color) =>
-    e.comision.bloques.map((b) => ({ ...b, color, codigo: e.materia.codigo, materia: e.materia.nombre, comision: e.comision.nombre })));
-  const enGrilla = bloques.filter((b) => b.modalidad !== "VIRTUAL_ASINCRONICO");
-  const asincronicos = bloques.filter((b) => b.modalidad === "VIRTUAL_ASINCRONICO");
-  const dias = [0, 1, 2, 3, 4, ...(enGrilla.some((b) => b.dia === 5) ? [5] : []), ...(enGrilla.some((b) => b.dia === 6) ? [6] : [])];
-  const inicio = Math.min(8 * 60, ...enGrilla.map((b) => Math.floor(b.desde / 60) * 60));
-  const fin = Math.max(inicio + 6 * 60, ...enGrilla.map((b) => Math.ceil(b.hasta / 60) * 60));
-  const escala = 0.9; // px por minuto
-  const horas = Array.from({ length: (fin - inicio) / 60 + 1 }, (_, i) => inicio + i * 60);
-
-  return (
-    <>
-      <div className="sga-semana-scroll">
-        <div className="sga-semana" style={{ "--dias": dias.length, "--alto": `${(fin - inicio) * escala}px`, "--hora": `${60 * escala}px` } as CSSProperties}>
-          <div className="sga-semana-horas" aria-hidden="true">
-            {horas.map((h) => <span key={h} style={{ top: (h - inicio) * escala }}>{hora(h)}</span>)}
-          </div>
-          {dias.map((d) => (
-            <div className="sga-semana-dia" key={d}>
-              <div className="sga-semana-nombre">{DIAS[d]}</div>
-              <div className="sga-semana-cuerpo">
-                {enGrilla.filter((b) => b.dia === d).map((b, i) => (
-                  <div
-                    className={`sga-semana-bloque sga-color-${b.color % 8}`}
-                    key={i}
-                    style={{ top: (b.desde - inicio) * escala, height: (b.hasta - b.desde) * escala }}
-                    title={`${b.codigo} ${b.materia} · Comisión ${b.comision} · ${textoBloque(b)}`}
-                  >
-                    <strong>{b.codigo}</strong>
-                    <span>{b.materia}</span>
-                    <small>{hora(b.desde)}–{hora(b.hasta)} · {b.comision}{b.modalidad === "VIRTUAL_SINCRONICO" ? " · virtual" : ""}</small>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-      {asincronicos.length > 0 && (
-        <p className="sga-ayuda">
-          Virtual asincrónica (sin horario fijo): {asincronicos.map((b) => `${b.codigo} ${DIAS[b.dia].toLowerCase()} ${hora(b.desde)}`).join(" · ")}
-        </p>
-      )}
-    </>
-  );
+  const bloques: BloqueSemana[] = opcion.elecciones.flatMap((e, color) =>
+    e.comision.bloques.map((b) => ({
+      ...b, color, codigo: e.materia.codigo, materia: e.materia.nombre, comision: e.comision.nombre, detalle: textoBloque(b),
+    })));
+  return <Semana bloques={bloques} />;
 }
 
 // Armador de horarios: el pedido en castellano se traduce a preferencias

@@ -1,8 +1,17 @@
 import { createClient } from "@/lib/supabase/server";
 import type { Sesion } from "@/lib/sesion";
 
-export type ComisionEnCurso = { nombre: string; horarios: string[] };
-export type CursoEnProgreso = { id: number; codigo: string; nombre: string; comisiones: ComisionEnCurso[] };
+export type ComisionEnCurso = { nombre: string; horarios: string[]; bloques: HorarioRow[] };
+export type CursoEnProgreso = {
+  id: number;
+  codigo: string;
+  nombre: string;
+  anio: number;
+  periodo: string;
+  fechaInicio: string;
+  fechaFin: string;
+  comisiones: ComisionEnCurso[];
+};
 
 export type HorarioRow = {
   dia_semana: string;
@@ -14,14 +23,17 @@ export type HorarioRow = {
 type ComisionRow = {
   nombre: string;
   horario_comision: HorarioRow[];
-  curso: { id: number; activo: boolean; materia: { codigo: string; nombre: string } | null } | null;
+  curso: {
+    id: number; activo: boolean; anio: number; periodo: string; fecha_inicio: string; fecha_fin: string;
+    materia: { codigo: string; nombre: string } | null;
+  } | null;
 };
 
 const COMISION_SELECT = `
   nombre,
   horario_comision(dia_semana, hora_inicio, hora_fin, modalidad,
     aula:aula_id(codigo, edificio:edificio_id(nombre))),
-  curso:curso_id(id, activo, materia:materia_id(codigo, nombre))
+  curso:curso_id(id, activo, anio, periodo, fecha_inicio, fecha_fin, materia:materia_id(codigo, nombre))
 `;
 
 export const dias: Record<string, string> = {
@@ -51,12 +63,15 @@ function agrupar(comisiones: ComisionRow[]): CursoEnProgreso[] {
       id: c.curso.id,
       codigo: c.curso.materia.codigo,
       nombre: c.curso.materia.nombre,
+      anio: c.curso.anio,
+      periodo: c.curso.periodo,
+      fechaInicio: c.curso.fecha_inicio,
+      fechaFin: c.curso.fecha_fin,
       comisiones: [],
     };
-    const horarios = [...c.horario_comision]
-      .sort((a, b) => ordenDias.indexOf(a.dia_semana) - ordenDias.indexOf(b.dia_semana))
-      .map(formatearHorario);
-    curso.comisiones.push({ nombre: c.nombre, horarios });
+    const bloques = [...c.horario_comision]
+      .sort((a, b) => ordenDias.indexOf(a.dia_semana) - ordenDias.indexOf(b.dia_semana) || a.hora_inicio.localeCompare(b.hora_inicio));
+    curso.comisiones.push({ nombre: c.nombre, horarios: bloques.map(formatearHorario), bloques });
     cursos.set(c.curso.id, curso);
   }
   return [...cursos.values()]
