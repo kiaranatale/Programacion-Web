@@ -10,7 +10,7 @@ export type Interpretacion = { preferencias: Partial<Preferencias>; entendido: s
 type MateriaNombre = { codigo: string; nombre: string };
 
 const normalizar = (s: string) =>
-  s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9:.ñ\s]/g, " ").replace(/\s+/g, " ").trim();
+  s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9:.ñ\s]/g, " ").replace(/\s+/g, " ").trim();
 
 const DIA_NORMAL: Record<string, number> = {
   lunes: 0, martes: 1, miercoles: 2, jueves: 3, viernes: 4, sabado: 5, sabados: 5, domingo: 6, domingos: 6,
