@@ -1,20 +1,20 @@
 # Ruta de trabajo del SGA
 
-Estado del proyecto al 22/10/2026 y lo que queda. Las secciones 2 a 4 son
+Estado del proyecto al 23/11/2026 y lo que queda. Las secciones 2 a 4 son
 la revisión inicial del 01/10/2026 y la guía para levantarlo.
 
 ## 1. Qué hay hoy (y qué se probó)
 
 | Pieza | Estado | Verificado |
 |---|---|---|
-| Schema `sga` (37 migraciones), triggers y políticas RLS por rol | Listo | 22 tests SQL en CI (`scripts/probar_base.sh`) |
+| Schema `sga` (38 migraciones), triggers y políticas RLS por rol | Listo | 21 tests SQL en CI (`scripts/probar_base.sh`) |
 | Pantallas del SGA actual | Todas las relevadas (ver la tabla del Paso 2) | Probadas a mano y con Playwright |
 | Login, sesiones y menú por rol | Listo | Tests E2E (`app/e2e/sesion.spec.ts`) |
 | Mercado Pago (Checkout Pro + webhook) | Listo | Probado con la cuenta de prueba en Vercel |
 | Planes de estudio | A22, BIO 22, AER 25, C23, E 11, K22, B 25, S10-Rev23, P22, I22, M22 | Control de materias, créditos y correlativas en cada seed |
 | Armador de horarios (Académica) | Listo: pedido en castellano, días libres, horarios, sin superposiciones | Test E2E (`app/e2e/armador.spec.ts`) |
 | CI (GitHub Actions) | Lint y build, base de datos y E2E | En cada push y PR |
-| Deploy | Vercel (`itbasga.vercel.app`) + Supabase | — |
+| Deploy | Vercel (https://itbasga.vercel.app) + Supabase | Se publica solo al mergear a `main` |
 
 **Qué queda:**
 - Bajar las comisiones del próximo cuatrimestre cuando el SGA publique la

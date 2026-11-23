@@ -6,82 +6,112 @@ anterior) — no reemplaza ni depende de él, aunque reutiliza varios patrones
 de diseño validados ahí (triggers para reglas de negocio, catálogos
 protegidos, campos derivados en vez de carga manual).
 
+## Sitio publicado
+
+**https://itbasga.vercel.app**: se publica solo desde la rama `main`
+(Vercel), con la base en Supabase.
+
+Usuarios de prueba (personas ficticias), todos con la contraseña `123456`:
+
+| Rol | Mail |
+|---|---|
+| Alumna | `alumno.demo@itba.edu.ar` |
+| Docente | `docente.demo@itba.edu.ar` |
+| Administración | `admin.demo@itba.edu.ar` |
+
+### Cómo probar el pago con Mercado Pago
+
+La app usa la cuenta de prueba de Mercado Pago (no se mueve plata real).
+
+1. Entrar como `alumno.demo@itba.edu.ar` e ir a **Legajos → Mi legajo →
+   Estado de cuenta**.
+2. En una factura impaga, tocar **Ver detalle y pagar** y después
+   **Pagar $ … con Mercado Pago**.
+3. En Mercado Pago, ingresar con el usuario comprador de prueba:
+   - Usuario: `TESTUSER1041472329563522996`
+   - Contraseña: `OZHtpq8wwy`
+4. Pagar con la tarjeta de prueba:
+   - Mastercard `5031 7557 3453 0604`
+   - Código de seguridad: `123`
+   - Vencimiento: `11/30`
+5. Al volver al SGA, la factura figura como pagada (la confirma el webhook
+   de Mercado Pago).
+
 ## Estado actual
 
-Disponible:
+El SGA funciona de punta a punta: app Next.js conectada a Supabase, con
+login, menú por rol y las pantallas relevadas del SGA actual, salvo
+"Información personal", que sale de un sistema externo (el detalle por
+pantalla está en la tabla del Paso 2 de [ROADMAP.md](ROADMAP.md)).
 
-- Modelo de datos completo (schema `sga`) cubriendo los 6 dominios
-  relevados: Identidad/Persona, Alumno-Legajo, Facturación, Plan de
-  estudios/Cursada, Aulas/Infraestructura, Docentes, e Institucional.
-- Triggers con las reglas de negocio principales (ver detalle abajo).
-- Suite de smoke tests que valida el modelo contra un Postgres real.
+- **Base de datos**: schema `sga` en Supabase (38 migraciones), reglas de
+  negocio en triggers y funciones, y políticas RLS por rol sobre todas las
+  tablas. Datos reales del SGA actual: carreras, 11 planes de estudio,
+  cursos, aulas y 781 comisiones con horarios del 2C 2026.
+- **Login y roles**: Supabase Auth (ingreso, cierre de sesión, recuperación
+  y cambio de clave). El usuario de Auth se vincula solo con su `persona`
+  por el mail institucional. Cada rol (alumno, docente, ayudante,
+  administrativo) ve su menú y lo que la base le permite.
+- **Alumno**: Mi legajo (datos, analítico, historia académica, calendario
+  semanal, documentación, estado de cuenta, planes de pago, proyectos),
+  inscripción a cursadas, a finales y a eventos, trámites, intercambios,
+  encuestas, mensajes, Hoy en el ITBA y el armador de horarios.
+- **Docente**: sus comisiones, carga de notas de cursada y de final, y
+  ausencias.
+- **Administración**: personas, oferta de cursos, facturación, planes de
+  pago, documentación, inscripción a cursadas (asignación de vacantes),
+  turnos de examen, trámites, ausencias, intercambios, eventos, proyectos
+  y organizaciones.
+- **Pagos con Mercado Pago**: Checkout Pro y webhook
+  (`app/app/api/mercadopago/webhook/route.ts`) que confirma el pago y marca
+  las facturas como pagadas.
+- **Armador de horarios**: combina las comisiones del cuatrimestre según un
+  pedido en castellano ("viernes libre, no antes de las 10") sin
+  superposiciones.
+- **Pruebas**: 21 tests SQL y 23 tests E2E con Playwright, en GitHub
+  Actions en cada push y pull request.
 
-Todavía no está implementado:
+Lo que queda pendiente está en la sección "Qué queda" de
+[ROADMAP.md](ROADMAP.md).
 
-- Backend/API.
-- Frontend conectado a Supabase (la app hoy es una demo sin datos reales).
-- Supabase Auth (login/registro) y el flujo que vincula un usuario de Auth
-  con su `persona` (`persona.auth_user_id`).
-- Vistas de solo-lectura (ocupación de aulas con alertas, agenda del día).
-- Integración real con Mercado Pago (el modelo de datos para QR/órdenes de
-  pago está listo, falta la lógica de aplicación).
+## Temario de la materia
 
-Disponible desde la última actualización:
+Este proyecto es el trabajo práctico integrador de Programación Web. Cómo
+cubre cada tema del temario:
 
-- Políticas RLS por rol (`persona_rol`) sobre las 49 tablas del schema
-  `sga`, en `20261001000000_rls_policies.sql`. Alumnos solo ven su propio
-  legajo/facturación; docentes ven alumnos y notas de sus comisiones;
-  administrativos tienen acceso total. Catálogos (carreras, aulas, etc.)
-  son de lectura abierta para cualquier usuario autenticado.
-- Columna `persona.auth_user_id` para vincular una `persona` con su
-  usuario de Supabase Auth (todavía no se crea automáticamente — falta el
-  flujo de registro/login).
-
-## Roadmap (temario de la materia)
-
-Este proyecto es el trabajo práctico integrador de Programación Web. La
-mitad "Primer Parcial (programar)" del temario mapea directo a entregables
-del SGA:
-
-| Tema del temario | Entregable en el SGA |
+| Tema del temario | En el SGA |
 |---|---|
-| Bases de datos y Supabase: SQL, tablas, relaciones, CRUD, Auth, RLS | Migrar `ddl_sga.sql`/`triggers_sga.sql` a Supabase + políticas RLS por rol (`persona_rol`) |
-| Autenticación y autorización: login, registro, roles, middleware, sesiones | Supabase Auth, roles alumno/docente/admin sobre `persona_rol` |
-| Next.js completo: App Router, layouts, routing, Server Components, data fetching | App en `sga/app/` (inscripciones, notas, aulas, facturación) |
-| React completo: JSX, componentes, props, estado, hooks, formularios, consumo de APIs | Componentes de UI para los flujos de alumno/docente/admin |
-| APIs y Backend: Route Handlers, endpoints REST, validaciones, manejo de errores | Route Handlers en `sga/app/api/` sobre las entidades del modelo |
-| Mercado Pago: checkout, preferencias, estados de pago | Flujo de pago de aranceles sobre `orden_pago`/`evento_webhook_mp` (ya modelados) |
-| Testing y calidad: testing manual, Playwright | Suite E2E con Playwright sobre los flujos principales |
-| DevOps: deploy en Vercel, variables de entorno, CI/CD con GitHub Actions | Pipeline en GitHub Actions + deploy automático en Vercel |
-| Presentación Proyecto Final | Demo end-to-end del SGA |
+| Bases de datos y Supabase: SQL, tablas, relaciones, CRUD, Auth, RLS | ✅ Schema `sga` en `supabase/migrations/`, funciones y triggers, políticas RLS por rol (`persona_rol`) |
+| Autenticación y autorización: login, registro, roles, middleware, sesiones | ✅ Supabase Auth con sesión por cookies (`proxy.ts`, `lib/supabase/`), menú y permisos por rol |
+| Next.js completo: App Router, layouts, routing, Server Components, data fetching | ✅ App en `sga/app/`: layouts, rutas dinámicas, Server Components y Server Actions |
+| React completo: JSX, componentes, props, estado, hooks, formularios, consumo de APIs | ✅ Componentes en `app/components/` (menú lateral, solapas, armador de horarios) y formularios de cada flujo |
+| APIs y Backend: Route Handlers, endpoints REST, validaciones, manejo de errores | ✅ Route Handler del webhook de Mercado Pago, Server Actions y funciones de la base que validan cada operación |
+| Mercado Pago: checkout, preferencias, estados de pago | ✅ Pago de facturas y cuotas de planes de pago con Checkout Pro y webhook |
+| Testing y calidad: testing manual, Playwright | ✅ Tests SQL (`tests/sql/`) y E2E con Playwright (`app/e2e/`) |
+| DevOps: deploy en Vercel, variables de entorno, CI/CD con GitHub Actions | ✅ `.github/workflows/ci.yml` (lint, build, base de datos y E2E) y deploy automático en Vercel |
+| Presentación Proyecto Final | Demo end-to-end en https://itbasga.vercel.app |
 
 Los temas previos al parcial (Internet/Web, JS/HTML/CSS, proyecto
 integrador e-commerce) son fundamentos de la cursada, no entregables de
-este proyecto — quedan documentados en `docs/apuntes/` en la raíz del
-repositorio.
-
-Orden sugerido de implementación: 1) migrar schema a Supabase con RLS,
-2) Auth y roles, 3) scaffold Next.js + primeros Route Handlers (CRUD sobre
-inscripciones/notas), 4) integración Mercado Pago, 5) Playwright, 6) CI/CD
-y deploy en Vercel.
+este proyecto.
 
 ## Estructura del repositorio
 
 ```text
 sga/
-├── src/
-│   └── sql/
-│       ├── ddl_sga.sql       # Schema, enums, tablas (copia histórica)
-│       └── triggers_sga.sql  # Reglas de negocio (copia histórica)
+├── app/                       # App Next.js (raíz del proyecto en Vercel)
+│   ├── app/                   # Rutas (App Router): login, (sga)/…, api/mercadopago
+│   ├── components/            # Menú lateral, solapas, grilla semanal, armador
+│   ├── lib/                   # Acceso a datos, sesión, Supabase, Mercado Pago
+│   └── e2e/                   # Tests E2E con Playwright
 ├── supabase/
 │   ├── config.toml            # Configuración para Supabase CLI local
 │   ├── migrations/            # Migraciones versionadas: fuente de verdad del schema
-│   └── seed.sql               # Datos de prueba (catálogos, aulas, cursos)
-├── tests/
-│   └── sql/
-│       ├── smoke_test.sql    # Validación funcional de los triggers
-│       └── rls_test.sql      # Validación de las políticas RLS
-└── .env.example               # Variables requeridas por la aplicación
+│   └── seed*.sql              # Datos (reales del SGA actual y de demo)
+├── scripts/                   # Conversores CSV → seed, scripts de consola y de pruebas
+├── tests/sql/                 # Tests de la base (triggers, RLS, cada módulo)
+├── src/sql/                   # Copia histórica del DDL y los triggers originales
+├── ROADMAP.md                 # Estado, pantallas relevadas y lo que queda
 └── README.md
 ```
 
@@ -147,9 +177,9 @@ confirmados — revisar si en algún momento se puede validar:
 - `carrera.nivel_informatico` corresponde al "Nivel informativo" del
   listado de carreras del SGA actual (hoy siempre "Grado" en grado).
   Sigue sin lógica relacional propia.
-- Confirmación de pago vía Mercado Pago: webhook como mecanismo primario
-  + reconciliación periódica de respaldo (no implementado aún, es lógica
-  de backend, no de base de datos).
+- Confirmación de pago vía Mercado Pago: el webhook es el único
+  mecanismo. Una reconciliación periódica de respaldo (consultar a Mercado
+  Pago las órdenes pendientes) no está hecha.
 
 ## Configuración local
 
@@ -324,6 +354,17 @@ Actualmente se aplican, en orden:
   facturas (`plan_pago_id`, `cuota_numero`) que vencen el 10 de los meses
   siguientes y se pagan con Mercado Pago. La clave única de factura pasa a
   ser (legajo, período, plan) con NULLS NOT DISTINCT.
+- `20261024000000_autoridades_orden.sql`: orden jerárquico de cargos y
+  escuelas para listar las autoridades como el SGA actual.
+- `20261025000000_plan_sin_creditos.sql`: planes con 0 créditos totales.
+- `20261026000000_plan_items_y_huecos_sin_ubicacion.sql`: bloques de
+  "aprobar N ítems" (`APROBAR_ITEMS`) y huecos de electivas sin año ni
+  cuatrimestre.
+- `20261027000000_hueco_dentro_de_electivas.sql`: huecos de electivas que
+  se muestran dentro de otro bloque (`contenedor_bloque_id`).
+- `20261028000000_comision_inscriptos_sga.sql`: inscriptos que tenía cada
+  comisión en el SGA actual al bajarla (`inscriptos_sga`), para el armador
+  de horarios.
 
 Datos en el SQL Editor, en este orden (todos se pueden volver a correr):
 
@@ -407,7 +448,7 @@ Datos de prueba: `supabase/seed.sql` (escuela, carrera, plan, materias,
 edificios, aulas, cursos, comisiones y horarios). En Supabase en la nube se
 corre pegándolo en el SQL Editor; se puede ejecutar más de una vez.
 
-Los archivos originales en `src/sql/` se conservan como referencia histórica.
+Los archivos originales en `src/sql/` se conservan como referencia histórica (la fuente de verdad son las migraciones).
 
 ### 4. Crear el proyecto Supabase remoto
 
@@ -421,9 +462,11 @@ npx supabase link --project-ref TU_PROJECT_REF
 npx supabase db push
 ```
 
-Las políticas RLS por rol (`persona_rol`) ya están escritas en
-`20261001000000_rls_policies.sql`. Falta integrar Supabase Auth en la app
-para que `persona.auth_user_id` se complete al registrarse/iniciar sesión.
+Las políticas RLS por rol (`persona_rol`) están en
+`20261001000000_rls_policies.sql`. `persona.auth_user_id` se completa solo:
+al crear un usuario de Supabase Auth, un trigger lo vincula con la
+`persona` que tiene ese mail institucional
+(`20261002000000_auth_vinculo_persona.sql`).
 
 ### 5. Desplegar la app en Vercel
 

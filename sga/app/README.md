@@ -1,36 +1,39 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# SGA: app Next.js
 
-## Getting Started
+App del Sistema de Gestión Académica, publicada en
+**https://itbasga.vercel.app**. La documentación completa (modelo de
+datos, migraciones, seeds y deploy) está en [../README.md](../README.md).
 
-First, run the development server:
+## Correrla en local
+
+Necesita una Supabase con las migraciones y los seeds de `sga/supabase/`
+(ver "Configuración local" en el README del proyecto) y un `.env.local`
+armado a partir de `sga/.env.example`.
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev     # http://localhost:3000
+npm run build   # verificación de producción
+npm run lint
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Tests E2E
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Corren contra una Supabase local (`supabase start` en `sga/`):
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+bash ../scripts/e2e_preparar.sh   # seeds, usuarios demo y .env.e2e
+npm run e2e
+```
 
-## Learn More
+## Carpetas
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `app/`: rutas (App Router). `login/` y `auth/` son el ingreso; `(sga)/`
+  tiene todas las pantallas con sesión; `api/mercadopago/webhook` recibe
+  los avisos de pago.
+- `components/`: menú lateral, solapas, grilla semanal y armador de
+  horarios.
+- `lib/`: acceso a datos por pantalla, sesión, clientes de Supabase y
+  Mercado Pago.
+- `e2e/`: tests de Playwright.
+- `proxy.ts`: renueva la sesión de Supabase en cada pedido.
